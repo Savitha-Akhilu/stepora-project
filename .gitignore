@@ -1,0 +1,27 @@
+# === Python ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# === Environment ===
+steporaenv/
+venv/
+env/
+*.env
+
+# === Django ===
+*.log
+*.pot
+*.pyc
+*.pyo
+*.db
+*.sqlite3
+
+# === Media and Static Files ===
+media/
+staticfiles/
+
+# === IDE / Editor Settings ===
+.vscode/
+.idea/
