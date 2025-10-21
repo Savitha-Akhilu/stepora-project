@@ -1,0 +1,233 @@
+{% extends 'user_section/base.html' %}
+{% load static %}
+
+{% block title %}Home - Stepora{% endblock %}
+
+{% block content %}
+
+{% block extra_css %}
+<style>
+  /* Import the same elegant serif font */
+  @import url('https://fonts.googleapis.com/css2?family=Rokkitt:wght@400;500;600;700&display=swap');
+
+  .collection-text {
+    font-family: 'Rokkitt', serif;
+    font-size: 22px;
+    font-weight: 500;
+    color: #000;
+    margin-top: 10px;
+    transition: color 0.3s ease, text-decoration 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .collection-text:hover {
+    color: #6ec3b0; /* Same mint green as your theme */
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .collection-img {
+    border-radius: 6px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .collection-img:hover {
+    transform: scale(1.03);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
+  }
+    /* Product card styling */
+  .product-card {
+    overflow: hidden;
+    border-radius: 10px;
+  }
+
+  .image-container {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .image-container img {
+    transition: transform 0.4s ease;
+  }
+
+  /* Hover Zoom */
+  .image-container:hover img {
+    transform: scale(1.08);
+  }
+
+  /* Overlay setup */
+  .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  /* Show overlay on hover */
+  .image-container:hover .overlay {
+    opacity: 1;
+  }
+
+  /* Button design */
+  .overlay .btn {
+    border-radius: 25px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    text-transform: uppercase;
+  }
+
+  .overlay .btn-light {
+    background: #fff;
+    color: #222;
+    border: none;
+  }
+
+  .overlay .btn-dark {
+    background: #222;
+    color: #fff;
+    border: none;
+  }
+
+  .overlay .btn-light:hover {
+    background: #6ec3b0;
+    color: #fff;
+  }
+
+  .overlay .btn-dark:hover {
+    background: #6ec3b0;
+  }
+</style>
+
+<style>
+  /* Reduce carousel height */
+  #homeCarousel .carousel-item img {
+    height: 480px;
+    /* Adjust height here (try 400–500px for best fit) */
+    object-fit: cover;
+    /* Keeps image centered and fills area nicely */
+  }
+
+  /* Optional: adjust caption position */
+  #homeCarousel .carousel-caption {
+    bottom: 120px;
+    /* move caption up if needed */
+  }
+
+  @media (max-width: 768px) {
+    #homeCarousel .carousel-item img {
+      height: 300px;
+      /* smaller height for mobile */
+    }
+
+    #homeCarousel .carousel-caption {
+      bottom: 60px;
+    }
+  }
+</style>
+{% endblock %}
+
+<!-- ===== Slider ===== -->
+<div id="homeCarousel" class="carousel slide" data-bs-ride="carousel">
+  <div class="carousel-inner">
+    <div class="carousel-item active">
+      <img src="{% static 'images/img_bg_1.jpg' %}" class="d-block w-100" alt="Men Shoes">
+      <div class="carousel-caption d-none d-md-block">
+        <h2 class="fw-bold text-white">NEW ARRIVAL</h2>
+        <p>Up to 30% Off – Stylish shoes for men</p>
+        <a href="#" class="btn btn-light btn-sm px-3">Shop Collection</a>
+      </div>
+    </div>
+    <div class="carousel-item">
+      <img src="{% static 'images/img_bg_2.jpg' %}" class="d-block w-100" alt="Women Shoes">
+      <div class="carousel-caption d-none d-md-block">
+        <h2 class="fw-bold text-white">SUMMER COLLECTION</h2>
+        <p>Discover comfort and elegance</p>
+        <a href="#" class="btn btn-light btn-sm px-3">Shop Now</a>
+      </div>
+    </div>
+  </div>
+  <button class="carousel-control-prev" type="button" data-bs-target="#homeCarousel" data-bs-slide="prev">
+    <span class="carousel-control-prev-icon"></span>
+  </button>
+  <button class="carousel-control-next" type="button" data-bs-target="#homeCarousel" data-bs-slide="next">
+    <span class="carousel-control-next-icon"></span>
+  </button>
+</div>
+
+<!-- ===== Intro Text ===== -->
+<section class="py-5 text-center">
+  <div class="container">
+    <h5 class="fw-bold">It started with a simple idea: Create quality, well-designed products that I wanted myself.</h5>
+  </div>
+</section>
+
+<!-- ===== Collections ===== -->
+
+
+<section class="container my-5">
+  <div class="row g-4 text-center">
+    <div class="col-md-6">
+      <a href="#">
+        <img src="{% static 'images/men.jpg' %}" alt="Men Collection" class="img-fluid rounded shadow-sm collection-img">
+        <p class="collection-text">Shop Men's Collection</p>
+      </a>
+    </div>
+    <div class="col-md-6">
+      <a href="#">
+        <img src="{% static 'images/women.jpg' %}" alt="Women Collection" class="img-fluid rounded shadow-sm collection-img">
+        <p class="collection-text">Shop Women's Collection</p>
+      </a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===== Best Sellers ===== -->
+<section class="container my-5">
+  <h3 class="text-center mb-4 fw-bold">Best Sellers</h3>
+
+
+  <div class="row g-4">
+  {% for variant in variants %}
+    {% for image in variant.images.all %}
+      {% if image.is_primary %}
+        <div class="col-6 col-md-3">
+          <div class="card product-card border-0 shadow-sm h-100 text-center">
+            <div class="image-container">
+              <img src="{{ image.image.url }}" class="card-img-top" alt="{{ variant.variant_name }}">
+              <div class="overlay">
+                <a href="#" class="btn btn-light btn-sm">View</a>
+<a href="#" class="btn btn-dark btn-sm">Add to Cart</a>
+
+              </div>
+            </div>
+            <div class="card-body">
+              <h6 class="card-title fw-semibold">{{ variant.product.name }}</h6>
+              <p class="text-muted mb-0">₹{{ variant.price }}</p>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    {% endfor %}
+  {% empty %}
+    <p class="text-center text-muted">No products found.</p>
+  {% endfor %}
+</div>
+
+
+  <div class="text-center mt-4">
+    <a href="#" class="btn btn-dark btn-sm px-4">Shop All Products</a>
+  </div>
+</section>
+
+{% endblock %}

@@ -4,9 +4,37 @@ from django.contrib import messages
 from django.contrib.auth.views import PasswordResetView
 from django.core.mail import send_mail
 from .forms import SignUpForm, LoginForm, OTPForm
-from .models import CustomerUser
+from adminpanel.models import CustomUser
 import random, time
+from products.models import Product,ProductVariant
 
+
+
+def redirect_after_login(request):
+    """Redirect user based on role and app."""
+    user = request.user
+    print(user)
+
+    if user.is_authenticated:
+        # Admin/staff → adminpanel dashboard
+        if user.is_superuser:
+            return redirect('/adminpanel/dashboard/')
+        # Normal user → user home
+        else:
+            return redirect('/users/')
+    # fallback for non-authenticated
+    return redirect('/')
+def user_home(request):
+    # Get product variants that have a primary image
+    variants = (
+        ProductVariant.objects.filter(images__is_primary=True, is_active=True, product__is_active=True)
+        .select_related('product')
+        .prefetch_related('images')
+        .order_by('-created_at')[:8]
+    )
+
+    context = {'variants': variants}
+    return render(request, 'user_section/user_home.html', context)
 # In-memory OTP store with timestamp
 OTP_STORE = {}
 
@@ -35,7 +63,7 @@ def signup(request):
             return redirect('verify_otp')
     else:
         form = SignUpForm()
-    return render(request, 'users/signup.html', {'form': form})
+    return render(request, 'user_section/sign_up.html', {'form': form})
 
 # Verify OTP
 def verify_otp(request):
@@ -113,7 +141,7 @@ def user_login(request):
                 messages.error(request, "Email does not exist")
     else:
         form = LoginForm()
-    return render(request, 'users/login.html', {'form': form})
+    return render(request, 'user_section/login.html', {'form': form})
 
 # Logout
 def user_logout(request):

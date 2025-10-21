@@ -1,0 +1,119 @@
+{% extends 'user_section/base.html' %}
+{% load static %}
+{% block title %}{{ variant.product.name }} - Details{% endblock %}
+
+{% block content %}
+{% block extra_css %}
+<style>
+  .carousel-item img {
+    height: 480px;
+    object-fit: cover;
+  }
+  .nav-tabs .nav-link.active {
+    background-color: #6ec3b0;
+    color: #fff;
+    border: none;
+  }
+  .nav-tabs .nav-link {
+    color: #444;
+    font-weight: 500;
+  }
+  .nav-tabs .nav-link:hover {
+    color: #6ec3b0;
+  }
+</style>
+{% endblock %}
+
+<div class="container py-5">
+
+  <!-- Breadcrumb -->
+  <div class="mb-4">
+    <p class="text-muted mb-0">
+      <a href="{% url 'user_home' %}" class="text-decoration-none text-muted">Home</a> /
+      <span class="fw-semibold">Product Details</span>
+    </p>
+  </div>
+
+  <!-- Product Details -->
+  <div class="row g-5 align-items-start">
+    <!-- Left: Product Image -->
+    <div class="col-md-6">
+      <div id="productCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner rounded shadow-sm">
+          {% for image in variant.images.all %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+              <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ variant.variant_name }}">
+            </div>
+          {% endfor %}
+        </div>
+        {% if variant.images.count > 1 %}
+        <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Next</span>
+        </button>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Right: Product Info -->
+    <div class="col-md-6">
+      <h5 class="text-uppercase text-muted">{{ variant.product.name }}</h5>
+      <h3 class="fw-bold mb-2">₹{{ variant.price }}</h3>
+      <p class="text-muted mb-4">{{ variant.short_description|default:"No short description available." }}</p>
+
+      <!-- Size -->
+      {% if variant.size %}
+      <div class="mb-3">
+        <strong class="text-uppercase small">Size:</strong>
+        <span class="badge bg-light text-dark border ms-2">{{ variant.size }}</span>
+      </div>
+      {% endif %}
+
+      <!-- Color -->
+      {% if variant.color %}
+      <div class="mb-3">
+        <strong class="text-uppercase small">Color:</strong>
+        <span class="badge bg-light text-dark border ms-2">{{ variant.color }}</span>
+      </div>
+      {% endif %}
+
+      <!-- Add to Cart -->
+      <div class="d-flex align-items-center gap-3 mt-4">
+        <input type="number" class="form-control w-25" value="1" min="1">
+        <a href="#" class="btn btn-dark px-4">Add to Cart</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Description Tabs -->
+  <div class="mt-5">
+    <ul class="nav nav-tabs mb-3" id="productTab" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="desc-tab" data-bs-toggle="tab" data-bs-target="#desc" type="button" role="tab">Description</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="spec-tab" data-bs-toggle="tab" data-bs-target="#spec" type="button" role="tab">Manufacturer</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="review-tab" data-bs-toggle="tab" data-bs-target="#review" type="button" role="tab">Review</button>
+      </li>
+    </ul>
+
+    <div class="tab-content p-3 border rounded shadow-sm">
+      <div class="tab-pane fade show active" id="desc" role="tabpanel">
+        <p>{{ variant.long_description|default:"No detailed description available." }}</p>
+      </div>
+      <div class="tab-pane fade" id="spec" role="tabpanel">
+        <p>{{ variant.product.manufacture_details|default:"No manufacturer details provided." }}</p>
+      </div>
+      <div class="tab-pane fade" id="review" role="tabpanel">
+        <p>No reviews yet. Be the first to review this product!</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

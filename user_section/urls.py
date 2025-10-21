@@ -9,4 +9,7 @@ urlpatterns = [
     path('login/', views.user_login, name='login'),
     path('logout/', views.user_logout, name='logout'),
     path('forgot-password/', CustomPasswordResetView.as_view(), name='forgot_password'),
+    path('', views.user_home, name='user_home'),
+    path('login/redirect/', views.redirect_after_login, name='redirect_after_login'),
+
 ]

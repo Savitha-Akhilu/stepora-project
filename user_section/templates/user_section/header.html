@@ -1,0 +1,135 @@
+<header>
+  <div class="header-container">
+    <div class="logo">Stepora</div>
+
+    <nav class="nav-links">
+      <a href="#" class="active">Home</a>
+      <a href="#">Men</a>
+      <a href="#">Women</a>
+      <a href="#">About</a>
+      <a href="#">Contact</a>
+    </nav>
+
+    <div class="right-section">
+      <div class="search-bar">
+        <input type="text" placeholder="Search">
+        <button>🔍</button>
+      </div>
+
+      <div class="cart">
+        🛒 Cart [0]
+      </div>
+    </div>
+  </div>
+
+  <div class="sale-bar">
+    OUR BIGGEST SALE YET 50% OFF ALL SUMMER SHOES
+  </div>
+</header>
+
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Poppins", sans-serif;
+  }
+
+  header {
+    background: #fff;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  .header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 60px;
+    flex-wrap: wrap;
+  }
+
+  .logo {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #444;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 25px;
+    align-items: center;
+  }
+
+  .nav-links a {
+    text-decoration: none;
+    color: #222;
+    font-size: 0.95rem;
+    font-weight: 500;
+    letter-spacing: 1px;
+    transition: color 0.3s;
+  }
+
+  .nav-links a:hover,
+  .nav-links a.active {
+    color: #6ec3b0;
+  }
+
+  .right-section {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .search-bar {
+    position: relative;
+  }
+
+  .search-bar input {
+    padding: 7px 35px 7px 15px;
+    border: 1px solid #ccc;
+    border-radius: 25px;
+    font-size: 0.9rem;
+    outline: none;
+  }
+
+  .search-bar button {
+    position: absolute;
+    right: 6px;
+    top: 5px;
+    background: #6ec3b0;
+    border: none;
+    color: #fff;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
+  }
+
+  .cart {
+    font-size: 0.9rem;
+    color: #222;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .sale-bar {
+    background: #6ec3b0;
+    color: #fff;
+    text-align: center;
+    padding: 8px;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+  }
+
+  @media (max-width: 768px) {
+    .header-container {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .nav-links {
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+  }
+</style>

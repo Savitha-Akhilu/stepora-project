@@ -1,6 +1,301 @@
-<h2>Signup</h2>
-<form method="post">{% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Sign Up</button>
-</form>
-<a href="{% url 'login' %}">Already have an account? Login</a>
+{% load static %}
+{% load socialaccount %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stepora | Sign Up</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      margin: 0;
+      background: #ffffff;
+      font-family: 'Poppins', sans-serif;
+      color: #111;
+    }
+
+    .signup-section {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 80vh;
+      flex-direction: column;
+      margin-top: 60px;
+    }
+
+    h2 {
+      font-size: 1.7rem;
+      font-weight: 600;
+      margin-bottom: 25px;
+      text-align: center;
+      width: 100%;
+    }
+
+    form {
+      width: 380px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin: 0 auto;
+    }
+
+    label {
+      font-size: 0.9rem;
+      color: #333;
+      margin-bottom: 4px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: 0.3s;
+    }
+
+    input:focus {
+      border-color: #6ec3b0;
+      box-shadow: 0 0 5px #bce7de;
+    }
+
+    .password-wrapper {
+      position: relative;
+    }
+
+    .password-wrapper .icon {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #888;
+      cursor: pointer;
+    }
+
+    .error {
+      color: #e74c3c;
+      font-size: 0.8rem;
+      margin-top: -8px;
+      margin-bottom: 5px;
+      display: none;
+    }
+
+    .signup-btn {
+      width: 100%;
+      background: #6ec3b0;
+      border: none;
+      color: #fff;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .signup-btn:hover {
+      background: #5ab09c;
+    }
+
+    .login-text {
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    .login-text a {
+      color: #6ec3b0;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #aaa;
+      margin: 20px 0;
+      font-size: 0.85rem;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: #ddd;
+      margin: 0 10px;
+    }
+
+    .google-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: 0.3s;
+    }
+
+    .google-btn:hover {
+      background: #f7f7f7;
+    }
+
+    .google-btn svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    @media (max-width: 480px) {
+      form {
+        width: 90%;
+      }
+      .signup-section {
+        margin-top: 40px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  {% include 'user_section/header.html' %}
+
+  <section class="signup-section">
+    <h2>Sign up</h2>
+
+    <form id="signupForm" onsubmit="return validateForm()" method="POST">
+      {% csrf_token %}
+
+      <div>
+        <label>Full Name</label>
+        <input type="text" id="fullname" name="full_name" placeholder="Enter your full name">
+        <div id="nameError" class="error">Full name is required.</div>
+      </div>
+
+      <div>
+        <label>Email</label>
+        <input type="email" id="email" name="email" placeholder="Enter your email">
+        <div id="emailError" class="error">Enter a valid email address.</div>
+      </div>
+
+      <div>
+        <label>Mobile Number</label>
+        <input type="text" id="mobile" name="mobile" placeholder="10-digit mobile number">
+        <div id="mobileError" class="error">Enter a valid 10-digit mobile number.</div>
+      </div>
+
+      <div class="password-wrapper">
+        <label>Password</label>
+        <input type="password" id="password" name="password" placeholder="Enter password">
+        <span class="icon" id="togglePassword">👁️</span>
+        <div id="passwordError" class="error">Password must be at least 6 characters.</div>
+      </div>
+
+      <div class="password-wrapper">
+        <label>Confirm Password</label>
+        <input type="password" id="confirmPassword" name="confirm_password" placeholder="Re-enter password">
+        <span class="icon" id="toggleConfirm">👁️</span>
+        <div id="confirmError" class="error">Passwords do not match.</div>
+      </div>
+
+      <div>
+        <label>Referral Code (optional)</label>
+        <input type="text" id="referral" name="referral" placeholder="Referral code">
+      </div>
+
+      <div class="login-text">
+        Already have an account? <a href="{% url 'login' %}">Log in</a>
+      </div>
+
+      <button type="submit" class="signup-btn">Sign Up</button>
+
+      <div class="divider">Or Register with</div>
+
+      <button type="button" class="google-btn" onclick="window.location.href='{% provider_login_url 'google' %}'">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.69 1.22 9.17 3.6l6.84-6.84C35.82 2.6 30.32 0 24 0 14.64 0 6.54 5.36 2.56 13.12l7.97 6.19C12.5 13.56 17.8 9.5 24 9.5z"/>
+          <path fill="#34A853" d="M46.98 24.5c0-1.64-.15-3.22-.43-4.75H24v9.02h12.94c-.56 2.84-2.25 5.25-4.8 6.88l7.4 5.76C43.82 37.17 46.98 31.31 46.98 24.5z"/>
+          <path fill="#4A90E2" d="M9.53 28.31A14.5 14.5 0 0 1 9.5 19l-7.94-6.18A24.04 24.04 0 0 0 0 24c0 3.89.93 7.55 2.56 10.82l7.97-6.51z"/>
+          <path fill="#FBBC05" d="M24 48c6.32 0 11.63-2.09 15.5-5.69l-7.4-5.76C29.5 38.11 26.88 39 24 39c-6.18 0-11.43-4.09-13.47-9.69l-7.97 6.51C6.54 42.64 14.64 48 24 48z"/>
+        </svg>
+        Google
+      </button>
+    </form>
+  </section>
+
+  {% include 'user_section/authentication_footer.html' %}
+
+  <script>
+    // Toggle password visibility
+    const togglePassword = document.querySelector("#togglePassword");
+    const toggleConfirm = document.querySelector("#toggleConfirm");
+    const password = document.querySelector("#password");
+    const confirmPassword = document.querySelector("#confirmPassword");
+
+    togglePassword.addEventListener("click", () => {
+      password.type = password.type === "password" ? "text" : "password";
+    });
+
+    toggleConfirm.addEventListener("click", () => {
+      confirmPassword.type = confirmPassword.type === "password" ? "text" : "password";
+    });
+
+    // Validation logic
+    function validateForm() {
+      let valid = true;
+
+      const name = document.getElementById("fullname").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const mobile = document.getElementById("mobile").value.trim();
+      const pass = document.getElementById("password").value.trim();
+      const confirm = document.getElementById("confirmPassword").value.trim();
+
+      // Reset all error displays
+      document.querySelectorAll(".error").forEach(e => e.style.display = "none");
+
+      // Name
+      if (name === "") {
+        document.getElementById("nameError").style.display = "block";
+        valid = false;
+      }
+
+      // Email
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailPattern.test(email)) {
+        document.getElementById("emailError").style.display = "block";
+        valid = false;
+      }
+
+      // Mobile (10 digits)
+      const mobilePattern = /^[0-9]{10}$/;
+      if (!mobilePattern.test(mobile)) {
+        document.getElementById("mobileError").style.display = "block";
+        valid = false;
+      }
+
+      // Password length
+      if (pass.length < 6) {
+        document.getElementById("passwordError").style.display = "block";
+        valid = false;
+      }
+
+      // Confirm password
+      if (pass !== confirm || confirm === "") {
+        document.getElementById("confirmError").style.display = "block";
+        valid = false;
+      }
+
+      return valid;
+    }
+  </script>
+</body>
+</html>
