@@ -1,0 +1,250 @@
+{% extends "adminpanel/base.html" %}
+{% load static %}
+
+{% block title %}Edit Product{% endblock %}
+
+{% block content %}
+{% if messages %}
+<div class="mb-3">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="container-fluid py-4">
+    <h2 class="mb-4 text-center fw-bold text-primary">Edit Product</h2>
+
+    <form method="post" enctype="multipart/form-data" class="shadow p-5 rounded bg-white">
+        {% csrf_token %}
+        {% if product_form.non_field_errors %}
+        <div class="alert alert-danger mb-3">
+            {% for error in product_form.non_field_errors %}
+            <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- 🛍 Product Information -->
+        <div class="mb-5">
+            <h4 class="section-title mb-4 text-secondary border-bottom pb-2">
+                <i class="bi bi-box"></i> Product Information
+            </h4>
+            <div class="row gy-4 gx-5">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Product Name</label>
+                    {{ product_form.name }}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Category</label>
+                    <select name="category" class="form-select" required>
+                        <option value="">-- Select Category --</option>
+                        {% for categories in categories %}
+                        <option value="{{ categories.id }}" {% if product.category.id == categories.id %}selected{% endif %}>
+                            {{ categories.category_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Product Type</label>
+                    <select name="gender" class="form-select" required>
+                        <option value="">-- Select Gender --</option>
+                        {% for genders in genders %}
+                        <option value="{{ genders.id }}" {% if product.product_type.id == genders.id %}selected{% endif %}>
+                            {{ genders.gender_value }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Brand</label>
+                    <select name="brand" class="form-select" required>
+                        <option value="">-- Select Brands --</option>
+                        {% for brands in brands %}
+                        <option value="{{ brands.id }}" {% if product.brand and product.brand.id == brands.id %}selected{% endif %}>
+                            {{ brands.brand_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Variant -->
+        <div class="mb-5">
+            <h4 class="section-title mb-4 text-secondary border-bottom pb-2">
+                <i class="bi bi-tags"></i> Product Variants
+            </h4>
+
+            <div id="variant-container">
+                {% for variant in variants %}
+                <div class="variant-row row gy-3 gx-3 mb-4 border p-4 rounded bg-light">
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold mb-2">Variant Name</label>
+                        <input type="text" name="variant_name[]" class="form-control" value="{{ variant.name }}" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold mb-2">SKU Code</label>
+                        <input type="text" name="sku[]" class="form-control" value="{{ variant.sku }}" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold mb-2">Stock</label>
+                        <input type="number" name="stock[]" class="form-control" min="0" value="{{ variant.stock }}" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold mb-2">Low Stock Qty</label>
+                        <input type="number" name="low_stock_qty[]" class="form-control" min="0" value="{{ variant.low_stock_qty }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold mb-2">Color</label>
+                        <select name="color[]" class="form-select" required>
+                            <option value="">-- Select Color --</option>
+                            {% for color in colors %}
+                                <option value="{{ color.id }}" {% if variant.color and variant.color.id == color.id %}selected{% endif %}>{{ color.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold mb-2">Size</label>
+                        <select name="size[]" class="form-select" required>
+                            <option value="">-- Select Size --</option>
+                            {% for size in sizes %}
+                                <option value="{{ size.id }}" {% if variant.size and variant.size.id == size.id %}selected{% endif %}>{{ size.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold mb-2">Material</label>
+                        <select name="material[]" class="form-select">
+                            <option value="">-- Select Material --</option>
+                            {% for m in materials %}
+                                <option value="{{ m.id }}" {% if variant.material and variant.material.id == m.id %}selected{% endif %}>{{ m.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold mb-2">Occasion</label>
+                        <select name="occasion[]" class="form-select">
+                            <option value="">-- Select Occasion --</option>
+                            {% for o in occasions %}
+                                <option value="{{ o.id }}" {% if variant.occasion and variant.occasion.id == o.id %}selected{% endif %}>{{ o.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold mb-2">Discount (%)</label>
+                        <input type="number" name="discount[]" class="form-control" min="0" max="100" value="{{ variant.discount }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold mb-2">Price (₹)</label>
+                        <input type="number" name="price[]" class="form-control" min="0" step="0.01" value="{{ variant.price }}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold mb-2">Short Description</label>
+                        <input type="text" name="short_desc[]" class="form-control" value="{{ variant.short_desc }}">
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label fw-semibold mb-2">Long Description</label>
+                        <textarea name="long_desc[]" class="form-control" rows="2">{{ variant.long_desc }}</textarea>
+                    </div>
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="button" class="btn btn-danger remove-variant w-100">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="text-end">
+                <button type="button" id="add-variant" class="btn btn-primary mt-2">
+                    <i class="bi bi-plus-lg"></i> Add Another Variant
+                </button>
+            </div>
+        </div>
+
+        <!-- Product Images -->
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Upload Product Images (min 3)</label>
+            <input type="file" id="multi-image-input" name="images" multiple accept="image/*" class="form-control">
+        </div>
+
+        <div id="image-previews" class="row g-3 mt-3">
+            <input type="hidden" name="primary_image_index" id="primary_image_index" value="0">
+            {% for image in images %}
+            <div class="col-md-3 position-relative">
+                <div class="card shadow-sm">
+                    <img src="{{ image.image.url }}" class="card-img-top preview-img" alt="Image Preview" style="object-fit:cover; height:200px;">
+                    <div class="card-body text-center">
+                        <div class="form-check">
+                            <input class="form-check-input is-primary" type="checkbox" {% if image.is_primary %}checked{% endif %}>
+                            <label class="form-check-label">Is Primary</label>
+                        </div>
+                        <button type="button" class="btn btn-outline-primary btn-sm mt-2 crop-btn">Crop</button>
+                        <button type="button" class="btn btn-outline-danger btn-sm mt-2 remove-btn">Remove</button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Submit -->
+        <div class="text-center">
+            <button type="submit" class="btn btn-success px-5 py-2 fw-semibold">
+                <i class="bi bi-save"></i> Update Product
+            </button>
+            <a href="{% url 'products:product_list' %}" class="btn btn-outline-secondary px-4 py-2 ms-2">
+                <i class="bi bi-arrow-left"></i> Back to Product List
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- JS & CSS (Bootstrap, Cropper) same as add_product.html -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+
+    // 🔹 Remove existing image
+    document.querySelectorAll(".remove-btn").forEach(btn => {
+        btn.addEventListener("click", function() {
+            const card = this.closest(".col-md-3");
+            card.remove();
+        });
+    });
+
+    // 🔹 Show new image previews instantly
+    const input = document.getElementById("multi-image-input");
+    const previewContainer = document.getElementById("image-previews");
+
+    input.addEventListener("change", function(event) {
+        previewContainer.innerHTML = ""; // Clear existing previews
+        for (const file of event.target.files) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const col = document.createElement("div");
+                col.classList.add("col-md-3", "position-relative");
+                col.innerHTML = `
+                    <div class="card shadow-sm">
+                        <img src="${e.target.result}" class="card-img-top preview-img" style="object-fit:cover;height:200px;">
+                        <div class="card-body text-center">
+                            <div class="form-check">
+                                <input class="form-check-input is-primary" type="checkbox">
+                                <label class="form-check-label">Is Primary</label>
+                            </div>
+                            <button type="button" class="btn btn-outline-danger btn-sm mt-2 remove-btn">Remove</button>
+                        </div>
+                    </div>
+                `;
+                previewContainer.appendChild(col);
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+});
+</script>
+{% endblock %}

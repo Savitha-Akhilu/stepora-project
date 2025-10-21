@@ -33,7 +33,6 @@ class ProductVariant(models.Model):
     discount = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     short_description = models.CharField(max_length=250, blank=True)
     long_description = models.TextField(blank=True)
-
     is_active = models.BooleanField(default=True)  # Soft delete
     created_at = models.DateTimeField(auto_now_add=True)
 
