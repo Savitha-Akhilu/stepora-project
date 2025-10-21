@@ -1,0 +1,13 @@
+<h2>Edit Category</h2>
+<form method="post">
+    {% csrf_token %}
+    <input type="text" name="category_name" value="{{ category.category_name }}" required>
+    <select name="gender" required>
+        <option value="Men" {% if category.gender=="Men" %}selected{% endif %}>Men</option>
+        <option value="Women" {% if category.gender=="Women" %}selected{% endif %}>Women</option>
+        <option value="Unisex" {% if category.gender=="Unisex" %}selected{% endif %}>Unisex</option>
+    </select>
+    <textarea name="description">{{ category.description }}</textarea>
+    <button type="submit">Update</button>
+</form>
+<a href="{% url 'manage_categories' %}">Back</a>
