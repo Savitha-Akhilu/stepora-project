@@ -207,7 +207,44 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
 <script>
-    // Image preview, crop, remove, primary selection JS same as add_product.html
-    // Variant clone and remove JS same as add_product.html
+document.addEventListener("DOMContentLoaded", function() {
+
+    // 🔹 Remove existing image
+    document.querySelectorAll(".remove-btn").forEach(btn => {
+        btn.addEventListener("click", function() {
+            const card = this.closest(".col-md-3");
+            card.remove();
+        });
+    });
+
+    // 🔹 Show new image previews instantly
+    const input = document.getElementById("multi-image-input");
+    const previewContainer = document.getElementById("image-previews");
+
+    input.addEventListener("change", function(event) {
+        previewContainer.innerHTML = ""; // Clear existing previews
+        for (const file of event.target.files) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const col = document.createElement("div");
+                col.classList.add("col-md-3", "position-relative");
+                col.innerHTML = `
+                    <div class="card shadow-sm">
+                        <img src="${e.target.result}" class="card-img-top preview-img" style="object-fit:cover;height:200px;">
+                        <div class="card-body text-center">
+                            <div class="form-check">
+                                <input class="form-check-input is-primary" type="checkbox">
+                                <label class="form-check-label">Is Primary</label>
+                            </div>
+                            <button type="button" class="btn btn-outline-danger btn-sm mt-2 remove-btn">Remove</button>
+                        </div>
+                    </div>
+                `;
+                previewContainer.appendChild(col);
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+});
 </script>
 {% endblock %}
