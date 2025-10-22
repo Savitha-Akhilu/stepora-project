@@ -1,0 +1,39 @@
+<h2>Manage Categories</h2>
+
+<form method="get">
+    <input type="text" name="q" placeholder="Search categories" value="{{ query }}">
+    <button type="submit">Search</button>
+    <a href="{% url 'manage_categories' %}">Clear</a>
+</form>
+
+<a href="{% url 'add_category' %}">Add Category</a>
+
+<table border="1">
+    <tr>
+        <th>Name</th>
+        <th>Gender</th>
+        <th>Description</th>
+        <th>Action</th>
+    </tr>
+    {% for cat in categories %}
+    <tr>
+        <td>{{ cat.category_name }}</td>
+        <td>{{ cat.gender }}</td>
+        <td>{{ cat.description }}</td>
+        <td>
+            <a href="{% url 'edit_category' cat.id %}">Edit</a> |
+            <a href="{% url 'delete_category' cat.id %}" onclick="return confirm('Are you sure?')">Delete</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+<div>
+    {% if categories.has_previous %}
+        <a href="?page={{ categories.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">Previous</a>
+    {% endif %}
+    Page {{ categories.number }} of {{ categories.paginator.num_pages }}
+    {% if categories.has_next %}
+        <a href="?page={{ categories.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Next</a>
+    {% endif %}
+</div>

@@ -1,0 +1,13 @@
+<h2>Add Category</h2>
+<form method="post">
+    {% csrf_token %}
+    <input type="text" name="category_name" placeholder="Category Name" required>
+    <select name="gender" required>
+        <option value="Men">Men</option>
+        <option value="Women">Women</option>
+        <option value="Unisex">Unisex</option>
+    </select>
+    <textarea name="description" placeholder="Description"></textarea>
+    <button type="submit">Add</button>
+</form>
+<a href="{% url 'manage_categories' %}">Back</a>
