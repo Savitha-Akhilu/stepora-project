@@ -1,7 +1,7 @@
 from django.db import models
-from adminpanel.models import Category,CustomUser,Brand,Gender
+from adminpanel.models import CustomUser
 from PIL import Image
-from category.models import Color,Size,Material,Occasion
+from category.models import Color,Size,Material,Occasion,Brand,Category,Gender
 
 # ------------------ PRODUCT MODEL ------------------
 class Product(models.Model):

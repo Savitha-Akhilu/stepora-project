@@ -11,13 +11,29 @@
     </nav>
 
     <div class="right-section">
-      <div class="search-bar">
-        <input type="text" placeholder="Search">
-        <button>🔍</button>
+      <!-- 👤 User Icon -->
+      <div class="user-menu">
+        <i class="fa-solid fa-user user-icon"></i>
+<div class="user-dropdown">
+  <a href="{% url 'login' %}">Login</a>
+  <a href="{% url 'signup' %}">Register</a>
+</div>
       </div>
 
+      <!-- ❤️ Wishlist -->
+      <div class="wishlist">
+        <i class="fa-solid fa-heart"></i>
+      </div>
+
+      <!-- 🔍 Search -->
+      <div class="search-bar">
+        <input type="text" placeholder="Search">
+        <button><i class="fa-solid fa-magnifying-glass"></i></button>
+      </div>
+
+      <!-- 🛒 Cart -->
       <div class="cart">
-        🛒 Cart [0]
+        <i class="fa-solid fa-cart-shopping"></i> Cart [0]
       </div>
     </div>
   </div>
@@ -46,6 +62,7 @@
     align-items: center;
     padding: 15px 60px;
     flex-wrap: wrap;
+    overflow: visible !important;
   }
 
   .logo {
@@ -54,6 +71,7 @@
     color: #444;
   }
 
+  /* ============ NAVIGATION LINKS ============ */
   .nav-links {
     display: flex;
     gap: 25px;
@@ -74,12 +92,86 @@
     color: #6ec3b0;
   }
 
+  /* ============ RIGHT SECTION ============ */
   .right-section {
     display: flex;
     align-items: center;
     gap: 20px;
+    position: relative;
+    overflow: visible !important;
   }
 
+  /* 👤 USER MENU */
+  .user-menu {
+    position: relative;
+    cursor: pointer;
+    z-index: 99999;
+  }
+
+  .user-icon {
+    font-size: 1.2rem;
+    color: #333;
+    transition: color 0.3s;
+  }
+
+  .user-menu:hover .user-icon {
+    color: #6ec3b0;
+  }
+
+  /* Dropdown */
+  .user-dropdown {
+    position: absolute;
+    top: 35px;
+    right: 0;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: none;
+    flex-direction: column;
+    min-width: 130px;
+    z-index: 100000;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.25s ease;
+  }
+
+  .user-dropdown.show {
+    display: flex;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .user-dropdown a {
+    padding: 8px 12px;
+    text-decoration: none;
+    color: #333;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+  }
+
+  .user-dropdown a:hover {
+    background: #6ec3b0;
+    color: #fff;
+  }
+
+  /* ❤️ WISHLIST */
+  .wishlist {
+    font-size: 0.9rem;
+    color: #222;
+    letter-spacing: 1px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .wishlist i {
+    color: #6ec3b0;
+    font-size: 1rem;
+  }
+
+  /* 🔍 SEARCH */
   .search-bar {
     position: relative;
   }
@@ -105,13 +197,31 @@
     cursor: pointer;
   }
 
+  .search-bar button i {
+    font-size: 0.8rem;
+  }
+
+  /* 🛒 CART */
   .cart {
     font-size: 0.9rem;
     color: #222;
-    text-transform: uppercase;
     letter-spacing: 1px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
   }
 
+  .cart i {
+    color: #6ec3b0;
+    font-size: 1rem;
+  }
+
+  .cart:hover {
+    color: #6ec3b0;
+  }
+
+  /* SALE BAR */
   .sale-bar {
     background: #6ec3b0;
     color: #fff;
@@ -121,15 +231,56 @@
     letter-spacing: 1px;
   }
 
+  /* RESPONSIVE */
   @media (max-width: 768px) {
     .header-container {
       flex-direction: column;
       align-items: flex-start;
       gap: 10px;
+      padding: 15px 30px;
     }
+
     .nav-links {
       flex-wrap: wrap;
       gap: 15px;
     }
+
+    .right-section {
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+  }
+
+  /* Prevent carousel from blocking dropdown clicks */
+  .carousel,
+  .carousel-inner,
+  .carousel-item,
+  .carousel-item img {
+    z-index: 0 !important;
+    pointer-events: none !important;
+  }
+
+  .carousel-control-prev,
+  .carousel-control-next,
+  .carousel-indicators {
+    pointer-events: auto !important;
   }
 </style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const userMenu = document.querySelector(".user-menu");
+  const dropdown = document.querySelector(".user-dropdown");
+
+  // Toggle dropdown when user icon is clicked
+  userMenu.addEventListener("click", function (e) {
+    e.stopPropagation();
+    dropdown.classList.toggle("show");
+  });
+
+  // Close dropdown when clicking anywhere outside
+  document.addEventListener("click", function () {
+    dropdown.classList.remove("show");
+  });
+});
+</script>

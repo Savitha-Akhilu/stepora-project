@@ -3,8 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Product, ProductImage,ProductVariant
 from .forms import ProductForm
-from adminpanel.models import  Gender,Brand,Category
-from category.models import Color,Size,Occasion,Material
+from category.models import Color,Size,Occasion,Material,Brand,Category,Gender
 from django.db import transaction
 @login_required
 

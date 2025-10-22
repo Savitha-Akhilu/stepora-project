@@ -21,5 +21,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('adminpanel/', include('adminpanel.urls')),
     path('users/', include('user_section.urls')),
+    path('accounts/', include('allauth.urls')),    #  handles google login URLs
 
 ]
