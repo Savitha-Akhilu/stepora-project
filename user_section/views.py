@@ -82,7 +82,7 @@ def verify_otp(request):
                     messages.error(request, "OTP expired. Please resend.")
                     OTP_STORE.pop(email)
                 elif otp_data['otp'] == int(otp_input):
-                    user = CustomerUser.objects.get(email=email)
+                    user = CustomUser.objects.get(email=email)
                     user.is_active = True
                     user.save()
                     login(request, user)
@@ -105,7 +105,7 @@ def resend_otp(request):
         messages.error(request, "No user found to resend OTP.")
         return redirect('signup')
     try:
-        user = CustomerUser.objects.get(email=email)
+        user = CustomUser.objects.get(email=email)
         otp = random.randint(100000, 999999)
         OTP_STORE[user.email] = {'otp': otp, 'time': time.time()}
 
@@ -117,7 +117,7 @@ def resend_otp(request):
 
         messages.success(request, f"New OTP sent to {user.email}")
         return redirect('verify_otp')
-    except CustomerUser.DoesNotExist:
+    except CustomUser.DoesNotExist:
         messages.error(request, "User does not exist.")
         return redirect('signup')
 
@@ -130,14 +130,14 @@ def user_login(request):
             password = form.cleaned_data['password']
             
             try:
-                user_obj = CustomerUser.objects.get(email=email)
+                user_obj = CustomUser.objects.get(email=email)
                 user = authenticate(request, username=user_obj.username, password=password)
                 if user:
                     login(request, user)
                     return redirect('home')
                 else:
                     messages.error(request, "Invalid password")
-            except CustomerUser.DoesNotExist:
+            except CustomUser.DoesNotExist:
                 messages.error(request, "Email does not exist")
     else:
         form = LoginForm()
