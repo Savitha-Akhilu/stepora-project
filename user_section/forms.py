@@ -1,5 +1,5 @@
 from django import forms
-from .models import CustomerUser
+from adminpanel.models import CustomUser
 
 # Signup Form with password confirmation
 class SignUpForm(forms.ModelForm):
@@ -7,7 +7,7 @@ class SignUpForm(forms.ModelForm):
     password2 = forms.CharField(widget=forms.PasswordInput, label="Confirm Password")
     
     class Meta:
-        model = CustomerUser
+        model = CustomUser
         fields = ('username', 'email', 'phone')
 
     def clean(self):

@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.views import PasswordResetView
 from django.core.mail import send_mail
 from .forms import SignUpForm, LoginForm, OTPForm
-from .models import CustomerUser
+from adminpanel.models import CustomUser
 import random, time
 
 # In-memory OTP store with timestamp
