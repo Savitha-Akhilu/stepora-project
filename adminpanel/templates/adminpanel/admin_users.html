@@ -1,0 +1,198 @@
+{% extends "adminpanel/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>Users</h4>
+
+    <!-- Search form (GET) -->
+    <form class="d-flex" method="get" action="{% url 'admin_users' %}">
+      <input name="q" value="{{ q }}" class="form-control me-2" placeholder="Search by name, email or phone" />
+      <button type="submit" class="btn btn-outline-primary me-2">Search</button>
+      <a href="{% url 'admin_users' %}" class="btn btn-outline-secondary">Clear</a>
+    </form>
+  </div>
+
+  <!-- Table -->
+  <div class="card mb-3">
+    <div class="card-body table-responsive">
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Full name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Joined</th>
+            <th>Status</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if page_obj.object_list %}
+            {% for user in page_obj.object_list %}
+              <tr>
+                <td>{{ forloop.counter0|add:page_obj.start_index }}</td>
+                <td>{{ user.first_name }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.phone|default:"—" }}</td>
+                <td>{{ user.date_joined|date:"Y-m-d H:i" }}</td>
+                <td>
+                  {% if user.is_active %}
+                    <span class="badge bg-success">Active</span>
+                  {% else %}
+                    <span class="badge bg-danger">Blocked</span>
+                  {% endif %}
+                </td>
+                
+                <!-- <td class="text-end">
+                  <button
+                    class="btn btn-sm {% if user.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
+                    data-bs-toggle="modal"
+                    data-bs-target="#confirmBlockModal"
+                    data-user-id="{{ user.pk }}"
+                    data-user-email="{{ user.email }}"
+                    data-user-action="{% if user.is_active %}block{% else %}unblock{% endif %}">
+                    {% if user.is_active %}Block{% else %}Unblock{% endif %}
+                  </button>
+                </td> -->
+                <td class="text-end">
+  <div class="form-check form-switch d-flex justify-content-end">
+    <input class="form-check-input toggle-status"
+           type="checkbox"
+           id="toggle{{ user.id }}"
+           data-user-id="{{ user.id }}"
+           {% if user.is_active %}checked{% endif %}>
+  </div>
+</td>
+
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="7" class="text-center">No users found.</td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+    <nav aria-label="Page navigation">
+      <ul class="pagination">
+        {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?q={{ q|urlencode }}&page={{ page_obj.previous_page_number }}" aria-label="Previous">
+              <span aria-hidden="true">&laquo;</span>
+            </a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+        {% endif %}
+
+        {% for p in page_obj.paginator.page_range %}
+          {% if p >= page_obj.number|add:-3 and p <= page_obj.number|add:3 %}
+            <li class="page-item {% if page_obj.number == p %}active{% endif %}">
+              <a class="page-link" href="?q={{ q|urlencode }}&page={{ p }}">{{ p }}</a>
+            </li>
+          {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?q={{ q|urlencode }}&page={{ page_obj.next_page_number }}" aria-label="Next">
+              <span aria-hidden="true">&raquo;</span>
+            </a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+        {% endif %}
+      </ul>
+    </nav>
+  {% endif %}
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal fade" id="confirmBlockModal" tabindex="-1" aria-labelledby="confirmBlockModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form id="confirmBlockForm" method="post">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="confirmBlockModalLabel">Confirm action</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p id="confirmBlockText">Are you sure you want to perform this action?</p>
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger" id="confirmBlockSubmit">Yes, proceed</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<style>
+  .badge {
+  transition: all 0.3s ease;
+}
+
+</style>
+<!-- JS to populate modal form action and text -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.toggle-status').forEach((toggle) => {
+    toggle.addEventListener('change', function () {
+      const userId = this.dataset.userId;
+      const isActive = this.checked;
+      const confirmMsg = isActive
+        ? "Are you sure you want to activate this user?"
+        : "Are you sure you want to block this user?";
+
+      if (!confirm(confirmMsg)) {
+        this.checked = !this.checked;
+        return;
+      }
+
+      fetch(`/adminpanel/users/admin_toggle_user_status/${userId}/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ is_active: isActive.toString() }),
+      })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          //  Update badge dynamically
+          const badge = this.closest('tr').querySelector('.badge');
+          if (badge) {
+            if (data.is_active) {
+              badge.textContent = 'Active';
+              badge.className = 'badge bg-success';
+            } else {
+              badge.textContent = 'Blocked';
+              badge.className = 'badge bg-danger';
+            }
+          }
+        } else {
+          alert("Failed to update user status.");
+          this.checked = !this.checked;
+        }
+      })
+      .catch(() => {
+        alert("Something went wrong. Please try again.");
+        this.checked = !this.checked;
+      });
+    });
+  });
+});
+</script>
+
+{% endblock %}

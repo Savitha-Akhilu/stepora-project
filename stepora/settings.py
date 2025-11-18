@@ -14,6 +14,9 @@ from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 import os
@@ -34,9 +37,18 @@ SECRET_KEY = 'django-insecure-ll4@uu17bk0v1(hzr$0utaall^9(hkaj!+8b1ev+#rxp=^-hoi
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# ALLOWED_HOSTS = []
 
-
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'localhost',
+    'nonendurable-salvador-precisely.ngrok-free.dev'
+]
+CSRF_TRUSTED_ORIGINS = [
+    "https://nonendurable-salvador-precisely.ngrok-free.dev",
+    'https://*.ngrok-free.app',
+    'https://*.ngrok-free.dev'
+]
 # Application definition
 
 INSTALLED_APPS = [
@@ -60,7 +72,9 @@ INSTALLED_APPS = [
     'adminpanel',
     'category',
     'products',
-    'user_section'
+    'user_section',
+    'cart',
+
 ]
 
 MIDDLEWARE = [
@@ -86,6 +100,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'cart.context_processors.cart_count',
+
             ],
         },
     },
@@ -99,10 +115,14 @@ WSGI_APPLICATION = 'stepora.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'stepora_db',          # your database name
+        'USER': 'postgres',             # your MySQL username
+        'PASSWORD': 'pg@2024', # your MySQL password
+        'HOST': '127.0.0.1',        # or 'localhost'
     }
 }
+
 
 
 # Password validation
@@ -129,13 +149,13 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 
 USE_TZ = True
 
-
+# TIME_ZONE = 'UTC'
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
@@ -152,8 +172,8 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',  # Default
     'allauth.account.auth_backends.AuthenticationBackend',  # Needed for allauth
 ]
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/'
+# LOGIN_REDIRECT_URL = '/'
+# LOGOUT_REDIRECT_URL = '/'
 ACCOUNT_LOGOUT_ON_GET = True
 
 # Optional: Auto-redirect to Google login instead of showing plain "Continue" page
@@ -162,15 +182,48 @@ SOCIALACCOUNT_QUERY_EMAIL = True
 
 
 # Provider settings
+
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
-        'SCOPE': [
-            'profile',
-            'email',
-        ],
+        'SCOPE': ['profile', 'email'],
         'AUTH_PARAMS': {
             'access_type': 'online',
+            'prompt': 'select_account', 
         },
     }
 }
+SOCIALACCOUNT_LOGIN_ON_GET = True
+LOGIN_REDIRECT_URL = '/redirect-after-login/'
+# Separate redirect for admin Google login
 
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+SOCIALACCOUNT_AUTO_SIGNUP = True
+# ------------------ EMAIL SETTINGS ------------------
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+#  Django Allauth updated configuration
+ACCOUNT_LOGIN_METHODS = {"email"}  # replaces ACCOUNT_AUTHENTICATION_METHOD
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]  # replaces the deprecated ones
+ACCOUNT_EMAIL_VERIFICATION = "none"  # optional, for testing
+ACCOUNT_UNIQUE_EMAIL = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True  
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_COOKIE_AGE = 1200  # 20 minutes
+LOGIN_URL = '/login/'           # for normal user section
+LOGIN_REDIRECT_URL = '/redirect-after-login/'  # after login, redirect here
+LOGOUT_REDIRECT_URL = '/login/'  # after logout, go to user login page
+
+ADMIN_LOGIN_URL = '/adminpanel/login/'
+
+# Razorpay Keys
+RAZORPAY_KEY_ID = os.getenv('RAZORPAY_KEY_ID')
+RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET')

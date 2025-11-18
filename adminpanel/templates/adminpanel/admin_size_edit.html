@@ -1,0 +1,25 @@
+{% extends "adminpanel/base.html" %}
+{% block content %}
+<div class="container-fluid col-md-6">
+  <h4>Edit Size</h4>
+  <form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="form-label">Size Name</label>
+      <input type="text" name="name" class="form-control" value="{{ size.name }}" required>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Select Gender</label>
+      <select name="gender" class="form-select" required>
+        {% for gender in genders %}
+        <option value="{{ gender.id }}" {% if size.gender.id == gender.id %}selected{% endif %}>{{ gender.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <button type="submit" class="btn btn-success">Update</button>
+    <a href="{% url 'admin_sizes' %}" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>
+{% endblock %}

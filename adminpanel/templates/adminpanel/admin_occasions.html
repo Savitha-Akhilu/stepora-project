@@ -1,0 +1,52 @@
+{% extends "adminpanel/base.html" %}
+{% block content %}
+<div class="container-fluid">
+  <div class="d-flex justify-content-between mb-3 align-items-center">
+    <h4>Occasions</h4>
+    <a href="{% url 'admin_occasion_add' %}" class="btn btn-primary btn-sm">Add Occasion</a>
+  </div>
+
+  <form method="get" class="d-flex mb-3">
+    <input type="text" name="q" value="{{ q }}" class="form-control me-2" placeholder="Search occasions...">
+    <button class="btn btn-outline-primary me-2">Search</button>
+    <a href="{% url 'admin_occasions' %}" class="btn btn-outline-secondary">Clear</a>
+  </form>
+
+  <table class="table table-hover align-middle">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Name</th>
+        <th>Status</th>
+        <th class="text-end">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for occasion in page_obj.object_list %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ occasion.name }}</td>
+        <td>
+          {% if occasion.is_active %}
+          <span class="badge bg-success">Active</span>
+          {% else %}
+          <span class="badge bg-danger">Inactive</span>
+          {% endif %}
+        </td>
+        <td class="text-end">
+          {% if occasion.is_active %}
+          <a href="{% url 'admin_occasion_edit' occasion.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+          <form action="{% url 'admin_occasion_delete' occasion.pk %}" method="post" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete {{ occasion.name }}?')">Delete</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" class="text-center">No occasions found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

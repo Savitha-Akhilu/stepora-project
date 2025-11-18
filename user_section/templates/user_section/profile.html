@@ -1,0 +1,208 @@
+{% extends 'user_section/profile_base.html' %}
+{% load static %}
+
+{% block profile_content %}
+<link rel="stylesheet" href="{% static 'css/profile.css' %}">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<div class="profile-card">
+  <h5 class="mb-3">Profile Details</h5>
+
+  <form id="profileEditForm">
+    {% csrf_token %}
+    
+    <!-- ✅ Full Name & Mobile -->
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label class="form-label">Full Name</label>
+        <input type="text" class="form-control" name="full_name" value="{{ user.first_name }}" readonly>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Mobile Number</label>
+        <input type="text" class="form-control" name="phone" value="{{ user.phone }}" readonly>
+      </div>
+    </div>
+
+    <!-- ✅ Email & Gender -->
+    <div class="row mb-3">
+<div class="col-md-6">
+  <label class="form-label">Email ID</label>
+  <div class="d-flex align-items-center gap-2">
+    <input type="email" class="form-control" name="email" id="emailInput" value="{{ user.email }}" readonly>
+    <button type="button" class="btn btn-outline-dark btn-sm d-none" id="verifyEmailBtn">Verify</button>
+  </div>
+  <div id="otpSection" class="mt-2 d-none">
+    <input type="text" class="form-control" id="otpInput" placeholder="Enter OTP">
+    <button type="button" class="btn btn-success btn-sm mt-2" id="confirmOtpBtn">Confirm OTP</button>
+  </div>
+</div>
+
+<div class="col-md-6">
+  <label class="form-label">Gender</label>
+  <select class="form-select" name="gender" disabled>
+    <option value="" {% if not user.gender %}selected{% endif %} disabled>Select Gender</option>
+    {% for g in genders %}
+      <option value="{{ g.id }}" {% if user.gender and user.gender.id == g.id %}selected{% endif %}>{{ g.name }}</option>
+    {% endfor %}
+  </select>
+</div>
+
+    </div>
+
+    <!-- ✅ Date of Birth & Location -->
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label class="form-label">Date of Birth</label>
+        <input type="date" class="form-control" name="dob" value="{{ user.dob|date:'Y-m-d' }}" readonly>
+      </div>
+    </div>
+
+
+    <!-- ✅ Buttons -->
+    <div class="text-center mt-4">
+      <button type="button" class="btn btn-black" id="editBtn">EDIT</button>
+      <button type="submit" class="btn btn-success d-none" id="saveBtn">SAVE DETAILS</button>
+      <button type="button" class="btn btn-secondary d-none" id="cancelBtn">CANCEL</button>
+    </div>
+  </form>
+</div>
+
+<!-- ✅ JavaScript -->
+<script>
+const editBtn = document.getElementById('editBtn');
+const saveBtn = document.getElementById('saveBtn');
+const cancelBtn = document.getElementById('cancelBtn');
+const form = document.getElementById('profileEditForm');
+
+// email otp verification elements
+const emailInput = document.getElementById("emailInput");
+const verifyBtn = document.getElementById("verifyEmailBtn");
+const otpSection = document.getElementById("otpSection");
+const otpInput = document.getElementById("otpInput");
+const confirmOtpBtn = document.getElementById("confirmOtpBtn");
+
+let emailVerified = true;  // by default current email is verified
+let verifiedEmail = emailInput.value.trim(); // store current email
+
+// ✏️ Enable edit mode
+editBtn.addEventListener('click', () => {
+  form.querySelectorAll('input, select').forEach(el => {
+    el.removeAttribute('readonly');
+    el.removeAttribute('disabled');
+  });
+  editBtn.classList.add('d-none');
+  saveBtn.classList.remove('d-none');
+  cancelBtn.classList.remove('d-none');
+  verifyBtn.classList.remove('d-none');
+});
+
+// 🚫 Cancel edit
+cancelBtn.addEventListener('click', () => window.location.reload());
+
+// 🔄 Detect email change
+emailInput.addEventListener('input', () => {
+  const currentValue = emailInput.value.trim();
+  if (currentValue !== verifiedEmail) {
+    emailVerified = false;
+    otpSection.classList.add("d-none");
+    verifyBtn.classList.remove("d-none");
+  } else {
+    emailVerified = true;
+    verifyBtn.classList.add("d-none");
+    otpSection.classList.add("d-none");
+  }
+});
+
+// 💾 Save changes via AJAX (only if email verified)
+form.addEventListener('submit', e => {
+  e.preventDefault();
+
+  if (!emailVerified) {
+    alert("⚠️ Please verify your new email before saving.");
+    return;
+  }
+
+  const formData = new FormData(form);
+  fetch("{% url 'update_profile_info' %}", {
+    method: "POST",
+    headers: {
+      "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value,
+    },
+    body: formData
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.status === "success") {
+      const toast = document.createElement("div");
+      toast.textContent = "✅ Profile updated successfully!";
+      toast.style.position = "fixed";
+      toast.style.bottom = "30px";
+      toast.style.right = "30px";
+      toast.style.background = "#28a745";
+      toast.style.color = "#fff";
+      toast.style.padding = "10px 20px";
+      toast.style.borderRadius = "6px";
+      toast.style.zIndex = "1000";
+      document.body.appendChild(toast);
+      setTimeout(() => window.location.reload(), 1000);
+    } else {
+      alert("❌ Something went wrong!");
+    }
+  })
+  .catch(err => console.error(err));
+});
+
+// --- Send OTP ---
+verifyBtn.addEventListener("click", async () => {
+  const email = emailInput.value.trim();
+  if (!email) return alert("Please enter an email address.");
+  
+  const res = await fetch("{% url 'send_email_otp' %}", {
+    method: "POST",
+    headers: {
+      "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ email })
+  });
+
+  const data = await res.json();
+  if (data.status === "sent") {
+    otpSection.classList.remove("d-none");
+    alert("✅ OTP sent to " + email);
+  } else {
+    alert("❌ " + data.message);
+  }
+});
+
+// --- Confirm OTP ---
+confirmOtpBtn.addEventListener("click", async () => {
+  const otp = otpInput.value.trim();
+  const email = emailInput.value.trim();
+  if (!otp) return alert("Enter OTP.");
+
+  const res = await fetch("{% url 'verify_email_otp' %}", {
+    method: "POST",
+    headers: {
+      "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ otp, email })
+  });
+
+  const data = await res.json();
+  if (data.status === "verified") {
+    alert("✅ Email verified successfully!");
+    otpSection.classList.add("d-none");
+    verifyBtn.classList.add("d-none");
+    emailInput.setAttribute("readonly", true);
+    emailVerified = true;
+    verifiedEmail = email; // mark as verified
+  } else {
+    alert("❌ " + data.message);
+    emailVerified = false;
+  }
+});
+</script>
+
+{% endblock %}

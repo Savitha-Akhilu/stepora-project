@@ -3,38 +3,79 @@
     <div class="logo">Stepora</div>
 
     <nav class="nav-links">
-      <a href="#" class="active">Home</a>
-      <a href="#">Men</a>
-      <a href="#">Women</a>
-      <a href="#">About</a>
-      <a href="#">Contact</a>
+<a href="{% url 'user_home' %}" class="{% if request.path == '/' %}active{% endif %}">Home</a>
+<a href="{% url 'men_collection' %}" class="{% if 'men' in request.path %}active{% endif %}">Men</a>
+<a href="{% url 'women_collection' %}" class="{% if 'women' in request.path %}active{% endif %}">Women</a>
+      <!-- <a href="#">About</a>
+      <a href="#">Contact</a> -->
     </nav>
 
     <div class="right-section">
-      <!-- 👤 User Icon -->
-      <div class="user-menu">
+      <!-- User Icon -->
+      <!-- <div class="user-menu">
         <i class="fa-solid fa-user user-icon"></i>
-<div class="user-dropdown">
-  <a href="{% url 'login' %}">Login</a>
-  <a href="{% url 'signup' %}">Register</a>
+        <div class="user-dropdown">
+          <a href="{% url 'login' %}">Login</a>
+          <a href="{% url 'signup' %}">Register</a>
+        </div>
+      </div> -->
+      <!-- <div class="user-menu">
+  <i class="fa-solid fa-user user-icon"></i>
+  <div class="user-dropdown">
+    {% if user.is_authenticated %}
+      <a href="#">Hi, {{ user.first_name|default:user.username }}</a>
+      <a href="{% url 'logout' %}">Logout</a>
+    {% else %}
+      <a href="{% url 'login' %}">Login</a>
+      <a href="{% url 'signup' %}">Register</a>
+    {% endif %}
+  </div>
+</div> -->
+<div class="user-menu">
+  <i class="fa-solid fa-user user-icon"></i>
+  <div class="user-dropdown">
+    {% if user.is_authenticated %}
+      <p class="user-greeting">Hi, {{ user.first_name|default:user.username }}</p>
+      <a href="{% url 'user_profile' %}">Profile</a>
+      <a href="{% url 'logout' %}">Logout</a>
+    {% else %}
+      <a href="{% url 'login' %}">Login</a>
+      <a href="{% url 'signup' %}">Register</a>
+    {% endif %}
+  </div>
 </div>
-      </div>
 
-      <!-- ❤️ Wishlist -->
-      <div class="wishlist">
-        <i class="fa-solid fa-heart"></i>
-      </div>
 
-      <!-- 🔍 Search -->
-      <div class="search-bar">
+      <!-- wishlist -->
+<div class="wishlist">
+  <a href="{% url 'wishlist' %}" title="My Wishlist">
+    <i class="fa-solid fa-heart"></i>
+  </a>
+</div>
+
+      <!--  Search -->
+      <!-- <div class="search-bar">
         <input type="text" placeholder="Search">
         <button><i class="fa-solid fa-magnifying-glass"></i></button>
-      </div>
+      </div> -->
+      <div class="search-bar position-relative">
+  <input type="text" id="search-input" placeholder="Search" autocomplete="off">
+  <button type="button" id="search-btn">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
 
-      <!-- 🛒 Cart -->
-      <div class="cart">
-        <i class="fa-solid fa-cart-shopping"></i> Cart [0]
-      </div>
+  <!-- Dropdown for live results -->
+  <div id="search-results"
+       class="list-group position-absolute w-100"
+       style="top: 100%; left: 0; z-index: 1000; display: none;">
+  </div>
+</div>
+
+
+<div class="cart" id="cart-link" onclick="window.location.href='/cart/'">
+  <i class="fa-solid fa-cart-shopping"></i>
+  Cart [<span id="cart-count">{{ cart_count|default:0 }}</span>]
+</div>
     </div>
   </div>
 
@@ -200,6 +241,51 @@
   .search-bar button i {
     font-size: 0.8rem;
   }
+/* === Profile Dropdown Styling === */
+.user-dropdown {
+  position: absolute;
+  top: 35px;
+  right: 0;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: none;
+  flex-direction: column;
+  min-width: 150px;
+  z-index: 100000;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.25s ease;
+  text-align: left;
+}
+
+.user-dropdown.show {
+  display: flex;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.user-greeting {
+  font-size: 0.9rem;
+  color: #333;
+  font-weight: 600;
+  padding: 10px 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.user-dropdown a {
+  padding: 8px 12px;
+  text-decoration: none;
+  color: #333;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+
+.user-dropdown a:hover {
+  background: #6ec3b0;
+  color: #fff;
+}
 
   /* 🛒 CART */
   .cart {
@@ -268,19 +354,60 @@
 </style>
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-  const userMenu = document.querySelector(".user-menu");
-  const dropdown = document.querySelector(".user-dropdown");
+  document.addEventListener("DOMContentLoaded", function () {
+    const userMenu = document.querySelector(".user-menu");
+    const dropdown = document.querySelector(".user-dropdown");
 
-  // Toggle dropdown when user icon is clicked
-  userMenu.addEventListener("click", function (e) {
-    e.stopPropagation();
-    dropdown.classList.toggle("show");
+    // Toggle dropdown when user icon is clicked
+    userMenu.addEventListener("click", function (e) {
+      e.stopPropagation();
+      dropdown.classList.toggle("show");
+    });
+
+    // Close dropdown when clicking anywhere outside
+    document.addEventListener("click", function () {
+      dropdown.classList.remove("show");
+    });
+  });
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('search-input');
+  const resultsDiv = document.getElementById('search-results');
+
+  input.addEventListener('keyup', function () {
+    const query = this.value.trim();
+    if (query.length < 2) {
+      resultsDiv.style.display = 'none';
+      return;
+    }
+
+    fetch(`/search/?q=${encodeURIComponent(query)}`)
+      .then(response => response.json())
+      .then(data => {
+        resultsDiv.innerHTML = '';
+        if (data.results.length > 0) {
+          data.results.forEach(item => {
+            const resultItem = document.createElement('a');
+            resultItem.href = item.url;
+            resultItem.className = 'list-group-item list-group-item-action d-flex align-items-center';
+            resultItem.innerHTML = `
+              <img src="${item.image}" width="40" height="40" class="me-2 rounded">
+              <span>${item.name}</span>
+            `;
+            resultsDiv.appendChild(resultItem);
+          });
+        } else {
+          resultsDiv.innerHTML = '<div class="list-group-item">No products found</div>';
+        }
+        resultsDiv.style.display = 'block';
+      });
   });
 
-  // Close dropdown when clicking anywhere outside
-  document.addEventListener("click", function () {
-    dropdown.classList.remove("show");
+  document.addEventListener('click', (e) => {
+    if (!resultsDiv.contains(e.target) && e.target !== input) {
+      resultsDiv.style.display = 'none';
+    }
   });
 });
 </script>

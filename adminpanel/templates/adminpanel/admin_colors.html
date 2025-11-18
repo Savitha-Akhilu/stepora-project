@@ -1,0 +1,62 @@
+{% extends "adminpanel/base.html" %}
+{% block content %}
+<div class="container-fluid">
+  <div class="d-flex justify-content-between mb-3 align-items-center">
+    <h4>Colors</h4>
+    <a href="{% url 'admin_color_add' %}" class="btn btn-primary btn-sm">Add Color</a>
+  </div>
+{% if messages %}
+  <div class="container mt-2">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+  <form method="get" class="d-flex mb-3">
+    <input type="text" name="q" value="{{ q }}" class="form-control me-2" placeholder="Search colors...">
+    <button class="btn btn-outline-primary me-2">Search</button>
+    <a href="{% url 'admin_colors' %}" class="btn btn-outline-secondary">Clear</a>
+  </form>
+
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Name</th>
+        <th>Status</th>
+        <th class="text-end">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for color in page_obj.object_list %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ color.name }}</td>
+        <td>
+          {% if color.is_active %}
+          <span class="badge bg-success">Active</span>
+          {% else %}
+          <span class="badge bg-danger">Inactive</span>
+          {% endif %}
+        </td>
+        <td class="text-end">
+          {% if color.is_active %}
+          <a href="{% url 'admin_color_edit' color.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+          <form action="{% url 'admin_color_delete' color.pk %}" method="post" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete {{ color.name }}?')">Delete</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" class="text-center">No colors found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

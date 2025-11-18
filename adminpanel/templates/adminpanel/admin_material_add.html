@@ -1,0 +1,15 @@
+{% extends "adminpanel/base.html" %}
+{% block content %}
+<div class="container-fluid col-md-6">
+  <h4>Add Material</h4>
+  <form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="form-label">Material Name</label>
+      <input type="text" name="name" class="form-control" required>
+    </div>
+    <button type="submit" class="btn btn-success">Save</button>
+    <a href="{% url 'admin_materials' %}" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>
+{% endblock %}

@@ -4,11 +4,26 @@
 {% block title %}Add Product{% endblock %}
 
 {% block content %}
+{% if messages %}
+<div class="mb-3">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
 <div class="container-fluid py-4">
     <h2 class="mb-4 text-center fw-bold text-primary">Add New Product</h2>
 
     <form method="post" enctype="multipart/form-data" class="shadow p-5 rounded bg-white">
         {% csrf_token %}
+        {% if product_form.non_field_errors %}
+        <div class="alert alert-danger mb-3">
+            {% for error in product_form.non_field_errors %}
+            <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
 
         <!-- 🛍 Product Information -->
         <div class="mb-5">
@@ -22,223 +37,48 @@
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">Category</label>
-                    {{ product_form.category }}
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Product Type</label>
-                    {{ product_form.product_type }}
+                    <select name="category" class="form-select">
+                        <option value="">-- Select Category --</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}">{{ category.display_name }}</option>
+                        {% endfor %}
+                    </select>
+
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">Brand</label>
-                    {{ product_form.brand }}
-                </div>
-            </div>
-        </div>
+                    <select name="brand" class="form-select" required>
+                        <option value="">-- Select Brands --</option>
+                        {% for brands in brands %}
+                        <option value="{{ brands.id }}">{{ brands.name }}</option>
+                        {% endfor %}
+                    </select>
 
-        <!-- 🎨 Product Variant -->
-        <!-- <div class="mb-5">
-            <h4 class="section-title mb-4 text-secondary border-bottom pb-2">
-                <i class="bi bi-tags"></i> Product Variant
-            </h4>
-            <div class="row gy-4 gx-5">
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold">Variant Name</label>
-                    {{ product_form.variant_name }}
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold">Stock</label>
-                    {{ product_form.stock }}
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold">Low Stock Qty</label>
-                    {{ product_form.low_stock_qty }}
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold">Color</label>
-                    {{ product_form.color }}
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold">Size</label>
-                    {{ product_form.size }}
-                </div>
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <label class="form-label fw-semibold">Material</label>
-                    {{ product_form.material }}
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold">Occasion</label>
-                    {{ product_form.occasion }}
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold">Discount (%)</label>
-                    {{ product_form.discount }}
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold">Price (₹)</label>
-                    {{ product_form.price }}
-                </div>
-            </div>
-        </div> -->
-
-
-        <!-- 🎨 Product Variant Section -->
-        <!-- <div class="mb-5">
-    <h4 class="section-title mb-4 text-secondary border-bottom pb-2">
-        <i class="bi bi-tags"></i> Product Variants
-    </h4>
-
-    <div id="variant-container">
-        <div class="variant-row row gy-3 gx-3 mb-4 border p-3 rounded bg-light">
-            <div class="col-md-3">
-                <label class="form-label fw-semibold">Variant Name</label>
-                <input type="text" name="variant_name[]" class="form-control" placeholder="Variant Name" required>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label fw-semibold">Stock</label>
-                <input type="number" name="stock[]" class="form-control" min="0" required>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label fw-semibold">Low Stock Qty</label>
-                <input type="number" name="low_stock_qty[]" class="form-control" min="0">
-            </div>
-            <div class="col-md-2">
-                <label class="form-label fw-semibold">Color</label>
-                <select name="color[]" class="form-select" required>
-                    <option value="">-- Select Color --</option>
-                    {% for color in colors %}
-                        <option value="{{ color.id }}">{{ color.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label fw-semibold">Size</label>
-                <select name="size[]" class="form-select" required>
-                    <option value="">-- Select Size --</option>
-                    {% for size in sizes %}
-                        <option value="{{ size.id }}">{{ size.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label fw-semibold">Material</label>
-                <input type="text" name="material[]" class="form-control" placeholder="Material">
-            </div>
-            <div class="col-md-3">
-                <label class="form-label fw-semibold">Occasion</label>
-                <input type="text" name="occasion[]" class="form-control" placeholder="Occasion">
-            </div>
-            <div class="col-md-2">
-                <label class="form-label fw-semibold">Discount (%)</label>
-                <input type="number" name="discount[]" class="form-control" min="0" max="100">
-            </div>
-            <div class="col-md-2">
-                <label class="form-label fw-semibold">Price (₹)</label>
-                <input type="number" name="price[]" class="form-control" min="0" step="0.01" required>
-            </div>
-
-            <div class="col-md-1 d-flex align-items-end">
-                <button type="button" class="btn btn-danger remove-variant w-100">
-                    <i class="bi bi-trash"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <div class="text-end">
-        <button type="button" id="add-variant" class="btn btn-primary">
-            <i class="bi bi-plus-lg"></i> Add Another Variant
-        </button>
-    </div>
-</div> -->
-
-
-        <!-- <div class="mb-5">
-    <h4 class="section-title mb-4 text-secondary border-bottom pb-2">
-        <i class="bi bi-tags"></i> Product Variants
-    </h4>
-
-    <div id="variant-container">
-        <div class="variant-row row gy-3 gx-3 mb-4 border p-4 rounded bg-light">
-            <div class="col-md-3">
-                <label class="form-label fw-semibold mb-2">Variant Name</label>
-                <input type="text" name="variant_name[]" class="form-control" placeholder="Variant Name" required>
-            </div>
-
-            <div class="col-md-2">
-                <label class="form-label fw-semibold mb-2">Stock</label>
-                <input type="number" name="stock[]" class="form-control" min="0" required>
-            </div>
-
-            <div class="col-md-2">
-                <label class="form-label fw-semibold mb-2">Low Stock Qty</label>
-                <input type="number" name="low_stock_qty[]" class="form-control" min="0">
-            </div>
-
-            <div class="col-md-2">
-                <label class="form-label fw-semibold mb-2">Color</label>
-                <select name="color[]" class="form-select" required>
-                    <option value="">-- Select Color --</option>
-                    {% for color in colors %}
-                        <option value="{{ color.id }}">{{ color.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="col-md-2">
-                <label class="form-label fw-semibold mb-2">Size</label>
-                <select name="size[]" class="form-select" required>
-                    <option value="">-- Select Size --</option>
-                    {% for size in sizes %}
-                        <option value="{{ size.id }}">{{ size.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="col-md-3">
-                <label class="form-label fw-semibold mb-2">Material</label>
-                <select name="material[]" class="form-select">
-                    <option value="">-- Select Material --</option>
-                    {% for m in materials %}
+                    <select name="material" class="form-select" required>
+                        <option value="">-- Select Material --</option>
+                        {% for m in materials %}
                         <option value="{{ m.id }}">{{ m.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
+                        {% endfor %}
+                    </select>
+                </div>
 
-            <div class="col-md-3">
-                <label class="form-label fw-semibold mb-2">Occasion</label>
-                <select name="occasion[]" class="form-select">
-                    <option value="">-- Select Occasion --</option>
-                    {% for o in occasions %}
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Occasion</label>
+                    <select name="occasion" class="form-select" required>
+                        <option value="">-- Select Occasion --</option>
+                        {% for o in occasions %}
                         <option value="{{ o.id }}">{{ o.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
+                        {% endfor %}
+                    </select>
+                </div>
 
-            <div class="col-md-2">
-                <label class="form-label fw-semibold mb-2">Discount (%)</label>
-                <input type="number" name="discount[]" class="form-control" min="0" max="100">
-            </div>
-
-            <div class="col-md-2">
-                <label class="form-label fw-semibold mb-2">Price (₹)</label>
-                <input type="number" name="price[]" class="form-control" min="0" step="0.01" required>
-            </div>
-
-            <div class="col-md-1 d-flex align-items-end">
-                <button type="button" class="btn btn-danger remove-variant w-100">
-                    <i class="bi bi-trash"></i>
-                </button>
             </div>
         </div>
-    </div>
 
-    <div class="text-end">
-        <button type="button" id="add-variant" class="btn btn-primary mt-2">
-            <i class="bi bi-plus-lg"></i> Add Another Variant
-        </button>
-    </div>
-</div> -->
-
+        <!-- Product Variant -->
 
 
         <div class="mb-5">
@@ -291,25 +131,7 @@
                         </select>
                     </div>
 
-                    <div class="col-md-3">
-                        <label class="form-label fw-semibold mb-2">Material</label>
-                        <select name="material[]" class="form-select">
-                            <option value="">-- Select Material --</option>
-                            {% for m in materials %}
-                            <option value="{{ m.id }}">{{ m.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
 
-                    <div class="col-md-3">
-                        <label class="form-label fw-semibold mb-2">Occasion</label>
-                        <select name="occasion[]" class="form-select">
-                            <option value="">-- Select Occasion --</option>
-                            {% for o in occasions %}
-                            <option value="{{ o.id }}">{{ o.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
 
                     <div class="col-md-2">
                         <label class="form-label fw-semibold mb-2">Discount (%)</label>
@@ -361,15 +183,18 @@
 
             <div id="image-preview" class="d-flex flex-wrap gap-4 mt-3"></div>
         </div> -->
-<div class="mb-3">
-    <label class="form-label fw-semibold">Upload Product Images (min 3)</label>
-    <input type="file" id="multi-image-input" name="images" multiple accept="image/*" class="form-control" required>
-</div>
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Upload Product Images (min 3)</label>
+            <input type="file" id="multi-image-input" name="images" multiple accept="image/*" class="form-control"
+                required>
+        </div>
 
-<div id="image-previews" class="row g-3 mt-3"></div>
+        <div id="image-previews" class="row g-3 mt-3"><input type="hidden" name="primary_image_index"
+                id="primary_image_index" value="0">
+        </div>
 
-<!-- Crop Modal -->
-<div class="modal fade" id="cropModal" tabindex="-1" aria-hidden="true">
+        <!-- Crop Modal -->
+        <!-- <div class="modal fade" id="cropModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
@@ -384,9 +209,27 @@
       </div>
     </div>
   </div>
-</div>
+</div> -->
 
-        <!-- ✅ Submit -->
+
+        <div class="modal fade" id="cropModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Crop Image</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <img id="crop-image" style="max-width:90%; max-height:80vh;">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-success" id="crop-save">Save Crop</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--  Submit -->
         <div class="text-center">
             <button type="submit" class="btn btn-success px-5 py-2 fw-semibold">
                 <i class="bi bi-save"></i> Save Product
@@ -407,95 +250,102 @@
 <!-- Cropper JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
-<!-- 💫 Image Preview Script -->
+<!--Image Preview Script -->
 <script>
-let currentCropImage = null;
-let cropper;
+    let currentCropImage = null;
+    let cropper;
 
-document.getElementById('multi-image-input').addEventListener('change', function(e){
-    const files = Array.from(e.target.files);
-    const previewsContainer = document.getElementById('image-previews');
-    previewsContainer.innerHTML = '';
+    document.getElementById('multi-image-input').addEventListener('change', function (e) {
+        const files = Array.from(e.target.files);
+        const previewsContainer = document.getElementById('image-previews');
+        previewsContainer.innerHTML = '';
 
-    if (files.length < 3) {
-        alert('Please upload at least 3 images.');
-        this.value = '';
-        return;
-    }
+        if (files.length < 3) {
+            alert('Please upload at least 3 images.');
+            this.value = '';
+            return;
+        }
 
-    files.forEach((file, index) => {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const col = document.createElement('div');
-            col.className = 'col-md-3 position-relative';
+        files.forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const col = document.createElement('div');
+                col.className = 'col-md-3 position-relative';
 
-            col.innerHTML = `
+                col.innerHTML = `
                 <div class="card shadow-sm">
                     <img src="${e.target.result}" class="card-img-top preview-img" alt="Image Preview" style="object-fit:cover; height:200px;">
                     <div class="card-body text-center">
                         <div class="form-check">
-                            <input class="form-check-input is-primary" type="radio" name="primaryImage" id="primary-${index}">
+                            <input class="form-check-input is-primary" type="checkbox" name="is_primary_{{ forloop.counter0 }}" value="true">
                             <label class="form-check-label" for="primary-${index}">Is Primary</label>
-                        </div>
-                        <div class="form-check mt-1">
-                            <input class="form-check-input is-thumbnail" type="radio" name="thumbnailImage" id="thumbnail-${index}">
-                            <label class="form-check-label" for="thumbnail-${index}">Is Thumbnail</label>
                         </div>
                         <button type="button" class="btn btn-outline-primary btn-sm mt-2 crop-btn">Crop</button>
                         <button type="button" class="btn btn-outline-danger btn-sm mt-2 remove-btn">Remove</button>
                     </div>
                 </div>
             `;
+                previewsContainer.appendChild(col);
 
-            previewsContainer.appendChild(col);
+                // Crop button
+                col.querySelector('.crop-btn').addEventListener('click', function () {
+                    currentCropImage = col.querySelector('.preview-img');
+                    document.getElementById('crop-image').src = currentCropImage.src;
+                    const modal = new bootstrap.Modal(document.getElementById('cropModal'));
+                    modal.show();
 
-            // Crop button
-            col.querySelector('.crop-btn').addEventListener('click', function() {
-                currentCropImage = col.querySelector('.preview-img');
-                document.getElementById('crop-image').src = currentCropImage.src;
-                const modal = new bootstrap.Modal(document.getElementById('cropModal'));
-                modal.show();
-
-                if (cropper) cropper.destroy();
-                cropper = new Cropper(document.getElementById('crop-image'), {
-                    aspectRatio: 1,
-                    viewMode: 1,
-                    autoCropArea: 1
+                    if (cropper) cropper.destroy();
+                    cropper = new Cropper(document.getElementById('crop-image'), {
+                        aspectRatio: 1,
+                        viewMode: 1,
+                        autoCropArea: 1
+                    });
                 });
-            });
 
-            // Remove image
-            col.querySelector('.remove-btn').addEventListener('click', function() {
-                col.remove();
-            });
-        };
-        reader.readAsDataURL(file);
+                // Remove image
+                col.querySelector('.remove-btn').addEventListener('click', function () {
+                    col.remove();
+                });
+            };
+            reader.readAsDataURL(file);
+        });
     });
-});
 
-// Save crop
-document.getElementById('crop-save').addEventListener('click', function() {
-    if (!cropper || !currentCropImage) return;
+    // Save crop
+    document.getElementById('crop-save').addEventListener('click', function () {
+        if (!cropper || !currentCropImage) return;
 
-    const canvas = cropper.getCroppedCanvas({ width: 600, height: 600 });
-    currentCropImage.src = canvas.toDataURL('image/jpeg');
-    cropper.destroy();
-    bootstrap.Modal.getInstance(document.getElementById('cropModal')).hide();
-});
+        const canvas = cropper.getCroppedCanvas({ width: 600, height: 600 });
+        currentCropImage.src = canvas.toDataURL('image/jpeg');
+        cropper.destroy();
+        bootstrap.Modal.getInstance(document.getElementById('cropModal')).hide();
+    });
 
-// Form validation before submit
-document.querySelector('form').addEventListener('submit', function(e){
-    const images = document.querySelectorAll('#image-previews .card');
-    if (images.length < 3) {
-        e.preventDefault();
-        alert('You must upload at least 3 images before submitting.');
-    }
-});
+    // Form validation before submit
+    document.querySelector('form').addEventListener('submit', function (e) {
+        const images = document.querySelectorAll('#image-previews .card');
+
+        if (images.length < 3) {
+            e.preventDefault();
+            alert('You must upload at least 3 images before submitting.');
+        }
+    });
 </script>
 
 <script>
-   
-   
+
+    document.querySelectorAll('.is-primary').forEach((checkbox, idx) => {
+        checkbox.addEventListener('change', function () {
+            if (this.checked) {
+                document.getElementById('primary_image_index').value = idx;
+                // uncheck others
+                document.querySelectorAll('.is-primary').forEach(c => {
+                    if (c !== this) c.checked = false;
+                });
+            }
+        });
+    });
+
     document.addEventListener('DOMContentLoaded', function () {
         const variantContainer = document.getElementById('variant-container');
         const addVariantBtn = document.getElementById('add-variant');
@@ -504,6 +354,7 @@ document.querySelector('form').addEventListener('submit', function(e){
             const variantRow = variantContainer.querySelector('.variant-row').cloneNode(true);
             variantRow.querySelectorAll('input').forEach(input => input.value = '');
             variantRow.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
+            variantRow.querySelectorAll('textarea').forEach(textarea => textarea.value = '');
             variantContainer.appendChild(variantRow);
         });
 
@@ -518,9 +369,38 @@ document.querySelector('form').addEventListener('submit', function(e){
             }
         });
     });
+    document.addEventListener('DOMContentLoaded', function () {
+        const categorySelect = document.querySelector('select[name="category"]');
+        const sizeSelects = document.querySelectorAll('select[name="size[]"]');
+
+        function loadSizes(categoryId) {
+            if (!categoryId) return;
+
+            fetch(`/adminpanel/products/get-sizes/?category_id=${categoryId}`)
+                .then(response => response.json())
+                .then(data => {
+                    sizeSelects.forEach(select => {
+                        select.innerHTML = '<option value="">-- Select Size --</option>';
+                        data.sizes.forEach(size => {
+                            const option = document.createElement('option');
+                            option.value = size.id;
+                            option.textContent = size.name;
+                            select.appendChild(option);
+                        });
+                    });
+                })
+                .catch(err => console.error('Error fetching sizes:', err));
+        }
+
+        // Load sizes on category change
+        categorySelect.addEventListener('change', function () {
+            const selectedCategory = this.value;
+            loadSizes(selectedCategory);
+        });
+    });
+
 </script>
 
-<!-- 🌈 Custom Styles -->
 <style>
     form {
         max-width: 1100px;
@@ -570,24 +450,26 @@ document.querySelector('form').addEventListener('submit', function(e){
         border: 2px solid #eee;
         box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
     }
+
     .form-check-input.select-image {
-  width: 1.3em;
-  height: 1.3em;
-  border: 2px solid #C2CECD;
-  cursor: pointer;
-}
-.form-check-input.select-image:checked {
-  background-color: #C2CECD;
-  border-color: #198754;
-}
-.form-check-input:checked {
-    background-color: #C2CECD;
-    border-color: #198754;
-}
-.card {
-    border-radius: 12px;
-}
+        width: 1.3em;
+        height: 1.3em;
+        border: 2px solid #C2CECD;
+        cursor: pointer;
+    }
 
+    .form-check-input.select-image:checked {
+        background-color: #C2CECD;
+        border-color: #198754;
+    }
 
+    .form-check-input:checked {
+        background-color: #C2CECD;
+        border-color: #198754;
+    }
+
+    .card {
+        border-radius: 12px;
+    }
 </style>
 {% endblock %}

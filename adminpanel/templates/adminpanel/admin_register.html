@@ -1,23 +1,263 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Admin Registration</title>
-</head>
-<body>
-    <h2>Register Admin</h2>
+{% load static %}
+{% load socialaccount %}
 
-    {% if messages %}
-        {% for message in messages %}
-            <p style="color: red">{{ message }}</p>
-        {% endfor %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stepora | Admin Sign Up</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f7f8fa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      position: relative;
+    }
+
+.brand-logo {
+  position: absolute;
+  top: 40px;
+  left: 60px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 10;
+}
+
+.brand-logo img {
+  width: 120px; 
+  height: auto;
+  object-fit: contain;
+}
+
+.brand-logo span {
+  font-size: 32px;
+  font-weight: 600;
+  color: #2b2b2b;
+  letter-spacing: 0.5px;
+}
+
+    .container {
+      background: #fff;
+      width: 450px;
+      padding: 2.5rem 3rem;
+      box-shadow: 0 4px 25px rgba(0, 0, 0, 0.05);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: stretch;
+    }
+
+    h2 {
+      text-align: center;
+      font-weight: 600;
+      color: #2b2b2b;
+      margin-bottom: 1.5rem;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    label {
+      text-align: left;
+      font-size: 0.9rem;
+      color: #333;
+      font-weight: 500;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+
+    input:focus {
+      border-color: #23c5b6;
+      outline: none;
+    }
+
+    input.error-field {
+      border-color: red !important;
+      background-color: #fff4f4;
+    }
+
+    .error-message {
+      color: red;
+      font-size: 0.85rem;
+      text-align: left;
+      margin-top: -5px;
+      margin-bottom: 5px;
+    }
+
+    .btn {
+      background-color: #23c5b6;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background-color 0.3s;
+    }
+
+    .btn:hover {
+      background-color: #1fb3a6;
+    }
+
+    .divider {
+      text-align: center;
+      font-size: 0.9rem;
+      color: #999;
+      margin: 15px 0;
+      position: relative;
+    }
+
+    .divider::before, .divider::after {
+      content: "";
+      position: absolute;
+      width: 40%;
+      height: 1px;
+      background: #ddd;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .divider::before {
+      left: 0;
+    }
+
+    .divider::after {
+      right: 0;
+    }
+
+    .google-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #ddd;
+      padding: 10px;
+      border-radius: 8px;
+      gap: 8px;
+      cursor: pointer;
+      background-color: white;
+    }
+
+    .google-btn:hover {
+      background-color: #f1f1f1;
+    }
+
+    .login-text {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .login-text a {
+      color: #23c5b6;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        width: 90%;
+        padding: 2rem;
+      }
+      .brand-logo {
+        top: 15px;
+        left: 20px;
+      }
+      .brand-logo span {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!--  Logo outside card -->
+<div class="brand-logo">
+  <img src="{% static 'images/logo_shoe.png' %}" alt="Stepora Shoe Logo">
+  <span>Stepora</span>
+</div>
+
+  <!-- Signup Box -->
+  <div class="container">
+    <h2>Sign up</h2>
+
+    {% if form.non_field_errors %}
+      <div class="error-message">{{ form.non_field_errors.0 }}</div>
     {% endif %}
 
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Register</button>
-    </form>
+    <form method="POST" novalidate>
+      {% csrf_token %}
 
-    <p>Already have an account? <a href="{% url 'admin_login' %}">Login here</a></p>
+      <label for="id_fullname">Full Name</label>
+      <input type="text" name="fullname" id="id_fullname"
+             class="{% if form.fullname.errors %}error-field{% endif %}"
+             placeholder="Enter your full name"
+             value="{{ form.fullname.value|default_if_none:'' }}">
+      {% if form.fullname.errors %}
+        <div class="error-message">{{ form.fullname.errors.0 }}</div>
+      {% endif %}
+
+      <label for="id_email">Email</label>
+      <input type="email" name="email" id="id_email"
+             class="{% if form.email.errors %}error-field{% endif %}"
+             placeholder="Enter your email"
+             value="{{ form.email.value|default_if_none:'' }}">
+      {% if form.email.errors %}
+        <div class="error-message">{{ form.email.errors.0 }}</div>
+      {% endif %}
+      <label for="id_mobile">Mobile Number</label>
+<input type="text" name="phone" id="id_mobile"
+       class="{% if form.mobile.errors %}error-field{% endif %}"
+       placeholder="Enter your mobile number"
+       value="{{ form.mobile.value|default_if_none:'' }}">
+{% if form.mobile.errors %}
+  <div class="error-message">{{ form.mobile.errors.0 }}</div>
+{% endif %}
+
+
+      <label for="id_password1">Password</label>
+      <input type="password" name="password1" id="id_password1"
+             class="{% if form.password1.errors %}error-field{% endif %}"
+             placeholder="Enter password">
+      {% if form.password1.errors %}
+        <div class="error-message">{{ form.password1.errors.0 }}</div>
+      {% endif %}
+
+      <label for="id_password2">Confirm Password</label>
+      <input type="password" name="password2" id="id_password2"
+             class="{% if form.password2.errors %}error-field{% endif %}"
+             placeholder="Confirm password">
+      {% if form.password2.errors %}
+        <div class="error-message">{{ form.password2.errors.0 }}</div>
+      {% endif %}
+
+      <button type="submit" class="btn">Sign Up</button>
+
+      <p class="login-text">
+        Already have an account?
+        <a href="{% url 'admin_login' %}">Log in</a>
+      </p>
+
+    </form>
+  </div>
 </body>
 </html>

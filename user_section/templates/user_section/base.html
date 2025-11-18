@@ -75,5 +75,45 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
   {% block extra_js %}{% endblock %}
+<div id="cart-toast" class="toast-message">
+  <i class="fa-solid fa-bag-shopping me-2"></i>
+  <span id="toast-text">Added to bag</span>
+</div>
+
+<style>
+.toast-message {
+  position: fixed;
+  top: 80px;
+  right: 40px;
+  background: #222;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-20px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  z-index: 9999;
+}
+.toast-message.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+</style>
+
+<script>
+function showCartToast(message) {
+  const toast = document.getElementById('cart-toast');
+  const toastText = document.getElementById('toast-text');
+  toastText.textContent = message || 'Added to bag';
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+}
+</script>
+
 </body>
 </html>

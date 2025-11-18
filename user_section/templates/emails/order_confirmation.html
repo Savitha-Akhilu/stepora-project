@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      color: #333;
+      background-color: #f9f9f9;
+      padding: 20px;
+    }
+    .container {
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      max-width: 600px;
+      margin: 0 auto;
+      border: 1px solid #eee;
+    }
+    h2 { color: #00b894; }
+    .footer {
+      margin-top: 20px;
+      font-size: 13px;
+      color: #888;
+      text-align: center;
+    }
+    .btn {
+      background: #00b894;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 6px;
+      text-decoration: none;
+      display: inline-block;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Thank You for Your Order, {{ user.first_name }}! 🎉</h2>
+    <p>Your order <strong>{{ order.iorderid }}</strong> has been placed successfully.</p>
+
+    <p><strong>Order Details:</strong></p>
+    <ul>
+      <li><b>Payment Method:</b> {{ order.payment_method }}</li>
+      <li><b>Order Date:</b> {{ order.created_at|date:"d M Y, H:i" }}</li>
+      <li><b>Total Amount:</b> ₹{{ order.total }}</li>
+    </ul>
+
+    <p>You can track your order anytime from your Stepora account.</p>
+
+    <a href="http://127.0.0.1:8000/cart/orders/{{ order.id }}/" class="btn">View Order</a>
+
+    <div class="footer">
+      <p>Thank you for shopping with <strong>Stepora</strong> 💚</p>
+      <p>For queries, contact: support@stepora.com</p>
+    </div>
+  </div>
+</body>
+</html>

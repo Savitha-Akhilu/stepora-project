@@ -1,0 +1,87 @@
+{% extends 'user_section/base.html' %}
+{% load static %}
+
+{% block title %}Order Complete{% endblock %}
+
+{% block content %}
+<section class="py-5 text-center">
+  <div class="container">
+    <div class="d-flex justify-content-center mb-4">
+      <div class="checkout-steps d-flex align-items-center">
+        <div class="step completed">1</div>
+        <div class="line completed"></div>
+        <div class="step completed">2</div>
+        <div class="line completed"></div>
+        <div class="step active">3</div>
+      </div>
+    </div>
+
+    <div class="row justify-content-center">
+      <div class="col-md-10 col-lg-8">
+        <div class="card p-4 shadow-lg border-0">
+          <div class="text-center mb-4">
+            <h3>🎉 Thank You for Your Order!</h3>
+            <p>Your order has been successfully placed.</p>
+            <img src="{% static 'img/order_success.svg' %}" alt="Order Success" width="200" class="my-3">
+          </div>
+
+          <div class="row text-start">
+            <div class="col-md-6 mb-3">
+              <h6>Order ID:</h6>
+              <p>{{ order.id }}</p>
+
+              <h6>Payment Method:</h6>
+              <p>{{ order.payment_method }}</p>
+
+              <h6>Date:</h6>
+              <p>{{ order.created_at|date:"d M Y, H:i" }}</p>
+            </div>
+            <div class="col-md-6 mb-3">
+              <h6>Total Amount:</h6>
+              <p>₹{{ order.total }}</p>
+
+              <h6>Delivery Address:</h6>
+              <p>{{ order.address.house_name }}, {{ order.address.locality }}<br>
+              {{ order.address.city }} - {{ order.address.pincode }}</p>
+            </div>
+          </div>
+
+          <div class="text-center mt-4">
+            <a href="{% url 'user_orders' %}" class="btn btn-dark me-2">View Orders</a>
+            <a href="{% url 'home' %}" class="btn btn-outline-dark">Continue Shopping</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+.checkout-steps {
+  gap: 8px;
+}
+.step {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  border: 2px solid #ccc;
+  color: #ccc;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.step.active, .step.completed {
+  border-color: #00a69c;
+  color: #00a69c;
+}
+.line {
+  width: 40px;
+  height: 2px;
+  background-color: #ccc;
+}
+.line.completed {
+  background-color: #00a69c;
+}
+</style>
+{% endblock %}

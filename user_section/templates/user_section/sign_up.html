@@ -3,10 +3,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Stepora | Sign Up</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
   <style>
     body {
@@ -20,8 +23,8 @@
       display: flex;
       justify-content: center;
       align-items: flex-start;
-      min-height: 80vh;
       flex-direction: column;
+      min-height: 80vh;
       margin-top: 60px;
     }
 
@@ -45,6 +48,7 @@
       font-size: 0.9rem;
       color: #333;
       margin-bottom: 4px;
+      display: block;
     }
 
     input {
@@ -66,21 +70,31 @@
       position: relative;
     }
 
-    .password-wrapper .icon {
+    .password-wrapper .toggle-icon {
       position: absolute;
       right: 12px;
       top: 50%;
       transform: translateY(-50%);
-      color: #888;
+      color: #777;
       cursor: pointer;
     }
 
+    /* Error Message Styling */
     .error {
       color: #e74c3c;
       font-size: 0.8rem;
-      margin-top: -8px;
-      margin-bottom: 5px;
-      display: none;
+      line-height: 1.2;
+      margin-top: 4px;
+      height: 16px;
+      display: block;
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    .error.show {
+      visibility: visible;
+      opacity: 1;
     }
 
     .signup-btn {
@@ -154,6 +168,16 @@
       height: 22px;
     }
 
+    input.valid {
+      border-color: #4CAF50 !important;
+      box-shadow: 0 0 5px #b7e1c4;
+    }
+
+    input.invalid {
+      border-color: #e74c3c !important;
+      box-shadow: 0 0 5px #f4b0a6;
+    }
+
     @media (max-width: 480px) {
       form {
         width: 90%;
@@ -166,51 +190,51 @@
 </head>
 
 <body>
-
   {% include 'user_section/header.html' %}
 
   <section class="signup-section">
-    <h2>Sign up</h2>
+    <h2>Create Your Account</h2>
 
-    <form id="signupForm" onsubmit="return validateForm()" method="POST">
+    <form id="signupForm" onsubmit="return validateForm()" method="POST" action="{% url 'signup' %}" novalidate>
       {% csrf_token %}
 
       <div>
         <label>Full Name</label>
-        <input type="text" id="fullname" name="full_name" placeholder="Enter your full name">
+        <input type="text" id="fullname" name="first_name" placeholder="Enter your full name" />
         <div id="nameError" class="error">Full name is required.</div>
       </div>
 
       <div>
         <label>Email</label>
-        <input type="email" id="email" name="email" placeholder="Enter your email">
+        <input type="email" id="email" name="email" placeholder="Enter your email" />
         <div id="emailError" class="error">Enter a valid email address.</div>
       </div>
 
       <div>
         <label>Mobile Number</label>
-        <input type="text" id="mobile" name="mobile" placeholder="10-digit mobile number">
+        <input type="text" id="mobile" name="phone" placeholder="10-digit mobile number" />
         <div id="mobileError" class="error">Enter a valid 10-digit mobile number.</div>
       </div>
 
       <div class="password-wrapper">
         <label>Password</label>
-        <input type="password" id="password" name="password" placeholder="Enter password">
-        <span class="icon" id="togglePassword">👁️</span>
-        <div id="passwordError" class="error">Password must be at least 6 characters.</div>
+        <input type="password" id="password" name="password1" placeholder="Enter password" />
+        <i class="fa-solid fa-eye toggle-icon" id="togglePassword"></i>
+        <div id="passwordError" class="error">Password must be at least 8 characters, include 1 uppercase, 1 number, and 1 symbol.</div>
       </div>
 
       <div class="password-wrapper">
         <label>Confirm Password</label>
-        <input type="password" id="confirmPassword" name="confirm_password" placeholder="Re-enter password">
-        <span class="icon" id="toggleConfirm">👁️</span>
+        <input type="password" id="confirmPassword" name="password2" placeholder="Re-enter password" />
+        <i class="fa-solid fa-eye toggle-icon" id="toggleConfirm"></i>
         <div id="confirmError" class="error">Passwords do not match.</div>
       </div>
 
-      <div>
-        <label>Referral Code (optional)</label>
-        <input type="text" id="referral" name="referral" placeholder="Referral code">
-      </div>
+<div>
+  <label>Referral Code (optional)</label>
+  <input type="text" id="referral" name="referral" placeholder="Referral code" />
+  <div id="referralMessage" style="font-size: 0.85rem; margin-top: 4px;"></div>
+</div>
 
       <div class="login-text">
         Already have an account? <a href="{% url 'login' %}">Log in</a>
@@ -218,7 +242,7 @@
 
       <button type="submit" class="signup-btn">Sign Up</button>
 
-      <div class="divider">Or Register with</div>
+      <!-- <div class="divider">Or Sign Up with</div>
 
       <button type="button" class="google-btn" onclick="window.location.href='{% provider_login_url 'google' %}'">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
@@ -228,74 +252,230 @@
           <path fill="#FBBC05" d="M24 48c6.32 0 11.63-2.09 15.5-5.69l-7.4-5.76C29.5 38.11 26.88 39 24 39c-6.18 0-11.43-4.09-13.47-9.69l-7.97 6.51C6.54 42.64 14.64 48 24 48z"/>
         </svg>
         Google
-      </button>
+      </button> -->
     </form>
   </section>
 
   {% include 'user_section/authentication_footer.html' %}
+<script>
+  // ---------------- PASSWORD VISIBILITY ----------------
+  const togglePassword = document.querySelector("#togglePassword");
+  const toggleConfirm = document.querySelector("#toggleConfirm");
+  const password = document.querySelector("#password");
+  const confirmPassword = document.querySelector("#confirmPassword");
 
-  <script>
-    // Toggle password visibility
-    const togglePassword = document.querySelector("#togglePassword");
-    const toggleConfirm = document.querySelector("#toggleConfirm");
-    const password = document.querySelector("#password");
-    const confirmPassword = document.querySelector("#confirmPassword");
+  togglePassword.addEventListener("click", () => {
+    password.type = password.type === "password" ? "text" : "password";
+    togglePassword.classList.toggle("fa-eye");
+    togglePassword.classList.toggle("fa-eye-slash");
+  });
 
-    togglePassword.addEventListener("click", () => {
-      password.type = password.type === "password" ? "text" : "password";
-    });
+  toggleConfirm.addEventListener("click", () => {
+    confirmPassword.type = confirmPassword.type === "password" ? "text" : "password";
+    toggleConfirm.classList.toggle("fa-eye");
+    toggleConfirm.classList.toggle("fa-eye-slash");
+  });
 
-    toggleConfirm.addEventListener("click", () => {
-      confirmPassword.type = confirmPassword.type === "password" ? "text" : "password";
-    });
+  // ---------------- FIELD VARIABLES ----------------
+  const fullname = document.getElementById("fullname");
+  const email = document.getElementById("email");
+  const mobile = document.getElementById("mobile");
+  const emailError = document.getElementById("emailError");
+  const mobileError = document.getElementById("mobileError");
+  const nameError = document.getElementById("nameError");
+  const passwordError = document.getElementById("passwordError");
+  const confirmError = document.getElementById("confirmError");
+  const signupForm = document.getElementById("signupForm");
 
-    // Validation logic
-    function validateForm() {
-      let valid = true;
+  let emailExists = false;
+  let phoneExists = false;
 
-      const name = document.getElementById("fullname").value.trim();
-      const email = document.getElementById("email").value.trim();
-      const mobile = document.getElementById("mobile").value.trim();
-      const pass = document.getElementById("password").value.trim();
-      const confirm = document.getElementById("confirmPassword").value.trim();
+  // ---------------- ASYNC CHECKS ----------------
+  async function checkEmailExists() {
+    const emailVal = email.value.trim();
+    if (emailVal === "") return false;
 
-      // Reset all error displays
-      document.querySelectorAll(".error").forEach(e => e.style.display = "none");
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(emailVal)) return false;
 
-      // Name
-      if (name === "") {
-        document.getElementById("nameError").style.display = "block";
-        valid = false;
+    try {
+      const response = await fetch(`/check-email/?email=${encodeURIComponent(emailVal)}`);
+      const data = await response.json();
+      if (data.exists) {
+        emailExists = true;
+        emailError.textContent = "⚠️ This email is already registered.";
+        emailError.classList.add("show");
+        email.classList.add("invalid");
+        email.classList.remove("valid");
+      } else {
+        emailExists = false;
+        emailError.classList.remove("show");
+        email.classList.remove("invalid");
+        email.classList.add("valid");
       }
-
-      // Email
-      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailPattern.test(email)) {
-        document.getElementById("emailError").style.display = "block";
-        valid = false;
-      }
-
-      // Mobile (10 digits)
-      const mobilePattern = /^[0-9]{10}$/;
-      if (!mobilePattern.test(mobile)) {
-        document.getElementById("mobileError").style.display = "block";
-        valid = false;
-      }
-
-      // Password length
-      if (pass.length < 6) {
-        document.getElementById("passwordError").style.display = "block";
-        valid = false;
-      }
-
-      // Confirm password
-      if (pass !== confirm || confirm === "") {
-        document.getElementById("confirmError").style.display = "block";
-        valid = false;
-      }
-
-      return valid;
+    } catch (error) {
+      console.error("Error checking email:", error);
+      emailExists = false;
     }
-  </script>
+    return emailExists;
+  }
+
+  async function checkPhoneExists() {
+    const phoneVal = mobile.value.trim();
+    if (phoneVal === "") return false;
+
+    const phonePattern = /^[0-9]{10}$/;
+    if (!phonePattern.test(phoneVal)) return false;
+
+    try {
+      const response = await fetch(`/check-phone/?phone=${encodeURIComponent(phoneVal)}`);
+      const data = await response.json();
+      if (data.exists) {
+        phoneExists = true;
+        mobileError.textContent = "⚠️ This phone number is already registered.";
+        mobileError.classList.add("show");
+        mobile.classList.add("invalid");
+        mobile.classList.remove("valid");
+      } else {
+        phoneExists = false;
+        mobileError.classList.remove("show");
+        mobile.classList.remove("invalid");
+        mobile.classList.add("valid");
+      }
+    } catch (error) {
+      console.error("Error checking phone:", error);
+      phoneExists = false;
+    }
+    return phoneExists;
+  }
+
+  // Run real-time checks on blur
+  email.addEventListener("blur", checkEmailExists);
+  mobile.addEventListener("blur", checkPhoneExists);
+
+  // ---------------- REAL-TIME CLEANUP ----------------
+  const fields = ['fullname', 'email', 'mobile', 'password', 'confirmPassword'];
+  fields.forEach(id => {
+    const input = document.getElementById(id);
+    input.addEventListener('input', () => {
+      document.querySelectorAll('.error').forEach(e => e.classList.remove('show'));
+      input.classList.remove("invalid", "valid");
+    });
+  });
+
+  // ---------------- VALIDATION ----------------
+  function validateForm() {
+    let valid = true;
+    const name = fullname.value.trim();
+    const emailVal = email.value.trim();
+    const mobileVal = mobile.value.trim();
+    const pass = password.value.trim();
+    const confirm = confirmPassword.value.trim();
+
+    document.querySelectorAll(".error").forEach(e => e.classList.remove("show"));
+
+    if (name.length < 3) {
+      nameError.classList.add("show");
+      fullname.classList.add("invalid");
+      valid = false;
+    }
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(emailVal)) {
+      emailError.classList.add("show");
+      email.classList.add("invalid");
+      valid = false;
+    }
+
+    const mobilePattern = /^[0-9]{10}$/;
+    if (!mobilePattern.test(mobileVal)) {
+      mobileError.classList.add("show");
+      mobile.classList.add("invalid");
+      valid = false;
+    }
+
+    const passwordPattern = /^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*]).{8,}$/;
+    if (!passwordPattern.test(pass)) {
+      passwordError.classList.add("show");
+      password.classList.add("invalid");
+      valid = false;
+    }
+
+    if (pass !== confirm || confirm === "") {
+      confirmError.classList.add("show");
+      confirmPassword.classList.add("invalid");
+      valid = false;
+    }
+
+    return valid;
+  }
+
+  // ---------------- FINAL SUBMIT HANDLER ----------------
+  signupForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    // await checkEmailExists();
+    // await checkPhoneExists();
+
+    if (emailExists || phoneExists) {
+      // Stop if email or phone already exists
+      return false;
+    }
+
+    if (!validateForm()) {
+      return false;
+    }
+
+    //  Submit if everything passes
+    signupForm.submit();
+  });
+</script>
+<script>
+  const referralInput = document.getElementById("referral");
+  const referralMessage = document.getElementById("referralMessage");
+  let referralTimer;
+
+  referralInput.addEventListener("input", function () {
+    clearTimeout(referralTimer); // debounce input
+    const code = referralInput.value.trim();
+
+    if (code === "") {
+      referralMessage.textContent = "";
+      referralInput.classList.remove("valid", "invalid");
+      return;
+    }
+
+    referralTimer = setTimeout(() => {
+      fetch(`/validate-referral/?code=${encodeURIComponent(code)}`)
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.valid) {
+            referralMessage.textContent = data.message;
+            referralMessage.style.color = "#28a745"; // green clr
+            referralInput.classList.add("valid");
+            referralInput.classList.remove("invalid");
+          } else {
+            referralMessage.textContent = data.message;
+            referralMessage.style.color = "#e74c3c"; // red
+            referralInput.classList.add("invalid");
+            referralInput.classList.remove("valid");
+          }
+        })
+        .catch((error) => {
+          console.error("Referral check failed:", error);
+        });
+    }, 500); 
+  });
+</script>
+<style>input.valid {
+  border-color: #4CAF50 !important;
+  box-shadow: 0 0 5px #b7e1c4;
+}
+input.invalid {
+  border-color: #e74c3c !important;
+  box-shadow: 0 0 5px #f4b0a6;
+}
+</style>
+
 </body>
 </html>

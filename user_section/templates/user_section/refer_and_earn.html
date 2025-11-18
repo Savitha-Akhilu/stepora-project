@@ -1,0 +1,76 @@
+{% extends 'user_section/profile_base.html' %}
+{% load static %}
+
+{% block profile_content %}
+
+<h4>Refer & Earn</h4>
+
+<style>
+.refer-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 25px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+
+.input-box {
+    display: flex;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.input-box input {
+    width: 100%;
+    border: 1px solid #ddd;
+    padding: 10px;
+    font-size: 15px;
+    border-radius: 8px;
+}
+
+.copy-btn {
+    background: #000;
+    color: #fff;
+    border: none;
+    padding: 10px 14px;
+    margin-left: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.copy-btn:hover {
+    opacity: 0.85;
+}
+</style>
+
+<div class="refer-card">
+
+<p class="text-muted" style="line-height: 1.7;">
+    Invite your friends to join Stepora and enjoy instant wallet rewards!  
+</p>
+
+<ul style="color:#555; margin-left:15px; line-height:1.7;">
+    <li>You earn <strong>₹50</strong> for each successful referral.</li>
+    <li>Your friend must complete signup using your referral code.</li>
+    <li>You can refer up to <strong>3 friends</strong> (Total earning: <strong>₹150</strong>).</li>
+    <li>Your earned wallet amount can be used in your next orders.</li>
+</ul>
+
+    <label class="fw-semibold">Your Referral Code</label>
+    <div class="input-box">
+        <input type="text" id="refCode" value="{{ referral.referral_code }}" readonly>
+                <button class="copy-btn" onclick="copyRef()">Copy</button>
+    </div>
+
+
+</div>
+
+<script>
+function copyRef() {
+    navigator.clipboard.writeText(document.getElementById("refCode").value);
+    alert("Referral Code Copied!");
+}
+
+</script>
+
+{% endblock %}

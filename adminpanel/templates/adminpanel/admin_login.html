@@ -1,0 +1,184 @@
+{% load static %}
+{% load socialaccount %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stepora | Admin Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f7f7f7;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .login-container {
+      background: #fff;
+      padding: 2rem 2.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+      width: 360px;
+      text-align: center;
+      position: relative;
+    }
+    .login-container img {
+      width: 70px;
+      margin-bottom: 10px;
+    }
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: #2b2b2b;
+    }
+    .input-group {
+      position: relative;
+      margin-bottom: 15px;
+    }
+    input {
+      width: 90%;
+      padding: 10px 40px 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+    }
+    input:focus {
+      border-color: #23c5b6;
+    }
+    .icon-right {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+    }
+    .btn {
+      width: 100%;
+      background-color: #23c5b6;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background-color: #1fb3a6;
+    }
+    a {
+      color: #23c5b6;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .divider {
+      margin: 10px 0;
+      color: #999;
+      font-size: 13px;
+    }
+    .google-btn svg {
+      flex-shrink: 0;
+    }
+    .google-btn span {
+      font-weight: 500;
+      font-size: 14px;
+      color: #444;
+    }
+    .google-btn {
+  width: 100%;
+  margin-top: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+  background-color: #fff;
+  font-weight: 500;
+  font-size: 14px;
+  color: #444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.google-btn:hover {
+  background-color: #f1f1f1;
+}
+.google-btn svg {
+  flex-shrink: 0;
+}
+
+  </style>
+</head>
+
+<body>
+  <div class="login-container">
+        {% if messages %}
+      <div id="message-container">
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }}" role="alert">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <img src="{% static 'images/logo.png' %}" alt="Stepora Logo">
+
+    <h2>Login</h2>
+    <form method="POST">
+      {% csrf_token %}
+      <div class="input-group">
+        <input type="email" id="email" name="email" placeholder="Email address" required>
+        <!--  Tick icon (shows when valid email entered) -->
+        <svg id="email-tick" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#23c5b6" viewBox="0 0 24 24" class="icon-right" style="display:none;">
+          <path d="M20.285 6.709l-11.285 11.291-5.285-5.291 1.414-1.414 3.871 3.877 9.871-9.877z"/>
+        </svg>
+      </div>
+
+      <div class="input-group">
+        <input type="password" id="password" name="password" placeholder="Password" required>
+        <!-- 👁️ Eye icon toggle -->
+        <svg id="togglePassword" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#888" viewBox="0 0 24 24" class="icon-right">
+          <path d="M12 4.5C7.305 4.5 3.214 7.39 1.343 12c1.871 4.61 5.962 7.5 10.657 7.5S20.786 16.61 22.657 12C20.786 7.39 16.695 4.5 12 4.5zM12 17c-2.761 0-5-2.239-5-5s2.239-5 5-5 5 2.239 5 5S14.761 17 12 17z"/>
+          <circle cx="12" cy="12" r="2.5"/>
+        </svg>
+      </div>
+
+      <div style="text-align:right; margin-bottom:8px;">
+        <a href="#">Forgot password?</a>
+      </div>
+      <button type="submit" class="btn">Log In</button>
+    </form>
+
+    <p style="margin-top:12px;">New user? <a href="{% url 'admin_register' %}">Sign up</a></p>
+<!-- OR divider -->
+  </div>
+
+  <script>
+    // Tick icon toggle for valid email
+    const emailInput = document.getElementById('email');
+    const emailTick = document.getElementById('email-tick');
+    emailInput.addEventListener('input', () => {
+      const pattern = /^[^ ]+@[^ ]+\.[a-z]{2,3}$/;
+      emailTick.style.display = pattern.test(emailInput.value) ? 'block' : 'none';
+    });
+
+    // Toggle password visibility
+    const passwordInput = document.getElementById('password');
+    const togglePassword = document.getElementById('togglePassword');
+    togglePassword.addEventListener('click', () => {
+      const isHidden = passwordInput.getAttribute('type') === 'password';
+      passwordInput.setAttribute('type', isHidden ? 'text' : 'password');
+      togglePassword.style.fill = isHidden ? '#23c5b6' : '#888';
+    });
+  </script>
+</body>
+</html>

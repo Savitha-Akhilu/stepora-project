@@ -1,0 +1,102 @@
+{% extends "adminpanel/base.html" %}
+{% block content %}
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>Categories</h4>
+    <a href="{% url 'admin_category_add' %}" class="btn btn-primary">Add Category</a>
+  </div>
+
+  <!-- Search -->
+  <form class="d-flex mb-3" method="get" action="{% url 'admin_categories' %}">
+    <input name="q" value="{{ q }}" class="form-control me-2" placeholder="Search by name, gender or description" />
+    <button type="submit" class="btn btn-outline-primary me-2">Search</button>
+    <a href="{% url 'admin_categories' %}" class="btn btn-outline-secondary">Clear</a>
+  </form>
+
+  <!-- Table -->
+  <div class="card">
+    <div class="card-body table-responsive">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Gender</th>
+            <th>Description</th>
+            <th>Image</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cat in page_obj %}
+          <tr>
+            <td>{{ forloop.counter0|add:page_obj.start_index }}</td>
+            <td>{{ cat.category_name }}</td>
+            <td>{{ cat.gender.name }}</td>
+            <td>{{ cat.description|truncatechars:40 }}</td>
+            <td>
+              {% if cat.image %}
+                <img src="{{ cat.image.url }}" width="50" height="50" class="rounded">
+              {% else %}
+                <span class="text-muted">No Image</span>
+              {% endif %}
+            </td>
+        <td>
+          {% if cat.is_active %}
+            <span class="badge bg-success">Active</span>
+          {% else %}
+            <span class="badge bg-danger">Inactive</span>
+          {% endif %}
+        </td>
+            <td>{{ cat.created_at|date:"Y-m-d H:i" }}</td>
+<td class="text-end">
+  {% if cat.is_active %}
+    <!-- Show Edit & Delete only if category is active -->
+    <a href="{% url 'admin_category_edit' cat.pk %}" class="btn btn-sm btn-outline-primary">
+      Edit
+    </a>
+
+    <form action="{% url 'admin_category_delete' cat.pk %}" method="post" class="d-inline">
+      {% csrf_token %}
+      <button type="submit"
+              class="btn btn-sm btn-outline-danger"
+              onclick="return confirm('Delete {{ cat.category_name }}?')">
+        Delete
+      </button>
+    </form>
+  {% else %}
+    <!-- Show a disabled note for inactive categories -->
+    <span class="text-muted fst-italic small">Inactive — cannot edit/delete</span>
+  {% endif %}
+</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8" class="text-center">No categories found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+  <nav class="mt-3">
+    <ul class="pagination">
+      {% if page_obj.has_previous %}
+      <li class="page-item"><a class="page-link" href="?q={{ q }}&page={{ page_obj.previous_page_number }}">&laquo;</a></li>
+      {% endif %}
+      {% for p in page_obj.paginator.page_range %}
+        <li class="page-item {% if page_obj.number == p %}active{% endif %}">
+          <a class="page-link" href="?q={{ q }}&page={{ p }}">{{ p }}</a>
+        </li>
+      {% endfor %}
+      {% if page_obj.has_next %}
+      <li class="page-item"><a class="page-link" href="?q={{ q }}&page={{ page_obj.next_page_number }}">&raquo;</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,14 +1,51 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Admin Dashboard</title>
-</head>
-<body>
-    <h1>Welcome, {{ request.user.username }}!</h1>
+{% extends "adminpanel/base.html" %}
 
-    <p>Total Customers: {{ total_users }}</p>
-    <p>Total Admins: {{ total_admins }}</p>
+{% block content %}
+{% if messages %}
+  <div class="container mt-2">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
 
-    <a href="{% url 'admin_logout' %}">Logout</a>
-</body>
-</html>
+<div class="container-fluid">
+  <div class="row g-3">
+    <div class="col-md-3">
+      <div class="card text-center shadow-sm">
+        <div class="card-body">
+          <h6 class="text-muted">Users</h6>
+          <h4>{{ total_users }}</h4>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center shadow-sm">
+        <div class="card-body">
+          <h6 class="text-muted">Admins</h6>
+          <h4>{{ total_admins }}</h4>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center shadow-sm">
+        <div class="card-body">
+          <h6 class="text-muted">Orders</h6>
+          <h4>350</h4>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center shadow-sm">
+        <div class="card-body">
+          <h6 class="text-muted">Products</h6>
+          <h4>120</h4>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

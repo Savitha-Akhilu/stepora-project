@@ -1,0 +1,91 @@
+{% extends 'user_section/profile_base.html' %}
+{% load static %}
+
+{% block profile_content %}
+<div class="container mt-4 mb-5">
+
+    <div class="card shadow-sm p-4">
+        <h3 class="mb-4 text-center">My Wallet</h3>
+
+        <!-- Wallet Balance -->
+        <div class="text-center mb-4">
+            <h4>Wallet Balance</h4>
+            <h2 class="text-success fw-bold">₹{{ wallet.balance }}</h2>
+            <p class="text-muted">Last updated: {{ wallet.updated_at|date:"M d, Y H:i" }}</p>
+        </div>
+
+        <!-- Transaction History -->
+        <h5 class="mt-4 mb-3">Transaction History</h5>
+        {% if transactions %}
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for txn in transactions %}
+                    <tr>
+                        <td>{{ txn.created_at|date:"M d, Y H:i" }}</td>
+                        <td>
+                            {% if txn.transaction_type == "CREDIT" %}
+                                <span class="text-success fw-bold">Credit</span>
+                            {% else %}
+                                <span class="text-danger fw-bold">Debit</span>
+                            {% endif %}
+                        </td>
+                        <td>₹{{ txn.amount }}</td>
+                        <td>{{ txn.description }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="pagination-container" style="margin-top:20px; text-align:center;">
+    {% if transactions.has_previous %}
+        <a href="?page={{ transactions.previous_page_number }}" class="page-btn">Previous</a>
+    {% endif %}
+
+    {% for num in transactions.paginator.page_range %}
+        {% if transactions.number == num %}
+            <span class="current-page">{{ num }}</span>
+        {% else %}
+            <a href="?page={{ num }}" class="page-btn">{{ num }}</a>
+        {% endif %}
+    {% endfor %}
+
+    {% if transactions.has_next %}
+        <a href="?page={{ transactions.next_page_number }}" class="page-btn">Next</a>
+    {% endif %}
+</div>
+
+        </div>
+        {% else %}
+        <p class="text-muted text-center mt-3">No transactions yet.</p>
+        {% endif %}
+    </div>
+</div><style>
+.page-btn, .current-page {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    margin: 0 4px;
+    text-decoration: none;
+    color: #000;
+}
+.page-btn:hover {
+    background: #000;
+    color: #fff;
+}
+.current-page {
+    background: #000;
+    color: #fff;
+    font-weight: 600;
+}
+</style>
+{% endblock %}
+
+
