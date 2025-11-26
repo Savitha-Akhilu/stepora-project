@@ -37,7 +37,18 @@
     </style>
 </head>
 <body>
-    <h2> Stepora Sales Report ({{ start_date }} to {{ end_date }})</h2>
+<!-- {% if start_date and end_date %}
+    <h2>Stepora Sales Report ({{ start_date }} to {{ end_date }})</h2>
+{% else %}
+    <h2>Stepora Sales Report</h2>
+{% endif %} -->
+
+{% if start_date and end_date %}
+    <h2>Stepora Sales Report ({{ start_date }} to {{ end_date }})</h2>
+{% else %}
+    <h2>Stepora Sales Report</h2>
+{% endif %}
+
 
     <div class="summary">
         <h4>Summary</h4>

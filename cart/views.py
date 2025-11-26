@@ -24,6 +24,8 @@ from django.views.decorators.csrf import csrf_exempt
 from .utils import get_variant_image
 from adminpanel.utils import get_best_offer_price
 from user_section.models import ReturnRequest,Wallet,WalletTransaction
+from stepora.utils.logging import get_logger
+logger = get_logger()
 
 
 razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
@@ -186,6 +188,7 @@ def cart_view(request):
             'discount': round(Decimal(discount), 2),
             'coupons': Coupon.objects.filter(
                 active=True,
+                valid_from__lte=timezone.now(),
                 valid_to__gte=timezone.now()
             ).order_by('-valid_to'),
             'is_guest': False,
@@ -419,7 +422,11 @@ def remove_cart_item(request):
             item = CartItem.objects.get(id=item_id, cart__user=request.user)
             cart = item.cart
             item.delete()
+            logger.info(f"Cart item removed: user={request.user.id}, item_id={item_id}")
+
             if not cart.items.exists():
+                logger.info(
+                      f"Last item removed; coupon cleared: user={request.user.id}, item_id={item_id}")
                 # Clear coupon 
                 request.session.pop('applied_coupon', None)
                 request.session.pop('discount', None)
@@ -463,10 +470,14 @@ def remove_cart_item(request):
                         total = max(total - discount, Decimal('0.00'))
                     else:
                         #  Remove invalid coupon (subtotal below min)
+                        logger.warning(
+                          f"Coupon removed due to subtotal below minimum: user={request.user.id}, coupon={applied_coupon_code}")
                         request.session.pop('applied_coupon', None)
                         request.session.pop('discount', None)
                         request.session.modified = True
                 except Coupon.DoesNotExist:
+                    logger.error(
+                       f"Coupon not found, removed from session: user={request.user.id}, coupon={applied_coupon_code}")
                     request.session.pop('applied_coupon', None)
                     request.session.pop('discount', None)
 
@@ -490,6 +501,9 @@ def remove_cart_item(request):
             })
 
         except CartItem.DoesNotExist:
+            logger.error(
+                  f"Cart item remove failed: item_id={item_id} not found for user={request.user.id}")
+
             return JsonResponse({'error': 'Item not found'}, status=404)
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
@@ -502,7 +516,7 @@ def update_cart_quantity(request):
         try:
             item = CartItem.objects.get(id=item_id, cart__user=request.user)
             cart = item.cart
-
+            old_qty = item.quantity  # before update
             # --- Handle quantity changes ---
             if action == 'increase':
                 if item.quantity < MAX_CART_QUANTITY and item.quantity < item.variant.stock:
@@ -511,10 +525,14 @@ def update_cart_quantity(request):
                     return JsonResponse({'error': f'Maximum quantity is {MAX_CART_QUANTITY}'})
             elif action == 'decrease' and item.quantity > 1:
                 item.quantity -= 1
+            new_qty = item.quantity  # before update
+    
 
             item.save()
-
-            # --- Get offer price ---
+            logger.info(
+                f"Cart quantity updated: user={request.user.id}, item={item_id}, "
+                f"{old_qty} → {new_qty}"
+            )            # --- Get offer price ---
             final_price, discount_percent, offer = get_best_offer_price(item.variant)
             item_total = Decimal(final_price) * item.quantity
 
@@ -549,6 +567,10 @@ def update_cart_quantity(request):
                         request.session.modified = True
                         coupon_removed = True
                 except Coupon.DoesNotExist:
+                    logger.error(
+                        f"Coupon not found and removed: user={request.user.id}, "
+                        f"coupon={applied_coupon_code}"
+                    )
                     request.session.pop('applied_coupon', None)
                     request.session.pop('discount', None)
                     coupon_removed = True
@@ -569,6 +591,9 @@ def update_cart_quantity(request):
             })
 
         except CartItem.DoesNotExist:
+            logger.error(
+                f"Cart update failed: item={item_id} does not exist for user={request.user.id}"
+            )
             return JsonResponse({'error': 'Item not found'}, status=404)
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
@@ -1261,6 +1286,7 @@ def place_order(request):
             print(" Order creation failed:", e)
             messages.error(request, "Something went wrong while placing your order. Please try again.")
             return redirect('cart:checkout')
+
 
     return redirect('cart:checkout')
 

@@ -21,15 +21,34 @@
     </div>
 
     <div class="card-body px-5 py-4">
+      {% if messages %}
+<div class="mt-3">
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
       <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
 
         <!-- Offer Name & Target Type -->
         <div class="row mb-4">
-          <div class="col-md-6">
-            <label class="form-label fw-semibold mb-1">Offer Name</label>
-            {{ form.name }}
-          </div>
+<div class="col-md-6">
+    <label class="form-label fw-semibold mb-1">Offer Name</label>
+    {{ form.name }}
+
+    {% if form.name.errors %}
+      <div class="text-danger small mt-1">
+        {% for error in form.name.errors %}
+            {{ error }}
+        {% endfor %}
+      </div>
+    {% endif %}
+</div>
           <div class="col-md-6">
             <label class="form-label fw-semibold mb-1">Target Type</label>
             {{ form.target_type }}
@@ -204,24 +223,24 @@ const startInput = document.getElementById("id_start_at");
   //   const formatted = now.toISOString().slice(0, 16); // yyyy-mm-ddTHH:MM
   //   startInput.min = formatted;
   // }
+/////////////////////my validation for today date
+  //   if (startInput) {
+  //   const now = new Date();
+  //   now.setDate(now.getDate() + 1); // tomorrow
+  //   now.setHours(0, 0, 0, 0); // midnight (IST)
 
-    if (startInput) {
-    const now = new Date();
-    now.setDate(now.getDate() + 1); // tomorrow
-    now.setHours(0, 0, 0, 0); // midnight (IST)
+  //   // Format using local time, not UTC
+  //   const year = now.getFullYear();
+  //   const month = String(now.getMonth() + 1).padStart(2, '0');
+  //   const day = String(now.getDate()).padStart(2, '0');
+  //   const hours = String(now.getHours()).padStart(2, '0');
+  //   const minutes = String(now.getMinutes()).padStart(2, '0');
 
-    // Format using local time, not UTC
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-
-    const formatted = `${year}-${month}-${day}T${hours}:${minutes}`;
-    startInput.min = formatted;
-    startInput.value = formatted;
-  }
-
+  //   const formatted = `${year}-${month}-${day}T${hours}:${minutes}`;
+  //   startInput.min = formatted;
+  //   startInput.value = formatted;
+  // }
+/////////////end my validatrion
   const form = document.querySelector("form");
   const endInput = document.getElementById("id_end_at");
 

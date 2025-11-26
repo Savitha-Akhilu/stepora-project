@@ -6,6 +6,13 @@ urlpatterns = [
     path('login/', views.admin_login, name='admin_login'),
     path('logout/', views.admin_logout, name='admin_logout'),
     path('dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path("sales-chart-data/", views.sales_chart_data, name="sales_chart_data"),
+    path("brand-chart-data/", views.brand_pie_chart_data, name="brand_chart_data"),
+    path("order-chart-data/", views.order_chart_data, name="order-chart-data"),
+    path("order-stackchart-data/", views.order_stackchart_data, name="order-stackchart-data"),
+    path('top-selling-products/', views.top_selling_products_chart, name='top_selling_products_chart'),
+        path("top-selling-categories/", views.top_selling_categories, name="top_selling_categories"),
+    path("top-selling-brands/", views.top_selling_brands, name="top_selling_brands"),
     path('users/', views.admin_users, name='admin_users'),
     path('users/admin_toggle_user_status/<int:user_id>/', views.admin_toggle_user_status, name='admin_toggle_block'),
      path('categories/', views.admin_categories, name='admin_categories'),
@@ -55,6 +62,8 @@ urlpatterns = [
     path('coupons/add/', views.add_coupon, name='admin_add_coupon'),
     path('coupons/edit/<int:id>/', views.edit_coupon, name='admin_edit_coupon'),
     path('coupons/delete/<int:id>/', views.delete_coupon, name='admin_delete_coupon'),
+    path("check-coupon/", views.check_coupon, name="check_coupon"),
+
     path('sales/', views.sales_report, name='sales_report'),
     path('sales/export/excel/', views.export_sales_excel, name='export_sales_excel'),
     path('sales/export/pdf/', views.export_sales_pdf, name='export_sales_pdf'),
@@ -62,5 +71,9 @@ urlpatterns = [
     path('verify-return/<int:rr_id>/', views.verify_return_request, name='verify_return'),
     path('orders/item/<int:item_id>/update-status/', views.admin_update_item_status, name='admin_update_item_status'),
 
+    path("forgot-password/", views.forgot_password, name="admin_forgot_password"),
+    path("verify-otp/", views.admin_verify_otp, name="admin_verify_otp"),
+    path("reset-password/", views.admin_reset_password, name="admin_reset_password"),
+    path("change-password/", views.admin_change_password, name="admin_change_password"),
 
 ]

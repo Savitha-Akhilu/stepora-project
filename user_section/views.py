@@ -162,7 +162,7 @@ def verify_otp(request):
         if form.is_valid():
             otp_input = form.cleaned_data['otp']
             otp_data = OTP_STORE.get(email)
-            print(otp_data)
+            # print(otp_data)
 
             if otp_data:
                 # Check expiry (5 minutes)
@@ -433,7 +433,7 @@ def men_collection(request):
     colors = Color.objects.filter(is_active=True)
     materials = Material.objects.filter(is_active=True)
     categories = Category.objects.filter(gender__name=gender, is_active=True)
-    print(variants)
+    # print(variants)
     context = {
         'variants': variants,
         'brands': brands,
@@ -1452,7 +1452,7 @@ def my_orders(request):
         .order_by('-created_at')
     )
 
-    paginator = Paginator(orders, 1)
+    paginator = Paginator(orders, 3)
     page = request.GET.get('page')
     orders_page = paginator.get_page(page)
 
@@ -1652,7 +1652,7 @@ def my_wallet(request):
         'transactions': paginated_transactions  
     }    
     return render(request, 'user_section/my_wallet.html', context)
-
+@login_required(login_url='/login/')
 def refer_and_earn(request):
     referral = Referral.objects.get(user=request.user)
     return render(request, "user_section/refer_and_earn.html", {"referral": referral})
@@ -1668,3 +1668,19 @@ def get_address(request, id):
         "house_name": addr.house_name,
         "locality": addr.locality,
     })
+@login_required(login_url='/login/')
+def about_page(request):
+    return render(request, 'user_section/about.html')
+@login_required(login_url='/login/')
+def customer_care(request):
+    return render(request, 'user_section/customer_care.html')
+@login_required(login_url='/login/')
+def contact_page(request):
+    return render(request, 'user_section/contact.html')
+@login_required(login_url='/login/')
+def privacy_policy(request):
+    return render(request, 'user_section/privacy.html')
+@login_required(login_url='/login/')
+def shipping_returns(request):
+    return render(request, 'user_section/shipping_returns.html')
+

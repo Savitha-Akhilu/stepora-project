@@ -6,6 +6,12 @@
     <div class="card-body">
       <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
+        {% if form.non_field_errors %}
+  <div class="alert alert-danger">
+      {{ form.non_field_errors.0 }}
+  </div>
+{% endif %}
+
         {% for field in form %}
           <div class="mb-3">
             <label class="form-label">{{ field.label }}</label>
@@ -21,4 +27,25 @@
     </div>
   </div>
 </div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.querySelector("form");
+    const imageInput = document.querySelector("input[type='file']");
+
+    form.addEventListener("submit", function (e) {
+        // If it's ADD mode (is_create = True), image must be provided
+        const isCreate = "{{ is_create }}" === "True";
+
+        if (isCreate && imageInput.value === "") {
+            e.preventDefault();
+            alert("Please upload an image.");
+            imageInput.classList.add("is-invalid");
+            return false;
+        }
+
+        imageInput.classList.remove("is-invalid");
+    });
+});
+</script>
+
 {% endblock %}

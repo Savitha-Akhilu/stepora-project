@@ -30,6 +30,18 @@
   <p><strong>Coupon Discount:</strong> ₹{{ order.coupon_discount }}</p>
 {% endif %}
 <p><strong>Delivery Charge:</strong> ₹{{ order.delivery_charge|floatformat:2 }}</p>
+{% if address %}
+<hr>
+<h6 class="fw-bold">Delivery Address</h6>
+<p>{{ address.full_name }}</p>
+<p>{{ address.house_name }}, {{ address.city }}</p>
+<p>{{ address.city }} - {{ address.pincode }}</p>
+<p>{{ address.state }}, {{ address.country }}</p>
+<p><strong>Phone:</strong> {{ address.mobile }}</p>
+{% else %}
+<p class="text-danger">No address found</p>
+{% endif %}
+
     </div>
   </div>
 

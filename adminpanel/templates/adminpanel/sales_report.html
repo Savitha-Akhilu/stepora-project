@@ -50,7 +50,7 @@
   </form>
 
   <!-- Summary Cards -->
-  <div class="row g-3 mb-4">
+  <!-- <div class="row g-3 mb-4">
     <div class="col-md-3">
       <div class="card text-center border-0 shadow-sm rounded-3">
         <div class="card-body">
@@ -83,7 +83,76 @@
         </div>
       </div>
     </div>
-  </div>
+    <div class="col-md-3">
+    <div class="card shadow-sm p-3">
+        <h6 class="text-muted">Total Revenue</h6>
+        <h3 class="text-success">
+            ₹{{ summary.total_revenue|floatformat:2 }}
+        </h3>
+    </div>
+</div>
+
+  </div> -->
+<div class="row g-3 mb-4">
+
+    <div class="col-md-2">
+        <div class="card text-center border-0 shadow-sm rounded-3">
+            <div class="card-body">
+                <h6 class="text-muted mb-1">Total Orders</h6>
+                <h5 class="fw-bold text-primary">{{ summary.total_orders }}</h5>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-2">
+        <div class="card text-center border-0 shadow-sm rounded-3">
+            <div class="card-body">
+                <h6 class="text-muted mb-1">Total Sales</h6>
+                <h5 class="fw-bold text-success">₹{{ summary.total_sales|floatformat:2 }}</h5>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-2">
+        <div class="card text-center border-0 shadow-sm rounded-3">
+            <div class="card-body">
+                <h6 class="text-muted mb-1">Total Discount</h6>
+                <h5 class="fw-bold text-danger">₹{{ summary.total_discount|floatformat:2 }}</h5>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-2">
+        <div class="card text-center border-0 shadow-sm rounded-3">
+            <div class="card-body">
+                <h6 class="text-muted mb-1">Coupon Deduction</h6>
+                <h5 class="fw-bold text-warning">₹{{ summary.total_coupon|floatformat:2 }}</h5>
+            </div>
+        </div>
+    </div>
+
+    <!-- ✅ NEW Delivery Card -->
+    <div class="col-md-2">
+        <div class="card text-center border-0 shadow-sm rounded-3">
+            <div class="card-body">
+                <h6 class="text-muted mb-1">Total Delivery</h6>
+                <h5 class="fw-bold text-primary">₹{{ summary.total_delivery|floatformat:2 }}</h5>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue Card -->
+    <div class="col-md-2">
+        <div class="card text-center border-0 shadow-sm rounded-3">
+            <div class="card-body">
+                <h6 class="text-muted mb-1">Total Revenue</h6>
+                <h5 class="fw-bold text-success">₹{{ summary.total_revenue|floatformat:2 }}</h5>
+            </div>
+        </div>
+    </div>
+
+</div>
+
 
   <!-- Report Table -->
   <div class="card shadow-sm border-0">
@@ -118,6 +187,30 @@
           {% endif %}
         </tbody>
       </table>
+      <nav aria-label="Page navigation" class="mt-3">
+  <ul class="pagination justify-content-center">
+
+    {% if page_obj.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&start_date={{ start_date }}&end_date={{ end_date }}&period={{ period }}">Previous</a>
+      </li>
+    {% endif %}
+
+    {% for num in page_obj.paginator.page_range %}
+      <li class="page-item {% if num == page_obj.number %}active{% endif %}">
+        <a class="page-link" href="?page={{ num }}&start_date={{ start_date }}&end_date={{ end_date }}&period={{ period }}">{{ num }}</a>
+      </li>
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ page_obj.next_page_number }}&start_date={{ start_date }}&end_date={{ end_date }}&period={{ period }}">Next</a>
+      </li>
+    {% endif %}
+
+  </ul>
+</nav>
+
     </div>
   </div>
 </div>

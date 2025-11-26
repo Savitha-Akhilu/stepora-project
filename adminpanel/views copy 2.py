@@ -1,11 +1,11 @@
 from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout,update_session_auth_hash
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from .forms import AdminLoginForm, AdminRegistrationForm,OfferForm
 from .models import CustomUser
 from django.core.paginator import Paginator
-# from django.db.models import Q,F,Sum,Case,When,Value,Count
+from django.db.models import Q,F,Sum,Case,When,Value
 from django.views.decorators.http import require_POST
 import json
 from django.http import JsonResponse,HttpResponse
@@ -26,11 +26,11 @@ from django.db import transaction
 from decimal import Decimal
 # from django.db.models.functions import TruncMonth, TruncYear
 from django.db.models.functions import TruncDay, TruncWeek, TruncMonth, TruncYear
-from django.db.models import Sum, Count,Q, F, DecimalField, ExpressionWrapper,Case,When,Value
-import random
+from django.db.models import Sum, Count, F, DecimalField, ExpressionWrapper
+
 from calendar import month_name
-from datetime import datetime,timedelta
-from django.core.mail import send_mail
+from datetime import datetime
+
 # -----------------------------
 # Admin Registration
 # -----------------------------
@@ -126,129 +126,150 @@ def admin_dashboard(request):
     # Total completed orders (unique orders, not items)
     total_orders = sold_items.values("order_id").distinct().count()
 
-    # # TOP PRODUCTS
-    # top_products = (
-    #     sold_items.values("product__name")
-    #     .annotate(total_sold=Sum("quantity"))
-    #     .order_by("-total_sold")[:10]
-    # )
+    # TOP PRODUCTS
+    top_products = (
+        sold_items.values("product__name")
+        .annotate(total_sold=Sum("quantity"))
+        .order_by("-total_sold")[:10]
+    )
 
-    # # TOP CATEGORIES
-    # top_categories = (
-    #     sold_items
-    #     .values(
-    #         "product__category__category_name",
-    #         "product__category__gender__name"   # join gender name
-    #     )
-    #     .annotate(total_sold=Sum("quantity"))
-    #     .order_by("-total_sold")[:10]
-    # )
-    # # TOP BRANDS
-    # top_brands = (
-    #     sold_items.values("product__brand__name")
-    #     .annotate(total_sold=Sum("quantity"))
-    #     .order_by("-total_sold")[:10]
-    # )
+    # TOP CATEGORIES
+    top_categories = (
+        sold_items
+        .values(
+            "product__category__category_name",
+            "product__category__gender__name"   # join gender name
+        )
+        .annotate(total_sold=Sum("quantity"))
+        .order_by("-total_sold")[:10]
+    )
+    # TOP BRANDS
+    top_brands = (
+        sold_items.values("product__brand__name")
+        .annotate(total_sold=Sum("quantity"))
+        .order_by("-total_sold")[:10]
+    )
 
     return render(request, "adminpanel/admin_dashboard.html", {
         "total_users": total_users,
         "total_admins": total_admins,
         "total_orders": total_orders,
         "total_products": total_products,
+        "top_products": top_products,
+        "top_categories": top_categories,
+        "top_brands": top_brands,
     })
 
+# def admin_dashboard(request):
+#     storage = messages.get_messages(request)
+#     storage.used = True
+
+#     total_users = CustomUser.objects.filter(is_customer=True).count()
+#     total_admins = CustomUser.objects.filter(is_admin=True).count()
+#     total_orders = Order.objects.exclude(status="Failed").count()
+#     total_products = Product.objects.count()
+
+#     # REAL sold items = delivered + not cancelled + not returned + payment success
+#     sold_items = OrderItem.objects.filter(
+#         status="Delivered",
+#         cancelled=False,
+#         returned=False,
+#         order__payments__status="Success"
+#     )
+
+#     # Top Products
+#     top_products = (
+#         sold_items
+#         .values("product__name")
+#         .annotate(total_sold=Sum("quantity"))
+#         .order_by("-total_sold")[:10]
+#     )
+
+#     # Top Categories
+#     top_categories = (
+#         sold_items
+#         .values("product__category__category_name")
+#         .annotate(total_sold=Sum("quantity"))
+#         .order_by("-total_sold")[:10]
+#     )
+
+#     # Top Brands
+#     top_brands = (
+#         sold_items
+#         .values("product__brand__name")
+#         .annotate(total_sold=Sum("quantity"))
+#         .order_by("-total_sold")[:10]
+#     )
+
+#     context = {
+#         "total_users": total_users,
+#         "total_admins": total_admins,
+#         "total_orders": total_orders,
+#         "total_products": total_products,
+#         "top_products": top_products,
+#         "top_categories": top_categories,
+#         "top_brands": top_brands,
+#     }
+
+#     return render(request, "adminpanel/admin_dashboard.html", context)
+
+# def admin_dashboard(request):
+#     storage = messages.get_messages(request)
+#     storage.used = True
+
+#     total_users = CustomUser.objects.filter(is_customer=True).count()
+#     total_admins = CustomUser.objects.filter(is_admin=True).count()
+#     total_orders = Order.objects.exclude(status="Failed").count()
+#     total_products = Product.objects.count()
+
+#     # Top 10 Best Selling
+#     top_products = (
+#         OrderItem.objects.filter(order__status="Delivered")
+#             .values("product__name")
+#             .annotate(total_sold=Sum("quantity"))
+#             .order_by("-total_sold")[:10]
+#     )
+
+#     top_categories = (
+#         OrderItem.objects.filter(order__status="Delivered")
+#             .values("product__category__category_name")
+#             .annotate(total_sold=Sum("quantity"))
+#             .order_by("-total_sold")[:10]
+#     )
+
+#     top_brands = (
+#         OrderItem.objects.filter(order__status="Delivered")
+#             .values("product__brand__name")
+#             .annotate(total_sold=Sum("quantity"))
+#             .order_by("-total_sold")[:10]
+#     )
+
+#     context = {
+#         "total_users": total_users,
+#         "total_admins": total_admins,
+#         "total_orders": total_orders,
+#         "total_products": total_products,
+#         "top_products": top_products,
+#         "top_categories": top_categories,
+#         "top_brands": top_brands,
+#     }
+
+#     return render(request, "adminpanel/admin_dashboard.html", context)
+
+# def admin_dashboard(request):
+#     storage = messages.get_messages(request)
+#     storage.used = True
+#     total_users = CustomUser.objects.filter(is_customer=True).count()
+#     total_admins = CustomUser.objects.filter(is_admin=True).count()
+
+#     context = {
+#         'total_users': total_users,
+#         'total_admins': total_admins,
+#     }
+#     return render(request, 'adminpanel/admin_dashboard.html', context)
 # ===============================================================
 #  USER MANAGEMENT SECTION
 # ===============================================================
-@login_required(login_url='/adminpanel/login/')
-def top_selling_categories(request):
-    filter_type = request.GET.get("filter", "yearly")
-
-    try:
-        year = int(request.GET.get("year", datetime.now().year))
-    except:
-        year = datetime.now().year
-
-    try:
-        month = int(request.GET.get("month")) if request.GET.get("month") else None
-    except:
-        month = None
-
-    qs = OrderItem.objects.select_related(
-        "product",
-        "product__category",
-        "product__category__gender"
-    ).filter(
-        status__in=["Delivered", "Partially Delivered", "Partially Returned"],
-        cancelled=False,
-        returned=False,
-        order__payments__status="Success"
-    )
-
-    if filter_type == "monthly" and month:
-        qs = qs.filter(order__created_at__year=year,
-                       order__created_at__month=month)
-    else:
-        qs = qs.filter(order__created_at__year=year)
-
-    data = qs.values(
-            "product__category__category_name",
-            "product__category__gender__name"
-        ) \
-        .annotate(total_sold=Sum("quantity")) \
-        .order_by("-total_sold")[:10]
-
-    labels = [f"{i['product__category__category_name']} - {i['product__category__gender__name']}" for i in data]
-    units = [i["total_sold"] for i in data]
-
-    return JsonResponse({
-        "labels": labels,
-        "units": units,
-        "year": year,
-        "month": month if filter_type == "monthly" else None
-    })
-def top_selling_brands(request):
-    filter_type = request.GET.get("filter", "yearly")
-
-    try:
-        year = int(request.GET.get("year", datetime.now().year))
-    except:
-        year = datetime.now().year
-
-    try:
-        month = int(request.GET.get("month")) if request.GET.get("month") else None
-    except:
-        month = None
-
-    qs = OrderItem.objects.select_related(
-        "product",
-        "product__brand"
-    ).filter(
-        status__in=["Delivered", "Partially Delivered", "Partially Returned"],
-        cancelled=False,
-        returned=False,
-        order__payments__status="Success"
-    )
-
-    if filter_type == "monthly" and month:
-        qs = qs.filter(order__created_at__year=year,
-                       order__created_at__month=month)
-    else:
-        qs = qs.filter(order__created_at__year=year)
-
-    data = qs.values("product__brand__name") \
-             .annotate(total_sold=Sum("quantity")) \
-             .order_by("-total_sold")[:10]
-
-    labels = [i["product__brand__name"] for i in data]
-    units = [i["total_sold"] for i in data]
-
-    return JsonResponse({
-        "labels": labels,
-        "units": units,
-        "year": year,
-        "month": month if filter_type == "monthly" else None
-    })
 
 @login_required(login_url='/adminpanel/login/')
 @never_cache
@@ -355,174 +376,257 @@ def sales_chart_data(request):
         })
     # ============== VERY IMPORTANT: DEFAULT RETURN ==============
     return JsonResponse({"labels": [], "values": [], "year": "N/A"})
-
-def order_stackchart_data(request):
-    filter_type = request.GET.get("filter", "monthly")
-    year = request.GET.get("year")
-
-    # --------------------------- MONTHLY ----------------------------
-    if filter_type == "monthly":
-        year = int(year) if year else datetime.now().year
-
-        delivered_qs = Order.objects.filter(
-            status__in=["Delivered", "Partially Delivered", "Partially Returned"],
-            payments__status="Success",
-            created_at__year=year
-        )
-
-        returned_qs = Order.objects.filter(
-            status="Returned",
-            created_at__year=year
-        )
-
-        cancelled_qs = Order.objects.filter(
-            status="Cancelled",
-            created_at__year=year
-        )
-
-        def group(qs):
-            data = qs.annotate(period=TruncMonth("created_at")) \
-                     .values("period") \
-                     .annotate(c=Count("id")) \
-                     .order_by("period")
-            return {x["period"].month: x["c"] for x in data}
-
-        delivered_map = group(delivered_qs)
-        returned_map = group(returned_qs)
-        cancelled_map = group(cancelled_qs)
-
-        labels = [month_name[m][:3] for m in range(1, 13)]
-
-        delivered_vals = [delivered_map.get(m, 0) for m in range(1, 13)]
-        returned_vals = [returned_map.get(m, 0) for m in range(1, 13)]
-        cancelled_vals = [cancelled_map.get(m, 0) for m in range(1, 13)]
-
-        return JsonResponse({
-            "labels": labels,
-            "delivered": delivered_vals,
-            "returned": returned_vals,
-            "cancelled": cancelled_vals,
-            "year": year
-        })
-
-    # --------------------------- YEARLY ----------------------------
-    elif filter_type == "yearly":
-
-    # last 10 years
-        current_year = datetime.now().year
-        years = list(range(current_year - 9, current_year + 1))
-
-        delivered_qs = Order.objects.filter(
-            status__in=["Delivered", "Partially Delivered", "Partially Returned"],
-            payments__status="Success",
-            created_at__year__in=years
-        )
-
-        returned_qs = Order.objects.filter(
-            status="Returned",
-            created_at__year__in=years
-        )
-
-        cancelled_qs = Order.objects.filter(
-            status="Cancelled",
-            created_at__year__in=years
-        )
-
-        def group_year(qs):
-            data = qs.annotate(period=TruncYear("created_at")) \
-                    .values("period") \
-                    .annotate(c=Count("id")) \
-                    .order_by("period")
-            return {x["period"].year: x["c"] for x in data}
-
-        delivered_map = group_year(delivered_qs)
-        returned_map = group_year(returned_qs)
-        cancelled_map = group_year(cancelled_qs)
-
-        delivered_vals = [delivered_map.get(y, 0) for y in years]
-        returned_vals = [returned_map.get(y, 0) for y in years]
-        cancelled_vals = [cancelled_map.get(y, 0) for y in years]
-
-        return JsonResponse({
-            "labels": years,
-            "delivered": delivered_vals,
-            "returned": returned_vals,
-            "cancelled": cancelled_vals,
-            "period": "Yearly"
-        })
-
-    # --------------------------- DEFAULT ----------------------------
-    return JsonResponse({
-        "labels": [],
-        "delivered": [],
-        "returned": [],
-        "cancelled": []
-    })
-# def order_stackchart_data(request):
+# def order_chart_data(request):
 #     filter_type = request.GET.get("filter", "monthly")
 #     year = request.GET.get("year")
 
+#     # ====================== MONTHLY ======================
 #     if filter_type == "monthly":
-#         year = int(year) if year else datetime.now().year
 
-#         # ------------------------- QUERYSETS --------------------------
+#         if year:
+#             year = int(year)
+#         else:
+#             year = datetime.now().year
 
-#         # 1. Delivered + Partial (Blue)
-#         delivered_qs = Order.objects.filter(
-#             status__in=[
-#                 "Delivered",
-#                 "Partially Delivered",
-#                 "Partially Returned"
-#             ],
+#         # Only delivered orders
+#         orders = Order.objects.filter(
+#             status="Delivered",
 #             payments__status="Success",
 #             created_at__year=year
 #         )
 
-#         # 2. Returned Orders (Orange)
-#         returned_qs = Order.objects.filter(
-#             status="Returned",
-#             created_at__year=year
+#         grouped = (
+#             orders.annotate(period=TruncMonth("created_at"))
+#                   .values("period")
+#                   .annotate(order_count=Count("id"))
+#                   .order_by("period")
 #         )
 
-#         # 3. Cancelled Orders (Red)
-#         cancelled_qs = Order.objects.filter(
-#             status="Cancelled",
-#             created_at__year=year
-#         )
-
-#         # ------------------------- GROUPING ---------------------------
-
-#         def group(qs):
-#             data = qs.annotate(period=TruncMonth("created_at")) \
-#                 .values("period") \
-#                 .annotate(c=Count("id")) \
-#                 .order_by("period")
-#             return {x["period"].month: x["c"] for x in data}
-
-#         delivered_map = group(delivered_qs)
-#         returned_map = group(returned_qs)
-#         cancelled_map = group(cancelled_qs)
+#         # Convert to map
+#         month_map = {g["period"].month: g["order_count"] for g in grouped}
 
 #         labels = [month_name[m][:3] for m in range(1, 13)]
-
-#         delivered_vals = [delivered_map.get(m, 0) for m in range(1, 13)]
-#         returned_vals = [returned_map.get(m, 0) for m in range(1, 13)]
-#         cancelled_vals = [cancelled_map.get(m, 0) for m in range(1, 13)]
+#         values = [month_map.get(m, 0) for m in range(1, 13)]
 
 #         return JsonResponse({
 #             "labels": labels,
-#             "delivered": delivered_vals,
-#             "returned": returned_vals,
-#             "cancelled": cancelled_vals,
+#             "values": values,
 #             "year": year
 #         })
 
-#     return JsonResponse({
-#         "labels": [],
-#         "delivered": [],
-#         "returned": [],
-#         "cancelled": []
-#     })
+
+#     # ====================== YEARLY ======================
+#     elif filter_type == "yearly":
+
+#         orders = Order.objects.filter(
+#             status="Delivered",
+#             payments__status="Success",
+#         )
+
+#         grouped = (
+#             orders.annotate(period=TruncYear("created_at"))
+#                   .values("period")
+#                   .annotate(order_count=Count("id"))
+#                   .order_by("period")
+#         )
+
+#         year_map = {g["period"].year: g["order_count"] for g in grouped}
+
+#         current_year = datetime.now().year
+#         year_list = list(range(current_year - 9, current_year + 1))
+
+#         labels = [str(y) for y in year_list]
+#         values = [year_map.get(y, 0) for y in year_list]
+
+#         return JsonResponse({
+#             "labels": labels,
+#             "values": values,
+#             "year": f"{year_list[0]} - {year_list[-1]}"
+#         })
+
+#     # ====================== FALLBACK ======================
+#     return JsonResponse({"labels": [], "values": [], "year": "N/A"})
+# def order_chart_data(request):
+#     filter_type = request.GET.get("filter", "monthly")
+#     year = request.GET.get("year")
+
+#     # ====================== MONTHLY ======================
+#     if filter_type == "monthly":
+
+#         # Selected year or default to current year
+#         if year:
+#             year = int(year)
+#         else:
+#             year = datetime.now().year
+
+#         # Only delivered & payment-success orders
+#         orders = Order.objects.filter(
+#             status="Delivered",
+#             payments__status="Success",
+#             created_at__year=year
+#         )
+
+#         grouped = (
+#             orders.annotate(period=TruncMonth("created_at"))
+#                   .values("period")
+#                   .annotate(order_count=Count("id", distinct=True))
+#                   .order_by("period")
+#         )
+
+#         # Convert to dict: {month_number: count}
+#         month_map = {g["period"].month: g["order_count"] for g in grouped}
+
+#         # Correct monthly labels & values
+#         labels = [month_name[m][:3] for m in range(1, 13)]
+#         values = [month_map.get(m, 0) for m in range(1, 13)]
+
+#         return JsonResponse({
+#             "labels": labels,
+#             "values": values,
+#             "year": year
+#         })
+
+#     # ====================== YEARLY ======================
+#     elif filter_type == "yearly":
+
+#         orders = Order.objects.filter(
+#             status="Delivered",
+#             payments__status="Success",
+#         )
+
+#         grouped = (
+#             orders.annotate(period=TruncYear("created_at"))
+#                   .values("period")
+#                   .annotate(order_count=Count("id", distinct=True))
+#                   .order_by("period")
+#         )
+
+#         year_map = {g["period"].year: g["order_count"] for g in grouped}
+
+#         current_year = datetime.now().year
+#         year_list = list(range(current_year - 9, current_year + 1))
+
+#         labels = [str(y) for y in year_list]
+#         values = [year_map.get(y, 0) for y in year_list]
+
+#         return JsonResponse({
+#             "labels": labels,
+#             "values": values,
+#             "year": f"{year_list[0]} - {year_list[-1]}"
+#         })
+
+#     # ====================== FALLBACK ======================
+#     return JsonResponse({"labels": [], "values": [], "year": "N/A"})
+
+
+
+# def order_chart_data(request):
+#     filter_type = request.GET.get("filter", "monthly")
+#     year = request.GET.get("year")
+
+#     # ====================== MONTHLY ======================
+#     if filter_type == "monthly":
+#         year = int(year) if year else datetime.now().year
+
+#         # SUCCESSFUL (Delivered Items)
+#         success = OrderItem.objects.filter(
+#             status="Delivered",
+#             cancelled=False,
+#             returned=False,
+#             order__payments__status="Success",
+#             order__created_at__year=year
+#         )
+
+#         # CANCELLED Items
+#         cancelled = OrderItem.objects.filter(
+#             status="Cancelled",
+#             cancelled=True,
+#             order__created_at__year=year
+#         )
+
+#         # RETURNED + PARTIALLY RETURNED Items
+#         returned = OrderItem.objects.filter(
+#             status__in=["Returned", "Partially Returned"],
+#             returned=True,
+#             order__created_at__year=year
+#         )
+
+#         # Group function for OrderItem using order__created_at
+#         def group(qs):
+#             g = qs.annotate(period=TruncMonth("delivered_at")) \
+#                 .values("period") \
+#                 .annotate(c=Count("id")) \
+#                 .order_by("period")
+#             return {x["period"].month: x["c"] for x in g}
+
+#         success_map = group(success)
+#         cancelled_map = group(cancelled)
+#         returned_map = group(returned)
+
+#         labels = [month_name[m][:3] for m in range(1, 13)]
+#         success_values = [success_map.get(m, 0) for m in range(1, 13)]
+#         cancelled_values = [cancelled_map.get(m, 0) for m in range(1, 13)]
+#         returned_values = [returned_map.get(m, 0) for m in range(1, 13)]
+
+#         return JsonResponse({
+#             "labels": labels,
+#             "success": success_values,
+#             "cancelled": cancelled_values,
+#             "returned": returned_values,
+#             "year": year
+#         })
+
+#     # ====================== YEARLY ======================
+#     elif filter_type == "yearly":
+
+#         # Grouping by YEAR
+#         def group(qs):
+#             g = qs.annotate(period=TruncMonth("order__created_at")) \
+#                 .values("period") \
+#                 .annotate(c=Count("id")) \
+#                 .order_by("period")
+#             return {x["period"].month: x["c"] for x in g}
+
+#         success_map = group_year(
+#             OrderItem.objects.filter(
+#                 status="Delivered",
+#                 cancelled=False,
+#                 returned=False,
+#                 order__payments__status="Success"
+#             )
+#         )
+
+#         cancelled_map = group_year(
+#             OrderItem.objects.filter(
+#                 status="Cancelled",
+#                 cancelled=True
+#             )
+#         )
+
+#         returned_map = group_year(
+#             OrderItem.objects.filter(
+#                 status__in=["Returned", "Partially Returned"],
+#                 returned=True
+#             )
+#         )
+
+#         current_year = datetime.now().year
+#         year_list = list(range(current_year - 9, current_year + 1))
+
+#         labels = [str(y) for y in year_list]
+#         success_values = [success_map.get(y, 0) for y in year_list]
+#         cancelled_values = [cancelled_map.get(y, 0) for y in year_list]
+#         returned_values = [returned_map.get(y, 0) for y in year_list]
+
+#         return JsonResponse({
+#             "labels": labels,
+#             "success": success_values,
+#             "cancelled": cancelled_values,
+#             "returned": returned_values,
+#             "year": f"{year_list[0]} - {year_list[-1]}"
+#         })
+
+#     return JsonResponse({"labels": [], "success": [], "cancelled": [], "returned": []})
 def order_chart_data(request):
     filter_type = request.GET.get("filter", "monthly")
     year = request.GET.get("year")
@@ -654,6 +758,69 @@ def order_chart_data(request):
         "title": "Product Order Overview"
     })
 
+def sales_chart_data_old(request):
+    filter_type = request.GET.get("filter", "monthly")
+
+    if filter_type == "yearly":
+        trunc_fn = TruncYear
+    else:
+        trunc_fn = TruncMonth
+
+    sold_items = OrderItem.objects.filter(
+        status="Delivered",
+        cancelled=False,
+        returned=False,
+        order__payments__status="Success"
+    )
+
+    grouped = (
+        sold_items
+        .annotate(period=trunc_fn("order__created_at"))
+        .values("period")
+        .annotate(total_sales=Sum(F("final_price") * F("quantity")))
+        .order_by("period")
+    )
+
+    labels = []
+    values = []
+
+    if filter_type == "yearly":
+        # Show last 10 years
+        current_year = datetime.now().year
+        year_list = list(range(current_year - 9, current_year + 1))
+
+        year_map = {g["period"].year: float(g["total_sales"]) for g in grouped}
+
+        labels = [str(y) for y in year_list]
+        values = [year_map.get(y, 0) for y in year_list]
+
+    else:
+        # Always show all 12 months
+        # month_map = {g["period"].month: float(g["total_sales"]) for g in grouped}
+
+        # labels = [month_name[m][:3] for m in range(1, 13)]
+        # values = [month_map.get(m, 0) for m in range(1, 13)]
+
+    # Detect which year is being displayed
+            if grouped:
+                selected_year = grouped[0]["period"].year
+            else:
+                selected_year = datetime.now().year
+
+            month_map = {g["period"].month: float(g["total_sales"]) for g in grouped}
+
+            labels = [month_name[m][:3] for m in range(1, 13)]
+            values = [month_map.get(m, 0) for m in range(1, 13)]
+
+            return JsonResponse({
+                "labels": labels,
+                "values": values,
+                "year": selected_year,
+            })
+
+
+    return JsonResponse({"labels": labels, "values": values})
+
 
 
 def brand_pie_chart_data(request):
@@ -679,43 +846,18 @@ def brand_pie_chart_data(request):
     return JsonResponse({"labels": labels, "values": values})
 
 
-def top_selling_products_chart(request):
-    filter_type = request.GET.get("filter", "yearly")
+# def brand_pie_chart_data(request):
+#     data = (
+#         OrderItem.objects.filter(order__status="Delivered")
+#         .values("product__brand__name")
+#         .annotate(total=Sum("quantity"))
+#         .order_by("-total")
+#     )
 
-    # Safe year conversion
-    year_param = request.GET.get("year")
-    try:
-        year = int(year_param) if year_param else datetime.now().year
-    except ValueError:
-        year = datetime.now().year
+#     labels = [x["product__brand__name"] for x in data]
+#     values = [int(x["total"]) for x in data]
 
-    # Safe month conversion
-    month_param = request.GET.get("month")
-    try:
-        month = int(month_param) if month_param else None
-    except ValueError:
-        month = None
-
-    qs = OrderItem.objects.select_related("product")
-
-    # Monthly filter
-    if filter_type == "monthly" and month:
-        qs = qs.filter(order__created_at__year=year,
-                       order__created_at__month=month)
-    else:  # Yearly
-        qs = qs.filter(order__created_at__year=year)
-
-    data = (
-        qs.values("product__name")
-          .annotate(units=Sum("quantity"))
-          .order_by("-units")[:10]
-    )
-
-    labels = [item["product__name"] for item in data]
-    units = [item["units"] for item in data]
-
-
-    return JsonResponse({"labels": labels, "units": units,"year": year,"month": month if filter_type == "monthly" else None})
+#     return JsonResponse({"labels": labels, "values": values})
 
 @require_POST
 @login_required(login_url='/adminpanel/login/')
@@ -843,7 +985,7 @@ def admin_color_add(request):
         # Validation: Duplicate check (case-insensitive)
         if Color.objects.filter(name__iexact=name).exists():
             messages.warning(request, f"Color '{name}' already exists.")
-            return redirect('admin_color_add')
+            return redirect('admin_colors')
 
         #  Save if not duplicate
         Color.objects.create(name=name)
@@ -916,7 +1058,7 @@ def admin_size_add(request):
         # Duplicate check — same name + same gender
         if Size.objects.filter(name__iexact=name, gender=gender).exists():
             messages.warning(request, f"Size '{name}' already exists for {gender.name}.")
-            return redirect('admin_size_add')
+            return redirect('admin_sizes')
 
         # Create size
         Size.objects.create(name=name, gender=gender)
@@ -948,7 +1090,7 @@ def admin_size_edit(request, pk):
         # Duplicate check 
         if Size.objects.filter(name__iexact=name, gender=gender).exclude(pk=pk).exists():
             messages.warning(request, f"Size '{name}' already exists for {gender.name}.")
-            return redirect('admin_size_edit')
+            return redirect('admin_sizes')
 
         size.name = name
         size.gender = gender
@@ -1002,7 +1144,7 @@ def admin_material_add(request):
         # Duplicate check (case-insensitive)
         if Material.objects.filter(name__iexact=name).exists():
             messages.warning(request, f"Material '{name}' already exists.")
-            return redirect('admin_material_add')
+            return redirect('admin_materials')
 
         # Create new record
         Material.objects.create(name=name)
@@ -1494,171 +1636,6 @@ def delete_coupon(request, id):
 
 @login_required(login_url='/adminpanel/login/')
 def sales_report(request):
-    start_date = request.GET.get("start_date")
-    end_date = request.GET.get("end_date")
-    period = request.GET.get("period", "day")
-
-    if start_date in (None, "", "None"):
-        start_date = None
-    if end_date in (None, "", "None"):
-        end_date = None
-
-
-    period_map = {
-        "day": TruncDay,
-        "week": TruncWeek,
-        "month": TruncMonth,
-        "year": TruncYear,
-    }
-    trunc = period_map.get(period, TruncDay)
-
-    # 1) GET VALID ORDERS
-    valid_orders = Order.objects.filter(
-        status__in=["Delivered", "Partially Returned", "Partially Delivered"],
-        payments__status="Success",
-    )
-
-    if start_date:
-        valid_orders = valid_orders.filter(created_at__date__gte=start_date)
-    if end_date:
-        valid_orders = valid_orders.filter(created_at__date__lte=end_date)
-
-    # 2) GET VALID ITEMS
-    valid_items = OrderItem.objects.filter(
-        order_id__in=valid_orders.values("id"),
-        status="Delivered",
-        cancelled=False,
-        returned=False,
-    )
-
-    # 3) GROUPED ORDERS
-    grouped_orders = (
-        valid_orders
-        .annotate(period=trunc("created_at"))
-        .values("period")
-        .annotate(
-            total_orders=Count("id"),
-            delivery_charge=Sum("delivery_charge"),
-            coupon_deduction=Value(0, output_field=DecimalField(max_digits=10, decimal_places=2)),
-        )
-        .order_by("period")
-    )
-
-    total_coupon_summary = Decimal("0.00")
-
-    # 4) COUPON CALCULATION (FIXED FOR ALL PERIODS)
-    for row in grouped_orders:
-        period_date = row["period"]
-
-        # DAILY
-        if period == "day":
-            orders_in_period = valid_orders.filter(
-                created_at__date=period_date.date()
-            )
-
-        # WEEKLY (7-day range)
-        elif period == "week":
-            start = period_date.date()
-            end = (period_date + timedelta(days=7)).date()
-
-            orders_in_period = valid_orders.filter(
-                created_at__date__gte=start,
-                created_at__date__lt=end
-            )
-
-        # MONTHLY
-        elif period == "month":
-            start = period_date.date()
-
-            if start.month == 12:
-                end = start.replace(year=start.year + 1, month=1)
-            else:
-                end = start.replace(month=start.month + 1)
-
-            orders_in_period = valid_orders.filter(
-                created_at__date__gte=start,
-                created_at__date__lt=end
-            )
-
-        # YEARLY
-        elif period == "year":
-            start = period_date.date()
-            end = start.replace(year=start.year + 1)
-
-            orders_in_period = valid_orders.filter(
-                created_at__date__gte=start,
-                created_at__date__lt=end
-            )
-
-        period_coupon = Decimal("0.00")
-
-        # CALCULATE COUPON FOR THIS PERIOD
-        for order in orders_in_period:
-            items = order.items.all()
-
-            order_total = sum(i.final_price * i.quantity for i in items)
-            delivered_total = sum(
-                i.final_price * i.quantity
-                for i in items
-                if i.status == "Delivered" and not i.cancelled and not i.returned
-            )
-
-            order_coupon = Decimal(order.coupon_discount or 0)
-
-            if order_total > 0:
-                delivered_coupon = (delivered_total / order_total) * order_coupon
-            else:
-                delivered_coupon = Decimal("0.00")
-
-            period_coupon += delivered_coupon
-            total_coupon_summary += delivered_coupon
-
-        row["coupon_deduction"] = round(period_coupon, 2)
-
-    # 5) SALES & DISCOUNT SUMMARY
-    sales_map = (
-        valid_items
-        .annotate(period=trunc("order__created_at"))
-        .values("period")
-        .annotate(
-            total_sales=Sum(F("final_price") * F("quantity")),
-            total_discount=Sum("discount_value")
-        )
-    )
-
-    sales_dict = {s["period"]: s for s in sales_map}
-
-    for row in grouped_orders:
-        p = row["period"]
-        row["total_sales"] = sales_dict.get(p, {}).get("total_sales", 0)
-        row["total_discount"] = sales_dict.get(p, {}).get("total_discount", 0)
-
-    # 6) SUMMARY TOTALS
-    summary = {
-        "total_orders": valid_orders.count(),
-        "total_sales": valid_items.aggregate(s=Sum(F("final_price") * F("quantity")))["s"] or 0,
-        "total_discount": valid_items.aggregate(s=Sum("discount_value"))["s"] or 0,
-        "total_delivery": valid_orders.aggregate(s=Sum("delivery_charge"))["s"] or 0,
-        "total_coupon": round(total_coupon_summary, 2),
-    }
-    summary["total_revenue"] = (
-        summary["total_sales"] - summary["total_coupon"] + summary["total_delivery"]
-    )
-    # PAGINATION
-    page_number = request.GET.get("page")
-    paginator = Paginator(grouped_orders, 10)
-    page_obj = paginator.get_page(page_number)
-
-    return render(request, "adminpanel/sales_report.html", {
-        "grouped_data": page_obj,
-        "page_obj": page_obj,
-        "summary": summary,
-        "period": period,
-        "start_date": start_date,
-        "end_date": end_date,
-    })
-
-def sales_report_org(request):
     start_date = request.GET.get("start_date")
     end_date = request.GET.get("end_date")
     period = request.GET.get("period", "day")
@@ -2512,104 +2489,4 @@ def admin_update_item_status(request, item_id):
 
         messages.success(request, f"{item.product.name} status updated to {new_status}.")
     return redirect('admin_order_detail', order_id=item.order.id)
-@login_required(login_url='/adminpanel/login/')
-def admin_change_password(request):
-    if request.method == "POST":
-        old_pwd = request.POST.get("old_password")
-        pwd1 = request.POST.get("password1")
-        pwd2 = request.POST.get("password2")
-
-        user = request.user
-
-        # 1. Check old password
-        if not user.check_password(old_pwd):
-            messages.error(request, "Old password is incorrect!")
-            return redirect("admin_change_password")
-
-        # 2. Check if new passwords match
-        if pwd1 != pwd2:
-            messages.error(request, "New passwords do not match!")
-            return redirect("admin_change_password")
-
-        # 3. Update password
-        user.set_password(pwd1)
-        user.save()
-        update_session_auth_hash(request, user)
-
-        messages.success(request, "Password changed successfully.")
-        return redirect("admin_dashboard")
-
-    return render(request, "adminpanel/change_password.html")
-
-
-def forgot_password(request):
-    if request.method == "POST":
-        email = request.POST.get("email")
-        try:
-            user = CustomUser.objects.get(email=email)
-        except:
-            messages.error(request, "Email not found!")
-            return redirect("forgot_password")
-
-        otp = random.randint(100000, 999999)
-        request.session["reset_email"] = email
-        request.session["otp"] = otp
-        request.session["otp_time"] = timezone.now().isoformat()
-
-        send_mail(
-            "Stepora Admin Password Reset",
-            f"Your OTP is {otp}",
-            "stepora@example.com",
-            [email],
-        )
-
-        messages.success(request, "OTP has been sent to your email.")
-        return redirect("admin_verify_otp")
-
-    return render(request, "adminpanel/forgot_password.html")
-
-
-def admin_verify_otp(request):
-    otp_time = request.session.get("otp_time")
-
-    if otp_time:
-        otp_time = timezone.datetime.fromisoformat(otp_time)
-
-        if timezone.now() > otp_time + timedelta(seconds=60):
-            messages.error(request, "OTP expired! Please request a new one.")
-            return redirect("admin_forgot_password")
-
-    if request.method == "POST":
-        entered_otp = request.POST.get("otp")
-        saved_otp = str(request.session.get("otp"))
-
-        if entered_otp == saved_otp:
-            return redirect("admin_reset_password")
-        else:
-            messages.error(request, "Invalid OTP! Please try again.")
-            return redirect("admin_verify_otp")
-
-    return render(request, "adminpanel/verify_otp.html")
-
-
-
-
-def admin_reset_password(request):
-    if request.method == "POST":
-        pwd1 = request.POST.get("password1")
-        pwd2 = request.POST.get("password2")
-
-        if pwd1 != pwd2:
-            messages.error(request, "Passwords do not match!")
-            return redirect("admin_reset_password")
-
-        email = request.session.get("reset_email")
-        user = CustomUser.objects.get(email=email)
-        user.set_password(pwd1)
-        user.save()
-
-        messages.success(request, "Password reset successful! Login again.")
-        return redirect("admin_login")
-
-    return render(request, "adminpanel/reset_password.html")
 

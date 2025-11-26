@@ -458,9 +458,22 @@ document.addEventListener("DOMContentLoaded", () => {
   const totalLine = document.querySelector(".total-line strong");
   const codOption = document.querySelector("input[value='cod']");
   const razorpayOption = document.querySelector("input[value='razorpay']");
+//  Disable COD if total is above 1000
+const totalAmount = parseFloat("{{ total|floatformat:2 }}");
+
+if (totalAmount > 1000) {
+    codOption.disabled = true;
+    codOption.checked = false;
+    razorpayOption.checked = true;
+
+    const codWarning = document.createElement("p");
+    codWarning.className = "text-danger small mt-2";
+    codWarning.textContent = "Cash on Delivery is not available for orders above ₹1000.";
+    codOption.parentElement.appendChild(codWarning);
+}
 
   const walletBalance = parseFloat("{{ wallet.balance|floatformat:2 }}");
-  const totalAmount = parseFloat("{{ total|floatformat:2 }}");
+  // const totalAmount = parseFloat("{{ total|floatformat:2 }}");
   let updatedTotal = totalAmount;
 
   const noteDiv = document.createElement("p");

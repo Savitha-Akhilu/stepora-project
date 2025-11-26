@@ -46,8 +46,8 @@ class Cart(models.Model):
             coupon_discount = self.coupon.calculate_discount(subtotal)
         total_after_discount = subtotal - coupon_discount
 
-        print(coupon_discount)
-        print(total_after_discount)
+        # print(coupon_discount)
+        # print(total_after_discount)
         if total_after_discount == 0:
             return 0
         elif total_after_discount < 1000:
@@ -312,11 +312,12 @@ class Order(models.Model):
         super().save(*args, **kwargs)
     def get_overall_status(self):
         items = self.items.all()
-        print(items)
+        # print(items)
         if not items.exists():
             return 'Pending'
 
         statuses = set(item.status for item in items)
+        # print(statuses)
 
         if all(s == 'Delivered' for s in statuses):
             return 'Delivered'
@@ -403,6 +404,7 @@ class Payment(models.Model):
     METHOD_CHOICES = [
         ('Razorpay', 'Razorpay'),
         ('COD', 'Cash on Delivery'),
+        ('Wallet', 'Wallet'),
     ]
 
     STATUS_CHOICES = [

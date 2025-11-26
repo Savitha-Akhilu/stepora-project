@@ -58,7 +58,7 @@
 
 from django.utils import timezone
 from decimal import Decimal
-from cart.models import Offer  ,Order
+from cart.models import Offer  ,Order,Payment
 from django.db.models import Sum, Count, F, DecimalField, ExpressionWrapper
 from django.db.models.functions import TruncDay, TruncWeek, TruncMonth, TruncYear
 
@@ -125,7 +125,39 @@ def get_best_offer_price(product_variant):
     return base_price, Decimal('0.00'), None
 
 # reports/utils.py
+def group_payments_by_period(qs, period):
+    """Group payments by day, month, or year for reporting."""
 
+    amount_field = "order__total"   # Payment does NOT have amount field
+
+    if period == "day":
+        grouped = (
+            qs.annotate(date=TruncDay("created_at"))
+              .values("date")
+              .annotate(total=Sum(amount_field))
+              .order_by("date")
+        )
+        return [{"label": g["date"].strftime("%Y-%m-%d"), "total": g["total"]} for g in grouped]
+
+    if period == "month":
+        grouped = (
+            qs.annotate(date=TruncMonth("created_at"))
+              .values("date")
+              .annotate(total=Sum(amount_field))
+              .order_by("date")
+        )
+        return [{"label": g["date"].strftime("%b %Y"), "total": g["total"]} for g in grouped]
+
+    if period == "year":
+        grouped = (
+            qs.annotate(date=TruncYear("created_at"))
+              .values("date")
+              .annotate(total=Sum(amount_field))
+              .order_by("date")
+        )
+        return [{"label": g["date"].year, "total": g["total"]} for g in grouped]
+
+    return []
 def get_filtered_orders(start_date=None, end_date=None):
     """Fetch orders within selected date range that are completed or delivered."""
     qs = Order.objects.filter(status__in=['Delivered', 'Returned'])
@@ -134,6 +166,18 @@ def get_filtered_orders(start_date=None, end_date=None):
     if end_date:
         qs = qs.filter(created_at__date__lte=end_date)
     return qs
+def get_filtered_payments(start_date=None, end_date=None):
+    """Fetch REAL sales = successful payments only."""
+    qs = Payment.objects.filter(status="Success")
+
+    if start_date:
+        qs = qs.filter(created_at__date__gte=start_date)
+
+    if end_date:
+        qs = qs.filter(created_at__date__lte=end_date)
+
+    return qs
+
 
 def group_orders_by_period(qs, period='day'):
     """Group orders by day/week/month."""
@@ -157,13 +201,19 @@ def group_orders_by_period(qs, period='day'):
     ).order_by('period')
     return data
 
+# def get_sales_summary(qs):
+#     """Return overall summary totals."""
+#     result = qs.aggregate(
+#         total_orders=Count('id', distinct=True),
+#         total_sales=Sum('total', output_field=DecimalField(max_digits=12, decimal_places=2)),
+#         total_discount=Sum('discount', output_field=DecimalField(max_digits=12, decimal_places=2)),
+#         total_coupon=Sum('coupon_discount', output_field=DecimalField(max_digits=12, decimal_places=2)),
+#         total_delivery=Sum('delivery_charge', output_field=DecimalField(max_digits=12, decimal_places=2)),
+#     )
+#     return result
 def get_sales_summary(qs):
-    """Return overall summary totals."""
-    result = qs.aggregate(
-        total_orders=Count('id', distinct=True),
-        total_sales=Sum('total', output_field=DecimalField(max_digits=12, decimal_places=2)),
-        total_discount=Sum('discount', output_field=DecimalField(max_digits=12, decimal_places=2)),
-        total_coupon=Sum('coupon_discount', output_field=DecimalField(max_digits=12, decimal_places=2)),
-        total_delivery=Sum('delivery_charge', output_field=DecimalField(max_digits=12, decimal_places=2)),
-    )
-    return result
+    """Summary of total revenue and number of orders."""
+    return {
+        "total_sales": qs.aggregate(total_sales=Sum("total"))["total_sales"] or 0,
+        "total_orders": qs.count()
+    }

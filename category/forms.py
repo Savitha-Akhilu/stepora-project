@@ -12,8 +12,23 @@ class CategoryForm(forms.ModelForm):
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
-    def clean_category_name(self):
-        name = self.cleaned_data['category_name'].strip()
-        if Category.objects.filter(category_name__iexact=name, is_active=False).exists():
-            raise forms.ValidationError("A category with this name already exists.")
-        return name
+    def clean(self):
+        cleaned_data = super().clean()
+        name = cleaned_data.get('category_name')
+        gender = cleaned_data.get('gender')
+
+        if not name or not gender:
+            return cleaned_data
+
+        qs = Category.objects.filter(category_name__iexact=name, gender=gender)
+
+        # Exclude same record when editing
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+
+        if qs.exists():
+            raise forms.ValidationError(
+                "This category already exists for the selected gender."
+            )
+
+        return cleaned_data

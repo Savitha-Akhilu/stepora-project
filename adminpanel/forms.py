@@ -171,10 +171,6 @@ class OfferForm(forms.ModelForm):
         now = datetime.now(dt_timezone.utc)  # current UTC time
         tomorrow = now + timedelta(days=1)
 
-        # Validate start date — must be at least tomorrow
-        # if start_at and start_at < tomorrow:
-        #     self.add_error('start_at', " Start date & time must be tomorrow or later.")
-
         # Validate end date
         if start_at and end_at:
             # print(start_at)
@@ -185,4 +181,15 @@ class OfferForm(forms.ModelForm):
                 self.add_error('end_at', "Offer must be valid for at least 3 days.")
 
         return cleaned_data
+    def clean_name(self):
+        name = self.cleaned_data.get('name')
+
+        # If we are editing, exclude current instance
+        offer_id = self.instance.id
+
+        if Offer.objects.filter(name__iexact=name).exclude(id=offer_id).exists():
+            raise forms.ValidationError("An offer with this name already exists.")
+
+        return name
+
 

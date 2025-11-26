@@ -43,4 +43,11 @@ urlpatterns = [
 
 path("address/get/<int:id>/", views.get_address, name="get_address"),
 
+path("about/", views.about_page, name="about"),
+path("customer-care/", views.customer_care, name="customer_care"),
+path("contact/", views.contact_page, name="contact"),
+path("privacy-policy/", views.privacy_policy, name="privacy_policy"),
+path("shipping-returns/", views.shipping_returns, name="shipping_returns"),
+
+
 ]

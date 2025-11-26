@@ -227,3 +227,64 @@ ADMIN_LOGIN_URL = '/adminpanel/login/'
 # Razorpay Keys
 RAZORPAY_KEY_ID = os.getenv('RAZORPAY_KEY_ID')
 RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET')
+import os
+from logging.handlers import RotatingFileHandler
+
+LOG_LEVEL = os.getenv("DJANGO_LOG_LEVEL", "INFO")  # set to DEBUG for local dev
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "standard": {
+            "format": "[%(levelname)s] %(asctime)s %(name)s: %(message)s"
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "standard",
+        },
+        "rotating_info": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "formatter": "standard",
+            "filename": os.path.join(BASE_DIR, "logs", "info.log"),
+            "maxBytes": 10 * 1024 * 1024,  # 10 MB
+            "backupCount": 5,
+            "level": "INFO",
+            "encoding": "utf-8",
+        },
+        "rotating_warning": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "formatter": "standard",
+            "filename": os.path.join(BASE_DIR, "logs", "warnings.log"),
+            "maxBytes": 10 * 1024 * 1024,
+            "backupCount": 5,
+            "level": "WARNING",
+            "encoding": "utf-8",
+        },
+        "rotating_error": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "formatter": "standard",
+            "filename": os.path.join(BASE_DIR, "logs", "errors.log"),
+            "maxBytes": 10 * 1024 * 1024,
+            "backupCount": 10,
+            "level": "ERROR",
+            "encoding": "utf-8",
+        },
+    },
+    "loggers": {
+        # django internal logs (errors)
+        "django": {
+            "handlers": ["console", "rotating_error"],
+            "level": "ERROR",
+            "propagate": True,
+        },
+        # main project logger for stepora
+        "stepora": {
+            "handlers": ["console", "rotating_info", "rotating_warning", "rotating_error"],
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
+    },
+}
