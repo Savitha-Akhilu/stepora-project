@@ -110,6 +110,7 @@
     <div class="colorlib-product">
 <div class="container-fluid px-4">
             <div class="row">
+              
                 <!-- Sidebar -->
 <div class="col-lg-2 col-xl-2"> <!-- Sidebar -->
                       <div class="row">
@@ -117,78 +118,101 @@
     <div class="col-sm-12">
       <div class="side border mb-1">
         <h3>Sort By</h3>
-<form method="get" id="sortForm">
-
-    {% for key, value in request.GET.items %}
-        {% if key and value and key != 'sort' %}
-            <input type="hidden" name="{{ key }}" value="{{ value }}">
-        {% endif %}
-    {% endfor %}
-
-    <select name="sort" id="sort" class="form-select"
-            onchange="document.getElementById('sortForm').submit();">
-
-        <option value="">Default</option>
-        <option value="price_low_high" {% if sort == 'price_low_high' %}selected{% endif %}>Price: Low → High</option>
-        <option value="price_high_low" {% if sort == 'price_high_low' %}selected{% endif %}>Price: High → Low</option>
-        <option value="a_z" {% if sort == 'a_z' %}selected{% endif %}>A → Z</option>
-        <option value="z_a" {% if sort == 'z_a' %}selected{% endif %}>Z → A</option>
-
-    </select>
-</form>
+        <form method="get" id="sortForm">
+          {% if q %}
+            <input type="hidden" name="q" value="{{ q }}">
+          {% endif %}
+          <select name="sort" id="sort" class="form-select"
+                  onchange="document.getElementById('sortForm').submit();">
+            <option value="">Default</option>
+            <option value="price_low_high" {% if sort == 'price_low_high' %}selected{% endif %}>Price: Low → High</option>
+            <option value="price_high_low" {% if sort == 'price_high_low' %}selected{% endif %}>Price: High → Low</option>
+            <option value="a_z" {% if sort == 'a_z' %}selected{% endif %}>A → Z</option>
+            <option value="z_a" {% if sort == 'z_a' %}selected{% endif %}>Z → A</option>
+          </select>
+        </form>
       </div>
     </div>
 <div class="col-sm-12">
   <div class="side border mb-1">
-<h3>Brand</h3>
+    <h3>Brand</h3>
+    <ul>
+      {% for b in brands %}
+        <li>
+<a href="?brand={{ b.name|urlencode }}
+          {% if size_name %}&size={{ size_name|urlencode }}{% endif %}
+          {% if color_name %}&color={{ color_name|urlencode }}{% endif %}
+          {% if occasion_name %}&occasion={{ occasion_name|urlencode }}{% endif %}
+          {% if material_name %}&material={{ material_name|urlencode }}{% endif %}
+          {% if sort %}&sort={{ sort }}{% endif %}
+          {% if q %}&q={{ q|urlencode }}{% endif %}"
+   class="{% if brand_name == b.name %}fw-bold text-primary{% endif %}">
+  {{ b.name }}
+</a>
+        </li>
+      {% endfor %}
+    </ul>
 
-{% with params=request.GET.urlencode %}
-<ul>
-{% for b in brands %}
-    <li>
-        <a href="?{% if params %}{{ params }}&{% endif %}brand={{ b.name|urlencode }}"
-           class="{% if brand_name == b.name %}fw-bold text-primary{% endif %}">
-           {{ b.name }}
-        </a>
-    </li>
-{% endfor %}
-</ul>
-{% endwith %}
+{% if brand_name %}
+  <div class="mt-2 text-center">
+    <a href="?{% if size_name %}size={{ size_name|urlencode }}&{% endif %}
+             {% if occasion_name %}occasion={{ occasion_name|urlencode }}&{% endif %}
+             {% if color_name %}color={{ color_name|urlencode }}&{% endif %}
+             {% if material_name %}material={{ material_name|urlencode }}&{% endif %}
+             {% if sort %}sort={{ sort }}&{% endif %}
+             {% if q %}q={{ q|urlencode }}{% endif %}"
+       class="btn btn-sm btn-outline-secondary">
+      Clear Brand
+    </a>
+  </div>
+{% endif %}
   </div>
 </div>
 
 <div class="col-sm-12">
   <div class="side border mb-1">
     <h3>Size</h3>
-
-    {% with params=request.GET.urlencode %}
     <div class="size-grid">
       {% for size in sizes %}
-        <a href="?{% if params %}{{ params }}&{% endif %}size={{ size.name|urlencode }}"
-           class="size-item {% if size_name == size.name %}active{% endif %}">
-           {{ size.name }}
-        </a>
+<a href="?size={{ size.name|urlencode }}
+          {% if brand_name %}&brand={{ brand_name|urlencode }}{% endif %}
+          {% if color_name %}&color={{ color_name|urlencode }}{% endif %}
+          {% if occasion_name %}&occasion={{ occasion_name|urlencode }}{% endif %}
+          {% if material_name %}&material={{ material_name|urlencode }}{% endif %}
+          {% if sort %}&sort={{ sort }}{% endif %}
+          {% if q %}&q={{ q|urlencode }}{% endif %}"
+   class="size-item {% if size_name == size.name %}active{% endif %}">
+  {{ size.name }}
+</a>
+      {% empty %}
+        <p>No sizes available.</p>
       {% endfor %}
     </div>
-    {% endwith %}
 
+{% if size_name %}
+  <div class="mt-2 text-center">
+    <a href="?{% if brand_name %}brand={{ brand_name|urlencode }}&{% endif %}
+             {% if occasion_name %}occasion={{ occasion_name|urlencode }}&{% endif %}
+             {% if color_name %}color={{ color_name|urlencode }}&{% endif %}
+             {% if material_name %}material={{ material_name|urlencode }}&{% endif %}
+             {% if sort %}sort={{ sort }}&{% endif %}
+             {% if q %}q={{ q|urlencode }}{% endif %}"
+       class="btn btn-sm btn-outline-secondary">
+      Clear Size
+    </a>
+  </div>
+{% endif %}
   </div>
 </div>
-
 
 <div class="col-sm-12">
   <div class="side border mb-1">
     <h3>Price</h3>
-
-    {% with params=request.GET.items %}
-    <form method="get" class="p-2">
-
-      <!-- Slider -->
+    <form id="priceFilterForm" method="get" class="p-2">
       <div class="slider-container position-relative">
         <input type="range" id="minPriceRange" name="min_price"
                min="500" max="5000" step="100"
                value="{{ min_price|default:500 }}" oninput="updateSliderTrack()">
-
         <input type="range" id="maxPriceRange" name="max_price"
                min="500" max="5000" step="100"
                value="{{ max_price|default:5000 }}" oninput="updateSliderTrack()">
@@ -201,89 +225,130 @@
         <span id="maxPriceLabel">₹{{ max_price|default:5000 }}</span>
       </div>
 
-
-      <!-- Preserve all GET parameters except min_price/max_price -->
-      {% for key, value in params %}
-        {% if key != "min_price" and key != "max_price" %}
-          <input type="hidden" name="{{ key }}" value="{{ value }}">
-        {% endif %}
-      {% endfor %}
+      <!-- Preserve other filter params -->
+      {% if brand_name %}<input type="hidden" name="brand" value="{{ brand_name }}">{% endif %}
+      {% if size_name %}<input type="hidden" name="size" value="{{ size_name }}">{% endif %}
+      {% if color_name %}<input type="hidden" name="color" value="{{ color_name }}">{% endif %}
+      {% if occasion_name %}<input type="hidden" name="occasion" value="{{ occasion_name }}">{% endif %}
+      {% if material_name %}<input type="hidden" name="material" value="{{ material_name }}">{% endif %}
+      {% if sort %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
+      {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
 
       <button type="submit" class="btn btn-sm btn-primary mt-3 w-100">Apply</button>
-
     </form>
-    {% endwith %}
-
   </div>
 </div>
-
-
 
 
 
 <div class="col-sm-12">
   <div class="side border mb-1">
     <h3>Occasion</h3>
-
-    {% with params=request.GET.urlencode %}
     <ul>
       {% for o in occasions %}
         <li>
-          <a href="?{% if params %}{{ params }}&{% endif %}occasion={{ o.name|urlencode }}"
-             class="{% if occasion_name == o.name %}fw-bold text-primary{% endif %}">
-            {{ o.name }}
-          </a>
+<a href="?occasion={{ o.name|urlencode }}
+          {% if brand_name %}&brand={{ brand_name|urlencode }}{% endif %}
+          {% if size_name %}&size={{ size_name|urlencode }}{% endif %}
+          {% if color_name %}&color={{ color_name|urlencode }}{% endif %}
+          {% if material_name %}&material={{ material_name|urlencode }}{% endif %}
+          {% if sort %}&sort={{ sort }}{% endif %}
+          {% if q %}&q={{ q|urlencode }}{% endif %}"
+   class="{% if occasion_name == o.name %}fw-bold text-primary{% endif %}">
+  {{ o.name }}
+</a>
         </li>
       {% endfor %}
     </ul>
-    {% endwith %}
+{% if occasion_name %}
+  <div class="mt-2 text-center">
+    <a href="?{% if brand_name %}brand={{ brand_name|urlencode }}&{% endif %}
+             {% if size_name %}size={{ size_name|urlencode }}&{% endif %}
+             {% if color_name %}color={{ color_name|urlencode }}&{% endif %}
+             {% if material_name %}material={{ material_name|urlencode }}&{% endif %}
+             {% if sort %}sort={{ sort }}&{% endif %}
+             {% if q %}q={{ q|urlencode }}{% endif %}"
+       class="btn btn-sm btn-outline-secondary">
+      Clear Occasion
+    </a>
+  </div>
+{% endif %}
 
   </div>
 </div>
 
 
-
-<div class="col-sm-12">
+                       <div class="col-sm-12">
   <div class="side border mb-1">
     <h3>Colors</h3>
-
-    {% with params=request.GET.urlencode %}
     <ul>
       {% for c in colors %}
         <li>
-          <a href="?{% if params %}{{ params }}&{% endif %}color={{ c.name|urlencode }}"
+          <a href="?color={{ c.name|urlencode }}
+                    {% if brand_name %}&brand={{ brand_name|urlencode }}{% endif %}
+                    {% if size_name %}&size={{ size_name|urlencode }}{% endif %}
+                    {% if occasion_name %}&occasion={{ occasion_name|urlencode }}{% endif %}
+                    {% if sort %}&sort={{ sort }}{% endif %}
+                    {% if q %}&q={{ q|urlencode }}{% endif %}
+                    {% if material_name %}&material={{ material_name|urlencode }}{% endif %}"
              class="{% if color_name == c.name %}fw-bold text-primary{% endif %}">
             {{ c.name }}
           </a>
         </li>
       {% endfor %}
     </ul>
-    {% endwith %}
+{% if color_name %}
+  <div class="mt-2 text-center">
+    <a href="?{% if brand_name %}brand={{ brand_name|urlencode }}&{% endif %}
+             {% if size_name %}size={{ size_name|urlencode }}&{% endif %}
+             {% if occasion_name %}occasion={{ occasion_name|urlencode }}&{% endif %}
+             {% if material_name %}material={{ material_name|urlencode }}&{% endif %}
+             {% if sort %}sort={{ sort }}&{% endif %}
+             {% if q %}q={{ q|urlencode }}{% endif %}"
+       class="btn btn-sm btn-outline-secondary">
+      Clear Color
+    </a>
+  </div>
+{% endif %}
 
   </div>
 </div>
 
-
 <div class="col-sm-12">
   <div class="side border mb-1">
     <h3>Material</h3>
-
-    {% with params=request.GET.urlencode %}
     <ul>
       {% for m in materials %}
         <li>
-          <a href="?{% if params %}{{ params }}&{% endif %}material={{ m.name|urlencode }}"
+          <a href="?material={{ m.name|urlencode }}
+                    {% if brand_name %}&brand={{ brand_name|urlencode }}{% endif %}
+                    {% if size_name %}&size={{ size_name|urlencode }}{% endif %}
+                    {% if occasion_name %}&occasion={{ occasion_name|urlencode }}{% endif %}
+                    {% if sort %}&sort={{ sort }}{% endif %}
+                    {% if q %}&q={{ q|urlencode }}{% endif %}
+                    {% if color_name %}&color={{ color_name|urlencode }}{% endif %}"
              class="{% if material_name == m.name %}fw-bold text-primary{% endif %}">
             {{ m.name }}
           </a>
         </li>
       {% endfor %}
     </ul>
-    {% endwith %}
+{% if material_name %}
+  <div class="mt-2 text-center">
+    <a href="?{% if brand_name %}brand={{ brand_name|urlencode }}&{% endif %}
+             {% if size_name %}size={{ size_name|urlencode }}&{% endif %}
+             {% if occasion_name %}occasion={{ occasion_name|urlencode }}&{% endif %}
+             {% if color_name %}color={{ color_name|urlencode }}&{% endif %}
+             {% if sort %}sort={{ sort }}&{% endif %}
+             {% if q %}q={{ q|urlencode }}{% endif %}"
+       class="btn btn-sm btn-outline-secondary">
+      Clear Material
+    </a>
+  </div>
+{% endif %}
 
   </div>
 </div>
-
 
                     </div>
                 </div>
@@ -295,52 +360,89 @@
 <div class="active-filters d-flex flex-wrap align-items-center gap-2 mb-4">
   <span class="fw-semibold text-muted">Filters:</span>
 
-{% if brand_name %}
-  <a href="?{% if size_name %}size={{ size_name }}&{% endif %}{% if color_name %}color={{ color_name }}&{% endif %}{% if occasion_name %}occasion={{ occasion_name }}&{% endif %}{% if material_name %}material={{ material_name }}&{% endif %}{% if sort %}sort={{ sort }}&{% endif %}{% if q %}q={{ q }}{% endif %}"
-     class="filter-chip">
+  {% if brand_name %}
+    <a href="?{% if size_name %}size={{ size_name }}&{% endif %}
+              {% if color_name %}color={{ color_name }}&{% endif %}
+              {% if occasion_name %}occasion={{ occasion_name }}&{% endif %}
+              {% if material_name %}material={{ material_name }}&{% endif %}
+              {% if sort %}sort={{ sort }}&{% endif %}
+              {% if q %}q={{ q }}{% endif %}"
+       class="filter-chip">
       {{ brand_name }} ×
-  </a>
-{% endif %}
+    </a>
+  {% endif %}
 
-{% if size_name %}
-  <a href="?{% if brand_name %}brand={{ brand_name }}&{% endif %}{% if color_name %}color={{ color_name }}&{% endif %}{% if occasion_name %}occasion={{ occasion_name }}&{% endif %}{% if material_name %}material={{ material_name }}&{% endif %}{% if sort %}sort={{ sort }}&{% endif %}{% if q %}q={{ q }}{% endif %}"
-     class="filter-chip">
-    Size {{ size_name }} ×
-  </a>
-{% endif %}
-{% if color_name %}
-  <a href="?{% if brand_name %}brand={{ brand_name }}&{% endif %}{% if size_name %}size={{ size_name }}&{% endif %}{% if occasion_name %}occasion={{ occasion_name }}&{% endif %}{% if material_name %}material={{ material_name }}&{% endif %}{% if sort %}sort={{ sort }}&{% endif %}{% if q %}q={{ q }}{% endif %}"
-     class="filter-chip">
-    {{ color_name }} ×
-  </a>
-{% endif %}
+  {% if size_name %}
+    <a href="?{% if brand_name %}brand={{ brand_name }}&{% endif %}
+              {% if color_name %}color={{ color_name }}&{% endif %}
+              {% if occasion_name %}occasion={{ occasion_name }}&{% endif %}
+              {% if material_name %}material={{ material_name }}&{% endif %}
+              {% if sort %}sort={{ sort }}&{% endif %}
+              {% if q %}q={{ q }}{% endif %}"
+       class="filter-chip">
+      Size {{ size_name }} ×
+    </a>
+  {% endif %}
 
-{% if occasion_name %}
-  <a href="?{% if brand_name %}brand={{ brand_name }}&{% endif %}{% if size_name %}size={{ size_name }}&{% endif %}{% if color_name %}color={{ color_name }}&{% endif %}{% if material_name %}material={{ material_name }}&{% endif %}{% if sort %}sort={{ sort }}&{% endif %}{% if q %}q={{ q }}{% endif %}"
-     class="filter-chip">
-    {{ occasion_name }} ×
-  </a>
-{% endif %}
+  {% if color_name %}
+    <a href="?{% if brand_name %}brand={{ brand_name }}&{% endif %}
+              {% if size_name %}size={{ size_name }}&{% endif %}
+              {% if occasion_name %}occasion={{ occasion_name }}&{% endif %}
+              {% if material_name %}material={{ material_name }}&{% endif %}
+              {% if sort %}sort={{ sort }}&{% endif %}
+              {% if q %}q={{ q }}{% endif %}"
+       class="filter-chip">
+      {{ color_name }} ×
+    </a>
+  {% endif %}
 
-{% if material_name %}
-  <a href="?{% if brand_name %}brand={{ brand_name }}&{% endif %}{% if size_name %}size={{ size_name }}&{% endif %}{% if color_name %}color={{ color_name }}&{% endif %}{% if occasion_name %}occasion={{ occasion_name }}&{% endif %}{% if sort %}sort={{ sort }}&{% endif %}{% if q %}q={{ q }}{% endif %}"
-     class="filter-chip">
-    {{ material_name }} ×
+  {% if occasion_name %}
+    <a href="?{% if brand_name %}brand={{ brand_name }}&{% endif %}
+              {% if size_name %}size={{ size_name }}&{% endif %}
+              {% if color_name %}color={{ color_name }}&{% endif %}
+              {% if material_name %}material={{ material_name }}&{% endif %}
+              {% if sort %}sort={{ sort }}&{% endif %}
+              {% if q %}q={{ q }}{% endif %}"
+       class="filter-chip">
+      {{ occasion_name }} ×
+    </a>
+  {% endif %}
+
+  {% if material_name %}
+    <a href="?{% if brand_name %}brand={{ brand_name }}&{% endif %}
+              {% if size_name %}size={{ size_name }}&{% endif %}
+              {% if color_name %}color={{ color_name }}&{% endif %}
+              {% if occasion_name %}occasion={{ occasion_name }}&{% endif %}
+              {% if sort %}sort={{ sort }}&{% endif %}
+              {% if q %}q={{ q }}{% endif %}"
+       class="filter-chip">
+      {{ material_name }} ×
+    </a>
+  {% endif %}
+  {% if min_price or max_price %}
+  <a href="?{% if brand_name %}brand={{ brand_name }}&{% endif %}
+            {% if size_name %}size={{ size_name }}&{% endif %}
+            {% if color_name %}color={{ color_name }}&{% endif %}
+            {% if occasion_name %}occasion={{ occasion_name }}&{% endif %}
+            {% if material_name %}material={{ material_name }}&{% endif %}
+            {% if sort %}sort={{ sort }}&{% endif %}
+            {% if q %}q={{ q }}{% endif %}"
+     class="badge bg-light border text-dark">
+    Price: ₹{{ min_price|default:"0" }} - ₹{{ max_price|default:"5000" }} ×
   </a>
-{% endif %}
-{% if min_price or max_price %}
-<a href="?{% if brand_name %}brand={{ brand_name }}&{% endif %}{% if size_name %}size={{ size_name }}&{% endif %}{% if color_name %}color={{ color_name }}&{% endif %}{% if occasion_name %}occasion={{ occasion_name }}&{% endif %}{% if material_name %}material={{ material_name }}&{% endif %}{% if sort %}sort={{ sort }}&{% endif %}{% if q %}q={{ q }}{% endif %}"
-   class="badge bg-light border text-dark">
-  Price: ₹{{ min_price|default:"0" }} - ₹{{ max_price|default:"5000" }} ×
-</a>
 {% endif %}
 
 
 {% if sort_label %}
-<a href="?{% if brand_name %}brand={{ brand_name }}&{% endif %}{% if size_name %}size={{ size_name }}&{% endif %}{% if color_name %}color={{ color_name }}&{% endif %}{% if occasion_name %}occasion={{ occasion_name }}&{% endif %} {% if material_name %}material={{ material_name }}&{% endif %}{% if q %}q={{ q }}{% endif %}"
-   class="filter-chip sort-chip">
-   Sort: {{ sort_label }} ×
-</a>
+  <a href="?{% if brand_name %}brand={{ brand_name }}&{% endif %}
+            {% if size_name %}size={{ size_name }}&{% endif %}
+            {% if color_name %}color={{ color_name }}&{% endif %}
+            {% if occasion_name %}occasion={{ occasion_name }}&{% endif %}
+            {% if material_name %}material={{ material_name }}&{% endif %}
+            {% if q %}q={{ q }}{% endif %}"
+     class="filter-chip sort-chip">
+     Sort: {{ sort_label }} ×
+  </a>
 {% endif %}
 
   <a href="?{% if q %}q={{ q }}{% endif %}" class="clear-all">Clear All</a>
@@ -352,37 +454,39 @@
       <div class="col-6 col-md-3 " data-category-id="{{ variant.product.category.id }}">
         <div class="card product-card border-0 shadow-sm h-100 text-center">
           <div class="image-container">
-            <!-- {% if primary_image %}
+            {% if primary_image %}
               <img src="{{ primary_image.image.url }}" class="card-img-top" alt="{{ variant.variant_name }}">
             {% else %}
               <img src="{% static 'images/no-image.png' %}" class="card-img-top" alt="No image">
-            {% endif %} -->
-            <img src="{{ variant.image_url }}" class="card-img-top" alt="{{ variant.variant_name }}">
-
+            {% endif %}
             <div class="overlay">
 <a href="{% url 'product_detail' variant.product.id %}" class="btn btn-light btn-sm">
   View
-</a>  
-<!-- <button 
-  class="btn btn-light btn-sm wishlist-btn"
-  data-variant-id="{{ variant.id }}"
-  data-url-template="{% url 'add_to_wishlist' 0 %}">
-  <i class="bi bi-heart me-2"></i> Wishlist
-</button> -->
-    {% if variant.id in wishlist_ids %}
-        <button class="wishlist-btn active" disabled>
-            <i class="fa fa-heart"></i> In Wishlist
-        </button>
-    {% else %}
+</a>    
 <button 
   class="btn btn-light btn-sm wishlist-btn"
   data-variant-id="{{ variant.id }}"
   data-url-template="{% url 'add_to_wishlist' 0 %}">
   <i class="bi bi-heart me-2"></i> Wishlist
-</button>    {% endif %}
+</button>
 
+
+ <!-- <a href="#" class="btn btn-dark btn-sm">Add to Cart</a> -->
             </div>
           </div>
+          <!-- <div class="card-body">
+  <h6 class="card-title fw-semibold">{{ variant.variant_name }}</h6>
+
+{% if variant.best_offer.has_offer %}
+  <h6 class="fw-bold text-dark mb-0">
+    ₹{{ variant.best_offer.final_price }}
+    <span class="text-muted text-decoration-line-through small ms-2">₹{{ variant.price }}</span>
+    <span class="text-success small">({{ variant.best_offer.discount_percent }}% OFF)</span>
+  </h6>
+{% else %}
+  <h6 class="fw-bold text-dark">₹{{ variant.price }}</h6>
+{% endif %}
+</div>       -->
           <div class="card-body">
   <h6 class="card-title fw-semibold">{{ variant.variant_name }}</h6>
 
@@ -390,20 +494,13 @@
   <h6 class="fw-bold text-dark mb-0">
     ₹{{ variant.best_offer.final_price }}
     <span class="text-muted text-decoration-line-through small ms-2">₹{{ variant.price }}</span>
-    <!-- <span class="text-success small">({{ variant.best_offer.discount_percent }}% OFF)</span> -->
-
-    {% if variant.best_offer.offer_type == 'PERCENT' %}
-      <span class="text-success small">({{ variant.best_offer.discount_percent }}% OFF)</span>
-    {% elif variant.best_offer.offer_type == 'FLAT' %}
-      <span class="text-success small">(₹{{ variant.best_offer.discount_percent }} OFF)</span>
-    {% endif %}
+    <span class="text-success small">({{ variant.best_offer.discount_percent }}% OFF)</span>
   </h6>
 {% else %}
   <h6 class="fw-bold text-dark">₹{{ variant.price }}</h6>
 {% endif %}
 </div>
-
-        </div>
+  </div>
       </div>
     {% endwith %}
   {% empty %}
@@ -435,7 +532,7 @@
         Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
       </span>
     </li>
-                
+
     {% if page_obj.has_next %}
       <li class="page-item">
         <a class="page-link"
@@ -850,17 +947,6 @@ form#priceFilterForm button {
 
 form#priceFilterForm button:hover {
   background-color: #e73360;
-}
-.wishlist-btn {
-  border: none;
-  background: none;
-  color: #555;
-  font-weight: 600;
-}
-
-.wishlist-btn.active {
-  color: #e63946;
-  cursor: not-allowed;
 }
 
 .size-item:hover {

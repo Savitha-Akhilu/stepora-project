@@ -40,7 +40,7 @@ def redirect_after_login(request):
         return redirect('/adminpanel/dashboard/')
     return redirect('/users/')
 def user_home(request):
-    # Get product variants that have a primary image
+    # Get product variants with primary images
     variants = (
         ProductVariant.objects.filter(images__is_primary=True, is_active=True, product__is_active=True)
         .select_related('product')
@@ -48,8 +48,27 @@ def user_home(request):
         .order_by('-created_at')[:8]
     )
 
+    # ➤ Attach offer details (same as men/women collection)
+    for v in variants:
+        final_price, discount_percent, offer = get_best_offer_price(v)
+        v.final_price = final_price
+        v.discount_percent = discount_percent
+        v.has_offer = True if offer else False
+
     context = {'variants': variants}
     return render(request, 'user_section/user_home.html', context)
+
+# def user_home(request):
+#     # Get product variants that have a primary image
+#     variants = (
+#         ProductVariant.objects.filter(images__is_primary=True, is_active=True, product__is_active=True)
+#         .select_related('product')
+#         .prefetch_related('images')
+#         .order_by('-created_at')[:8]
+#     )
+
+#     context = {'variants': variants}
+#     return render(request, 'user_section/user_home.html', context)
 # In-memory OTP store with timestamp
 OTP_STORE = {}
 
@@ -748,6 +767,146 @@ def women_collection(request):
     paginator = Paginator(variants, 12)  # 12 per page
     page_obj = paginator.get_page(page)
 
+    from cart.utils import get_variant_image
+    for v in page_obj:
+        v.image_url = get_variant_image(v)
+
+
+    # Sidebar filters
+    brands = Brand.objects.all()
+    sizes = Size.objects.filter(gender__name=gender, is_active=True).order_by('name')
+    occasions = Occasion.objects.filter(is_active=True)
+    colors = Color.objects.filter(is_active=True)
+    materials = Material.objects.filter(is_active=True)
+    categories = Category.objects.filter(gender__name=gender, is_active=True)
+    wishlist_ids = []
+
+    if request.user.is_authenticated:
+        wishlist_ids = (
+            Wishlist.objects.filter(user=request.user)
+            .values_list('variant_id', flat=True)
+        )
+    context = {
+        'variants': page_obj,  # use page_obj
+        'brands': brands,
+        'sizes': sizes,
+        'occasions': occasions,
+        'colors': colors,
+        'materials': materials,
+        'categories': categories,
+        'gender': gender,
+        'q': q,
+        'sort': sort,
+        'sort_label': sort_label,  
+        'brand_name': brand_name,
+        'size_name': size_name,
+        'occasion_name': occasion_name,
+        'color_name': color_name,
+        'material_name': material_name,
+        'page_obj': page_obj,
+        'min_price': min_price,
+        'max_price': max_price,
+        'user_authenticated': request.user.is_authenticated,
+        'wishlist_ids': list(wishlist_ids),
+
+
+    }
+    return render(request, 'user_section/women_collection.html', context)
+
+def women_collection_old(request):
+    gender = 'Women'
+    q = request.GET.get('q', '').strip()
+    sort = request.GET.get('sort', '')
+    sort_labels = {
+    'price_low_high': 'Price: Low → High',
+    'price_high_low': 'Price: High → Low',
+    'a_z': 'A → Z',
+    'z_a': 'Z → A',
+    'popularity': 'Popularity',
+    'avg_rating': 'Average Rating',
+    'new_arrivals': 'New Arrivals',
+    'featured': 'Featured',
+               }
+    sort_label = sort_labels.get(sort, '')
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+
+    brand_name = request.GET.get('brand', '').strip()
+    size_name = request.GET.get('size', '').strip()
+    occasion_name = request.GET.get('occasion', '')  
+    color_name = request.GET.get('color', '')         
+    material_name = request.GET.get('material', '')   
+    category_id = request.GET.get('category')
+
+    page = request.GET.get('page', 1)  # 🆕 current page
+
+    variants = (
+        ProductVariant.objects.filter(
+            product__product_type__name=gender,
+            product__is_active=True,
+            is_active=True,
+            images__is_primary=True
+        )
+        .select_related('product', 'color', 'size')
+        .prefetch_related(
+            Prefetch(
+                'images',
+                queryset=ProductImage.objects.filter(is_primary=True),
+                to_attr='primary_image_list'
+            )
+        )
+        .distinct()
+    )
+    # # Apply offers
+    # for v in variants:
+    #     final_price, discount_percent, offer = get_best_offer_price(v)
+    #     v.final_price = final_price
+    #     v.discount_percent = discount_percent
+    #     v.has_offer = True if offer else False
+    
+    # Filters
+    if brand_name:
+        variants = variants.filter(product__brand__name=brand_name)
+    if size_name:
+        variants = variants.filter(size__name=size_name)
+    if occasion_name:
+        variants = variants.filter(product__occasion__name=occasion_name)
+    if color_name:
+        variants = variants.filter(color__name=color_name)
+    if material_name:
+        variants = variants.filter(product__material__name=material_name)
+    if min_price and max_price:
+            variants = variants.filter(price__gte=min_price, price__lte=max_price)
+    elif min_price:
+            variants = variants.filter(price__gte=min_price)
+    elif max_price:
+            variants = variants.filter(price__lte=max_price)
+
+    # Search
+    if q:
+        variants = variants.filter(
+            Q(product__name__icontains=q) |
+            Q(variant_name__icontains=q)
+        )
+    if category_id:
+        variants = variants.filter(product__category_id=category_id)
+
+    # Sorting
+    if sort == 'price_low_high':
+        variants = variants.order_by('price')
+    elif sort == 'price_high_low':
+        variants = variants.order_by('-price')
+    elif sort == 'a_z':
+        variants = variants.order_by('product__name')
+    elif sort == 'z_a':
+        variants = variants.order_by('-product__name')
+    else:
+        variants = variants.order_by('-id')
+
+    #  Pagination
+    paginator = Paginator(variants, 12)  # 12 per page
+    page_obj = paginator.get_page(page)
+
     # Sidebar filters
     brands = Brand.objects.all()
     sizes = Size.objects.filter(gender__name=gender, is_active=True).order_by('name')
@@ -1129,7 +1288,12 @@ def product_detail(request, product_id):
     variant_data = []
     for v in variants:
         # print(v.long_description)
-        images = [img.image.url for img in v.all_images]
+        # images = [img.image.url for img in v.all_images]
+        # PRIMARY IMAGE FIRST
+        primary_imgs = [img.image.url for img in v.primary_image_list]
+        other_imgs = [img.image.url for img in v.all_images if img not in v.primary_image_list]
+        images = primary_imgs + other_imgs
+
         offer_info = v.best_offer 
         final_price = offer_info['final_price']
         discount_percent = offer_info['discount_percent']

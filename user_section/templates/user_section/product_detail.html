@@ -666,7 +666,7 @@ function updateWishlistButtonForVariant(variantId) {
 
 function updateVariantImages(variant) {
     variantThumbs.innerHTML = "";
-
+console.log(variant);
     if (variant.images && variant.images.length > 0) {
         // Update main image
         mainImg.src = variant.images[0];

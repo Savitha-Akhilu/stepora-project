@@ -58,12 +58,14 @@
                 <th>Total Sales (₹)</th>
                 <th>Total Discount (₹)</th>
                 <th>Coupon Deduction (₹)</th>
+                                <th>Total Revenue (₹)</th>
             </tr>
             <tr>
                 <td>{{ summary.total_orders|default:0 }}</td>
                 <td>₹{{ summary.total_sales|default:0 }}</td>
                 <td>₹{{ summary.total_discount|default:0 }}</td>
                 <td>₹{{ summary.total_coupon|default:0 }}</td>
+                                <td>₹{{ summary.total_revenue|default:0 }}</td>
             </tr>
         </table>
     </div>

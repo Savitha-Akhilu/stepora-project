@@ -1799,114 +1799,9 @@ def sales_report_org(request):
         "end_date": end_date,
     })
 
-# def sales_report(request):
-#     start_date = request.GET.get("start_date")
-#     end_date = request.GET.get("end_date")
-#     period = request.GET.get("period", "day")
-
-#     # Items that should count as sales: delivered, not cancelled/returned, and order has a successful payment
-#     sold_items = OrderItem.objects.filter(
-#         status="Delivered",
-#         cancelled=False,
-#         returned=False,
-#         order__payments__status="Success"
-#     )
-#     unique_orders = (
-#         sold_items
-#         .values("order_id")
-#         .annotate(
-#             order_date=F("order__created_at"),
-#             dcharge=F("order__delivery_charge"),
-#             cdiscount=F("order__coupon_discount"),
-#         )
-#     )
-
-
-#     # Filter by order created date (use order__created_at)
-#     if start_date:
-#         sold_items = sold_items.filter(order__created_at__date__gte=start_date)
-#     if end_date:
-#         sold_items = sold_items.filter(order__created_at__date__lte=end_date)
-
-#     # Choose trunc function by period
-#     period_map = {
-#         "day": TruncDay,
-#         "week": TruncWeek,
-#         "month": TruncMonth,
-#         "year": TruncYear,
-#     }
-#     trunc = period_map.get(period, TruncDay)
-
-#     # grouped = (
-#     #     sold_items
-#     #     .annotate(period=trunc("order__created_at"))     # <-- use order__created_at here
-#     #     .values("period")
-#     #     .annotate(
-#     #         total_orders=Count("order_id", distinct=True),
-#     #         # revenue from items = sum(final_price * quantity)
-#     #         total_sales=Sum(F("final_price") * F("quantity")),
-#     #         total_discount=Sum("discount_value"),
-#     #         # coupon/delivery are at order level; use distinct aggregation to avoid double-counting:
-#     #         coupon_deduction=Sum("order__coupon_discount", distinct=True),
-#     #         delivery_charge=Sum("dcharge"),
-#     #        )
-#     #     .order_by("period")
-#     # )
-#     grouped = (
-#         unique_orders
-#         .annotate(period=trunc("order_date"))
-#         .values("period")
-#         .annotate(
-#             total_orders=Count("order_id"),
-#             delivery_charge=Sum("dcharge"),
-#             coupon_deduction=Sum("cdiscount"),
-#         )
-#         .order_by("period")
-#     )
-
-#     # SUMMARY
-#     summary = {
-#     "total_orders": unique_orders.count(),
-#     "total_sales": sold_items.aggregate(s=Sum(F("final_price") * F("quantity")))["s"] or 0,
-#     "total_discount": sold_items.aggregate(s=Sum("discount_value"))["s"] or 0,
-#     "total_coupon": unique_orders.aggregate(s=Sum("cdiscount"))["s"] or 0,
-#     "total_delivery": unique_orders.aggregate(s=Sum("dcharge"))["s"] or 0,
-# }
-
-#     # summary = {
-#     #     "total_orders": sold_items.values("order_id").distinct().count(),
-#     #     "total_sales": sold_items.aggregate(s=Sum(F("final_price") * F("quantity")))["s"] or 0,
-#     #     "total_discount": sold_items.aggregate(s=Sum("discount_value"))["s"] or 0,
-#     #     "total_coupon": unique_orders.aggregate(s=Sum("cdiscount"))["s"] or 0,
-#     #     "total_delivery": unique_orders.aggregate(s=Sum("dcharge"))["s"] or 0,
-#     # }
-
-#     return render(request, "adminpanel/sales_report.html", {
-#         "grouped_data": grouped,
-#         "summary": summary,
-#         "period": period,
-#         "start_date": start_date,
-#         "end_date": end_date,
-#     })
-# def sales_report(request):
-#     start_date = request.GET.get('start_date')
-#     end_date = request.GET.get('end_date')
-#     period = request.GET.get('period', 'day')
-
-#     qs = get_filtered_orders(start_date, end_date)
-#     grouped_data = group_orders_by_period(qs, period)
-#     summary = get_sales_summary(qs)
-
-#     return render(request, 'adminpanel/sales_report.html', {
-#         'grouped_data': grouped_data,
-#         'summary': summary,
-#         'period': period,
-#         'start_date': start_date,
-#         'end_date': end_date,
-#     })
 
 @login_required(login_url='/adminpanel/login/')
-def export_sales_excel(request):
+def export_sales_excel_withoutrevenue(request):
     start_date = request.GET.get("start_date")
     end_date = request.GET.get("end_date")
     period = request.GET.get("period", "day")
@@ -1997,25 +1892,172 @@ def export_sales_excel(request):
 
     return response
 
-# def export_sales_pdf(request):
-#     start_date = request.GET.get('start_date')
-#     end_date = request.GET.get('end_date')
-#     period = request.GET.get('period', 'day')
 
-#     qs = get_filtered_orders(start_date, end_date)
-#     grouped_data = group_orders_by_period(qs, period)
-#     summary = get_sales_summary(qs)
 
-#     html = render(request, 'adminpanel/sales_report_pdf.html', {
-#         'grouped_data': grouped_data,
-#         'summary': summary,
-#         'start_date': start_date,
-#         'end_date': end_date,
-#     })
-#     pdf = weasyprint.HTML(string=html.content).write_pdf()
-#     response = HttpResponse(pdf, content_type='application/pdf')
-#     response['Content-Disposition'] = f'attachment; filename="sales_report.pdf"'
-#     return response
+def export_sales_excel(request):
+    from decimal import Decimal
+
+    start_date = request.GET.get("start_date")
+    end_date = request.GET.get("end_date")
+    period = request.GET.get("period", "day")
+
+    # Convert None values
+    if start_date in (None, "", "None"):
+        start_date = None
+    if end_date in (None, "", "None"):
+        end_date = None
+
+    # SAME FILTER AS PDF
+    valid_orders = Order.objects.filter(
+        status__in=["Delivered", "Partially Returned", "Partially Delivered"],
+        payments__status="Success",
+    )
+
+    if start_date:
+        valid_orders = valid_orders.filter(created_at__date__gte=start_date)
+    if end_date:
+        valid_orders = valid_orders.filter(created_at__date__lte=end_date)
+
+    valid_items = OrderItem.objects.filter(
+        order_id__in=valid_orders.values("id"),
+        status="Delivered",
+        cancelled=False,
+        returned=False,
+    )
+
+    # PERIOD GROUPING
+    period_map = {
+        "day": TruncDay,
+        "week": TruncWeek,
+        "month": TruncMonth,
+        "year": TruncYear,
+    }
+    trunc = period_map.get(period, TruncDay)
+
+    grouped_orders = (
+        valid_orders.annotate(period=trunc("created_at"))
+        .values("period")
+        .annotate(
+            total_orders=Count("id"),
+            delivery_charge=Sum("delivery_charge"),
+            coupon_deduction=Value(0, output_field=DecimalField(max_digits=10, decimal_places=2)),
+        )
+        .order_by("period")
+    )
+
+    # ---- COUPON PROPORTION LOGIC (SAME AS PDF) ----
+    for row in grouped_orders:
+        period_date = row["period"]
+        orders_in_period = valid_orders.filter(created_at__date=period_date.date())
+
+        period_coupon = Decimal("0.00")
+
+        for order in orders_in_period:
+            items = order.items.all()
+            order_total = sum(i.final_price * i.quantity for i in items)
+
+            delivered_total = sum(
+                i.final_price * i.quantity
+                for i in items
+                if i.status == "Delivered" and not i.cancelled and not i.returned
+            )
+
+            order_coupon = Decimal(order.coupon_discount or 0)
+
+            if order_total > 0:
+                delivered_coupon = (delivered_total / order_total) * order_coupon
+            else:
+                delivered_coupon = Decimal("0.00")
+
+            period_coupon += delivered_coupon
+
+        row["coupon_deduction"] = float(round(period_coupon, 2))
+
+    # ---- SALES & DISCOUNT CALC (same as PDF) ----
+    sales_map = (
+        valid_items.annotate(period=trunc("order__created_at"))
+        .values("period")
+        .annotate(
+            total_sales=Sum(F("final_price") * F("quantity")),
+            total_discount=Sum("discount_value"),
+        )
+    )
+    sales_dict = {s["period"]: s for s in sales_map}
+
+    for row in grouped_orders:
+        p = row["period"]
+        row["total_sales"] = float(sales_dict.get(p, {}).get("total_sales", 0))
+        row["total_discount"] = float(sales_dict.get(p, {}).get("total_discount", 0))
+
+        # ---- TOTAL REVENUE ----
+        row["total_revenue"] = (
+            row["total_sales"]
+            - float(row["coupon_deduction"])
+            + float(row["delivery_charge"] or 0)
+        )
+
+    # -------- CREATE EXCEL --------
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Sales Report"
+
+    headers = [
+        "Date", "Total Orders", "Total Sales (₹)", "Discount (₹)",
+        "Coupon (₹)", "Delivery (₹)", "Total Revenue (₹)"
+    ]
+    ws.append(headers)
+
+    for row in grouped_orders:
+        ws.append([
+            row["period"].strftime("%d-%m-%Y"),
+            row["total_orders"],
+            row["total_sales"],
+            row["total_discount"],
+            row["coupon_deduction"],
+            float(row["delivery_charge"] or 0),
+            round(row["total_revenue"], 2),
+        ])
+    # ---------- ADD TOTAL ROW ----------
+    total_orders = sum(r["total_orders"] for r in grouped_orders)
+    total_sales = sum(r["total_sales"] for r in grouped_orders)
+    total_discount = sum(r["total_discount"] for r in grouped_orders)
+    total_coupon = sum(float(r["coupon_deduction"]) for r in grouped_orders)
+    total_delivery = sum(float(r["delivery_charge"] or 0) for r in grouped_orders)
+    total_revenue = sum(r["total_revenue"] for r in grouped_orders)
+
+    ws.append([])  # Empty row for spacing
+
+    ws.append([
+        "TOTAL",          # Date column blank replaced with label
+        total_orders,
+        round(total_sales, 2),
+        round(total_discount, 2),
+        round(total_coupon, 2),
+        round(total_delivery, 2),
+        round(total_revenue, 2),
+    ])
+
+    # Auto column width
+    for col in ws.columns:
+        max_len = 0
+        col_letter = get_column_letter(col[0].column)
+        for cell in col:
+            val = str(cell.value) if cell.value else ""
+            max_len = max(max_len, len(val))
+        ws.column_dimensions[col_letter].width = max_len + 2
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    filename = f"sales_report_{timezone.now().strftime('%Y%m%d_%H%M')}.xlsx"
+    response = HttpResponse(
+        output,
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
+
 def convert(date_str):
     if not date_str:
         return None
@@ -2145,8 +2187,14 @@ def export_sales_pdf(request):
         "total_discount": valid_items.aggregate(s=Sum("discount_value"))["s"] or 0,
         "total_delivery": valid_orders.aggregate(s=Sum("delivery_charge"))["s"] or 0,
         "total_coupon": round(total_coupon_summary, 2),
+        
     }
-
+    summary["total_revenue"] = (
+    summary["total_sales"]
+    
+    - summary["total_coupon"]
+    + summary["total_delivery"]
+)
     # -------- 9) RENDER PDF --------
     html = render_to_string("adminpanel/sales_report_pdf.html", {
         "grouped_data": grouped_orders,
@@ -2162,81 +2210,6 @@ def export_sales_pdf(request):
     response['Content-Disposition'] = 'attachment; filename="sales_report.pdf"'
     return response
 
-# def export_sales_pdf(request):
-#     start_date = request.GET.get("start_date")
-#     end_date = request.GET.get("end_date")
-#     period = request.GET.get("period", "day")
-#     # if start_date in (None, "", "None"):
-#     #     start_date = None
-
-#     # if end_date in (None, "", "None"):
-#     #     end_date = None
-#     start_date = start_date.strip() if start_date not in (None, "", "None") else None
-#     end_date = end_date.strip() if end_date not in (None, "", "None") else None
-
-#     # SAME FILTER USED IN DASHBOARD
-#     sold_items = OrderItem.objects.filter(
-#         status="Delivered",
-#         cancelled=False,
-#         returned=False,
-#         order__payments__status="Success"
-#     )
-
-#     if start_date:
-#         sold_items = sold_items.filter(order__created_at__date__gte=start_date)
-#     if end_date:
-#         sold_items = sold_items.filter(order__created_at__date__lte=end_date)
-
-#     # CHOOSE PERIOD GROUPING
-#     period_map = {
-#         "day": TruncDay,
-#         "week": TruncWeek,
-#         "month": TruncMonth,
-#         "year": TruncYear,
-#     }
-#     trunc = period_map.get(period, TruncDay)
-
-#     grouped = (
-#         sold_items
-#         .annotate(period=trunc("order__created_at"))
-#         .values("period")
-#         .annotate(
-#             total_orders=Count("order_id", distinct=True),
-#             total_sales=Sum(F("final_price") * F("quantity")),
-#             total_discount=Sum("discount_value"),
-#             coupon_deduction=Sum("order__coupon_discount", distinct=True),
-#             delivery_charge=Sum("order__delivery_charge", distinct=True),
-#         )
-#         .order_by("period")
-#     )
-
-#     # SUMMARY (EXACT SAME AS DASHBOARD)
-#     summary = {
-#         "total_orders": sold_items.values("order_id").distinct().count(),
-#         "total_sales": sold_items.aggregate(s=Sum(F("final_price") * F("quantity")))["s"] or 0,
-#         "total_discount": sold_items.aggregate(s=Sum("discount_value"))["s"] or 0,
-#         "total_coupon": sold_items.aggregate(s=Sum("order__coupon_discount", distinct=True))["s"] or 0,
-#         "total_delivery": sold_items.aggregate(s=Sum("order__delivery_charge", distinct=True))["s"] or 0,
-#     }
-
-#     # Format for PDF header only
-#     display_start = start_date or "---"
-#     display_end = end_date or "---"
-#     start_date_formatted = convert(start_date)
-#     end_date_formatted = convert(end_date)
-#     html = render_to_string("adminpanel/sales_report_pdf.html", {
-#         "grouped_data": grouped,
-#         "summary": summary,
-#         "period": period,
-#         "start_date": start_date_formatted,
-#         "end_date": end_date_formatted,
-#         "now": timezone.now(),
-#     })
-
-#     pdf = weasyprint.HTML(string=html).write_pdf()
-#     response = HttpResponse(pdf, content_type='application/pdf')
-#     response['Content-Disposition'] = 'attachment; filename="sales_report.pdf"'
-#     return response
 
 @login_required(login_url='/adminpanel/login/')
 def return_requests(request):

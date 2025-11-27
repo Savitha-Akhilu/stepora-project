@@ -225,7 +225,20 @@
         </div>
         <div class="card-body">
           <h6 class="card-title fw-semibold">{{ variant.product.name }}</h6>
-          <p class="text-muted mb-0">₹{{ variant.price }}</p>
+{% if variant.best_offer.has_offer %}
+  <h6 class="fw-bold text-dark mb-0">
+    ₹{{ variant.best_offer.final_price }}
+    <span class="text-muted text-decoration-line-through small ms-2">₹{{ variant.price }}</span>
+
+    {% if variant.best_offer.offer_type == 'PERCENT' %}
+      <span class="text-success small">({{ variant.best_offer.discount_percent }}% OFF)</span>
+    {% elif variant.best_offer.offer_type == 'FLAT' %}
+      <span class="text-success small">(₹{{ variant.best_offer.discount_percent }} OFF)</span>
+    {% endif %}
+  </h6>
+{% else %}
+  <h6 class="fw-bold text-dark">₹{{ variant.price }}</h6>
+{% endif %}
         </div>
       </div>
     </div>
