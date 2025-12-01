@@ -304,3 +304,4 @@ CLOUDINARY_STORAGE = {
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 MEDIA_URL = ''
 MEDIA_ROOT = ''
+STATIC_ROOT = BASE_DIR / 'staticfiles'
