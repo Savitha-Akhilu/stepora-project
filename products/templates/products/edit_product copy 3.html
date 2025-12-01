@@ -162,7 +162,7 @@
           <!--  Variant Images -->
           <div class="col-md-12 mt-3">
             <label class="form-label fw-semibold">Upload Images (min 3)</label>
-            <input type="file" name="variant_images_{{ forloop.counter0 }}[]" data-variant="{{ forloop.counter0 }}" class="form-control variant-image-input" accept="image/*" multiple>
+            <input type="file" name="variant_images_{{ forloop.counter0 }}[]" class="form-control variant-image-input" accept="image/*" multiple>
 
             <div class="variant-image-previews d-flex flex-wrap gap-3 mt-3"><!-- no duplicate id -->
               {% for image in variant.images.all %}
@@ -271,68 +271,24 @@ document.addEventListener("click", function (e) {
   }
 
   //  Remove button
-  // if (e.target.classList.contains("remove-btn")) {
-  //   e.preventDefault();
-  //   const cardCol = e.target.closest(".position-relative") || e.target.closest(".col-md-3");
-  //   if (!cardCol) return;
+  if (e.target.classList.contains("remove-btn")) {
+    e.preventDefault();
+    const cardCol = e.target.closest(".position-relative") || e.target.closest(".col-md-3");
+    if (!cardCol) return;
 
-  //   // if it's an existing DB image → mark for deletion
-  //   const imageId = cardCol.dataset.id;
-  //   if (imageId) {
-  //     const form = document.getElementById("editProductForm");
-  //     const hidden = document.createElement("input");
-  //     hidden.type = "hidden";
-  //     hidden.name = "delete_images[]";
-  //     hidden.value = imageId;
-  //     form.appendChild(hidden);
-  //   }
-
-  //   cardCol.remove();
-  // }
-  //  Remove button
-if (e.target.classList.contains("remove-btn")) {
-  e.preventDefault();
-  const cardCol = e.target.closest(".position-relative") || e.target.closest(".col-md-3");
-  if (!cardCol) return;
-
-  // if it's an existing DB image → mark for deletion (has data-id)
-  const imageId = cardCol.dataset.id;
-  if (imageId) {
-    const form = document.getElementById("editProductForm");
-    const hidden = document.createElement("input");
-    hidden.type = "hidden";
-    hidden.name = "delete_images[]";
-    hidden.value = imageId;
-    form.appendChild(hidden);
-    // remove preview from DOM
-    cardCol.remove();
-    return;
-  }
-
-  // if it's a NEW uploaded file (data-new)
-  if (cardCol.dataset.new === "true") {
-    const fileName = cardCol.dataset.filename;
-    const variantRow = cardCol.closest(".variant-row");
-    const fileInput = variantRow.querySelector(".variant-image-input");
-    if (fileInput && fileInput.files.length) {
-      const dt = new DataTransfer();
-      Array.from(fileInput.files).forEach((file) => {
-        // keep files whose name does not match removed one
-        if (file.name !== fileName) {
-          dt.items.add(file);
-        }
-      });
-      fileInput.files = dt.files;
+    // if it's an existing DB image → mark for deletion
+    const imageId = cardCol.dataset.id;
+    if (imageId) {
+      const form = document.getElementById("editProductForm");
+      const hidden = document.createElement("input");
+      hidden.type = "hidden";
+      hidden.name = "delete_images[]";
+      hidden.value = imageId;
+      form.appendChild(hidden);
     }
-    // remove preview from DOM
+
     cardCol.remove();
-    return;
   }
-
-  // fallback: just remove DOM element
-  cardCol.remove();
-}
-
 });
 
 /* ===============================
@@ -358,31 +314,30 @@ document.addEventListener("click", function (e) {
    =============================== */
 document.addEventListener("change", function (e) {
   if (e.target.classList.contains("variant-image-input")) {
-    const fileInput = e.target;
-    const variantIndex = fileInput.dataset.variant; // important
-    const files = Array.from(fileInput.files);
-    const previewsContainer = fileInput.closest(".variant-row").querySelector(".variant-image-previews");
+    const files = Array.from(e.target.files);
+    const previewsContainer = e.target
+      .closest(".variant-row")
+      .querySelector(".variant-image-previews");
 
-    // clear existing NEW previews (but keep existing DB previews)
-    // optional: you could keep them and append, but clearing ensures we reflect the input exactly
-    Array.from(previewsContainer.querySelectorAll('[data-new="true"]')).forEach(n => n.remove());
 
-    files.forEach((file, fileIndex) => {
+    // if (files.length < 3) {
+    //   alert("Each variant must have at least 3 images.");
+    //   e.target.value = "";
+    //   return;
+    // }
+
+    files.forEach((file, index) => {
       const reader = new FileReader();
       reader.onload = (event) => {
         const col = document.createElement("div");
         col.className = "position-relative";
         col.setAttribute("data-new", "true");
-        col.setAttribute("data-filename", file.name); // store file name for removal
         col.innerHTML = `
           <div class="card shadow-sm" style="width:150px;">
             <img src="${event.target.result}" class="card-img-top preview-img" style="object-fit:cover; height:150px;">
             <div class="card-body text-center p-2">
               <div class="form-check">
-                <!-- primary checkbox: use variantIndex as part of name, value is file name -->
-                <input class="form-check-input is-primary" type="checkbox"
-                       name="primary_image_variant_${variantIndex}"
-                       value="${file.name}">
+                <input class="form-check-input is-primary" type="checkbox" name="primary_image_variant_${index}" value="${index}">
                 <label class="form-check-label small">Is Primary</label>
               </div>
               <button type="button" class="btn btn-outline-primary btn-sm mt-1 crop-btn">Crop</button>
@@ -413,24 +368,14 @@ document.addEventListener("DOMContentLoaded", function () {
     const newIndex = allVariants.length;
 
     // Clear all input fields & reset file input names
-    // newVariant.querySelectorAll("input, textarea, select").forEach((el) => {
-    //   if (el.tagName === "SELECT") el.selectedIndex = 0;
-    //   else if (el.type === "file") {
-    //     el.value = "";
-    //     el.name = `variant_images_${newIndex}[]`;
-    //   } else if (el.type === "checkbox" || el.type === "radio") el.checked = false;
-    //   else el.value = "";
-    // });
-
     newVariant.querySelectorAll("input, textarea, select").forEach((el) => {
-  if (el.tagName === "SELECT") el.selectedIndex = 0;
-  else if (el.type === "file") {
-    el.value = "";
-    el.name = `variant_images_${newIndex}[]`;
-    el.setAttribute('data-variant', newIndex);
-  } else if (el.type === "checkbox" || el.type === "radio") el.checked = false;
-  else el.value = "";
-});
+      if (el.tagName === "SELECT") el.selectedIndex = 0;
+      else if (el.type === "file") {
+        el.value = "";
+        el.name = `variant_images_${newIndex}[]`;
+      } else if (el.type === "checkbox" || el.type === "radio") el.checked = false;
+      else el.value = "";
+    });
 
     const previewBox = newVariant.querySelector(".variant-image-previews");
     if (previewBox) previewBox.innerHTML = "";

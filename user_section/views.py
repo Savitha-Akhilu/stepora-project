@@ -38,7 +38,7 @@ def redirect_after_login(request):
     user = request.user
     if user.is_staff:  
         return redirect('/adminpanel/dashboard/')
-    return redirect('/users/')
+    return redirect('/')
 def user_home(request):
     # Get product variants with primary images
     variants = (

@@ -3,6 +3,8 @@ from adminpanel.models import CustomUser
 from PIL import Image
 from category.models import Color,Size,Material,Occasion,Brand,Category,Gender
 from django.utils import timezone
+from cloudinary.models import CloudinaryField
+
 # ------------------ PRODUCT MODEL ------------------
 class Product(models.Model):
     name = models.CharField(max_length=200)
@@ -100,25 +102,28 @@ class ProductVariant(models.Model):
 # ------------------ IMAGE MODEL ------------------
 class ProductImage(models.Model):
     variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE, related_name='images')
-    image = models.ImageField(upload_to='products/')
+    image = CloudinaryField('image',folder="products/")
     is_primary = models.BooleanField(default=True)  # Soft delete
 
-    def save(self, *args, **kwargs):
-        """Crop and resize image before saving."""
-        super().save(*args, **kwargs)
-        img = Image.open(self.image.path)
-        img = img.convert('RGB')
+    # def save(self, *args, **kwargs):
+    #     """Crop and resize image before saving."""
+    #     super().save(*args, **kwargs)
+    #     img = Image.open(self.image.path)
+    #     img = img.convert('RGB')
 
-        # Resize and crop (make square thumbnail 600x600)
-        img.thumbnail((600, 600))
-        width, height = img.size
-        min_side = min(width, height)
-        left = (width - min_side) / 2
-        top = (height - min_side) / 2
-        right = (width + min_side) / 2
-        bottom = (height + min_side) / 2
-        img = img.crop((left, top, right, bottom))
-        img.save(self.image.path)
+    #     # Resize and crop (make square thumbnail 600x600)
+    #     img.thumbnail((600, 600))
+    #     width, height = img.size
+    #     min_side = min(width, height)
+    #     left = (width - min_side) / 2
+    #     top = (height - min_side) / 2
+    #     right = (width + min_side) / 2
+    #     bottom = (height + min_side) / 2
+    #     img = img.crop((left, top, right, bottom))
+    #     img.save(self.image.path)
+
+
+
 
     def __str__(self):
         return f"Image for {self.variant.variant_name}"

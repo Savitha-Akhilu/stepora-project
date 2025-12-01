@@ -435,7 +435,7 @@ addVariantBtn.addEventListener('click', function () {
     const categorySelect = document.querySelector('select[name="category"]');
     const variantContainer = document.getElementById('variant-container');
 
-    // ✅ Function to fetch and update sizes
+    // Function to fetch and update sizes
     function loadSizes(categoryId) {
         if (!categoryId) return;
 
@@ -445,6 +445,7 @@ addVariantBtn.addEventListener('click', function () {
                 // update all size selects dynamically
                 const sizeSelects = document.querySelectorAll('select[name="size[]"]');
                 sizeSelects.forEach(select => {
+                    const prevValue = select.value;
                     select.innerHTML = '<option value="">-- Select Size --</option>';
                     data.sizes.forEach(size => {
                         const option = document.createElement('option');
@@ -452,6 +453,8 @@ addVariantBtn.addEventListener('click', function () {
                         option.textContent = size.name;
                         select.appendChild(option);
                     });
+                    select.value = prevValue;
+
                 });
             })
             .catch(err => console.error('Error fetching sizes:', err));

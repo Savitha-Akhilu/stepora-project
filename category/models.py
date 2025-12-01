@@ -1,5 +1,7 @@
 from django.db import models
 from django.utils import timezone
+from cloudinary.models import CloudinaryField
+
 
 class Gender(models.Model):
     name = models.CharField(max_length=20)
@@ -12,7 +14,13 @@ class Category(models.Model):
     category_name = models.CharField(max_length=100)
     gender = models.ForeignKey(Gender, on_delete=models.CASCADE, related_name='categories')
     description = models.TextField()
-    image = models.ImageField(upload_to='media/categories/', null=True, blank=True)  
+    # image = models.ImageField(upload_to='media/categories/', null=True, blank=True) 
+    image = CloudinaryField(
+        'image',
+        null=True,
+        blank=True,
+        folder='categories'
+    ) 
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     deleted_at = models.DateTimeField(null=True, blank=True) 

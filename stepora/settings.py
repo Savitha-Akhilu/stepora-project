@@ -28,8 +28,8 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / "media"
+# MEDIA_URL = '/media/'
+# MEDIA_ROOT = BASE_DIR / "media"
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-ll4@uu17bk0v1(hzr$0utaall^9(hkaj!+8b1ev+#rxp=^-hoi'
@@ -74,6 +74,9 @@ INSTALLED_APPS = [
     'products',
     'user_section',
     'cart',
+    'cloudinary',
+    'cloudinary_storage',
+
 
 ]
 
@@ -288,3 +291,15 @@ LOGGING = {
         },
     },
 }
+
+
+# Cloudinary Configuration
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
+}
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+MEDIA_URL = ''
+MEDIA_ROOT = ''

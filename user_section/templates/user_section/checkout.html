@@ -492,7 +492,7 @@ if (totalAmount > 1000) {
           razorpayOption.checked = false;
           codOption.disabled = true;
           razorpayOption.disabled = true;
-          noteDiv.textContent = "✅ Order will be fully paid using wallet balance.";
+          noteDiv.textContent = " Order will be fully paid using wallet balance.";
           totalLine.parentElement.appendChild(noteDiv);
         } else {
           codOption.disabled = false;
@@ -514,7 +514,7 @@ if (totalAmount > 1000) {
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
-  // ⭐ Open Edit Modal and load address data
+  //  Open Edit Modal and load address data
   document.querySelectorAll(".edit-address-btn").forEach(btn => {
     btn.addEventListener("click", async () => {
 
@@ -553,7 +553,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 const form = document.getElementById("modalEditAddressForm");
 
-  // ⭐ Submit updated address
+  // Submit updated address
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 

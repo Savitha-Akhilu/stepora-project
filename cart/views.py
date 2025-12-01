@@ -222,7 +222,7 @@ def cart_view(request):
                 'product_name': variant.product.name,
                 'price': float(final_price),
                 'quantity': item_data.get('quantity', 1),
-                'image': image_url,
+                'image_url': image_url,
                 'subtotal': float(item_subtotal),
             })
 

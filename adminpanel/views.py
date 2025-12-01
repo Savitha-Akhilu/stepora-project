@@ -31,6 +31,8 @@ import random
 from calendar import month_name
 from datetime import datetime,timedelta
 from django.core.mail import send_mail
+from django.conf import settings
+
 # -----------------------------
 # Admin Registration
 # -----------------------------
@@ -44,9 +46,27 @@ def admin_register(request):
         form = AdminRegistrationForm(request.POST)
 
         if form.is_valid():
-            admin_user = form.save()
-            messages.success(request, "Admin registered successfully. Please login.")
-            return redirect('admin_login')
+            otp = random.randint(100000, 999999)
+            expiry = timezone.now() + timedelta(minutes=2)
+            expiry = timezone.now() + timedelta(minutes=2)
+            request.session['admin_signup_otp_expiry'] = expiry.timestamp()   # Save as number
+
+                        # Save to session
+            request.session['admin_signup_data'] = form.cleaned_data
+            request.session['admin_signup_otp'] = otp
+
+            send_mail(
+                "Stepora Admin – OTP Verification",
+                f"Your OTP is {otp}. Valid for 2 minutes.",
+                settings.EMAIL_HOST_USER,
+                [form.cleaned_data["email"]],
+                fail_silently=False,
+            )
+            messages.info(request, "OTP sent to your email.")
+            return redirect('admin_signup_otp')
+            # admin_user = form.save()
+            # messages.success(request, "Admin registered successfully. Please login.")
+            # return redirect('admin_login')
         else:
             print(form.errors)  
             messages.error(request, "Please correct the errors below.")
@@ -54,6 +74,33 @@ def admin_register(request):
         form = AdminRegistrationForm()
 
     return render(request, 'adminpanel/admin_register.html', {'form': form})
+def admin_signup_otp(request):
+    expiry_ts = request.session.get("admin_signup_otp_expiry")
+    expired = timezone.now().timestamp() > expiry_ts
+
+    if request.method == "POST":
+        if expired:
+            return render(request, "adminpanel/admin_verify_otp.html",
+                          {"expired": True})
+
+        entered_otp = request.POST.get("otp")
+        session_otp = str(request.session.get("admin_signup_otp"))
+
+        if entered_otp == session_otp:
+            data = request.session.get("admin_signup_data")
+            form = AdminRegistrationForm(data)
+            if form.is_valid():
+                form.save()
+                request.session.flush()
+                return redirect("admin_login")
+        else:
+            return render(request, "adminpanel/admin_verify_otp.html",
+                          {"error": "Invalid OTP"})
+
+    return render(request, "adminpanel/admin_verify_otp.html",
+                  {"expired": expired})
+
+
 # -----------------------------
 # Admin Login
 # -----------------------------
@@ -115,40 +162,14 @@ def admin_dashboard(request):
     total_admins = CustomUser.objects.filter(is_admin=True).count()
     total_products = Product.objects.count()
 
-    # SAME LOGIC AS SALES REPORT
-    sold_items = OrderItem.objects.filter(
+    sold_items = Order.objects.filter(
         status__in=["Delivered","Partially Returned","Partially Delivered"],
-        cancelled=False,
-        returned=False,
-        order__payments__status="Success"
+        payments__status="Success"
     )
 
-    # Total completed orders (unique orders, not items)
-    total_orders = sold_items.values("order_id").distinct().count()
+    # Total completed orders 
+    total_orders = sold_items.count()
 
-    # # TOP PRODUCTS
-    # top_products = (
-    #     sold_items.values("product__name")
-    #     .annotate(total_sold=Sum("quantity"))
-    #     .order_by("-total_sold")[:10]
-    # )
-
-    # # TOP CATEGORIES
-    # top_categories = (
-    #     sold_items
-    #     .values(
-    #         "product__category__category_name",
-    #         "product__category__gender__name"   # join gender name
-    #     )
-    #     .annotate(total_sold=Sum("quantity"))
-    #     .order_by("-total_sold")[:10]
-    # )
-    # # TOP BRANDS
-    # top_brands = (
-    #     sold_items.values("product__brand__name")
-    #     .annotate(total_sold=Sum("quantity"))
-    #     .order_by("-total_sold")[:10]
-    # )
 
     return render(request, "adminpanel/admin_dashboard.html", {
         "total_users": total_users,
@@ -179,7 +200,7 @@ def top_selling_categories(request):
         "product__category",
         "product__category__gender"
     ).filter(
-        status__in=["Delivered", "Partially Delivered", "Partially Returned"],
+        status__in=["Delivered"],
         cancelled=False,
         returned=False,
         order__payments__status="Success"
@@ -190,14 +211,14 @@ def top_selling_categories(request):
                        order__created_at__month=month)
     else:
         qs = qs.filter(order__created_at__year=year)
-
+    #    Group Results by Category + Gender
     data = qs.values(
             "product__category__category_name",
             "product__category__gender__name"
         ) \
         .annotate(total_sold=Sum("quantity")) \
         .order_by("-total_sold")[:10]
-
+    #    Data for Chart
     labels = [f"{i['product__category__category_name']} - {i['product__category__gender__name']}" for i in data]
     units = [i["total_sold"] for i in data]
 
@@ -224,7 +245,7 @@ def top_selling_brands(request):
         "product",
         "product__brand"
     ).filter(
-        status__in=["Delivered", "Partially Delivered", "Partially Returned"],
+        status__in=["Delivered"],
         cancelled=False,
         returned=False,
         order__payments__status="Success"
@@ -238,7 +259,7 @@ def top_selling_brands(request):
 
     data = qs.values("product__brand__name") \
              .annotate(total_sold=Sum("quantity")) \
-             .order_by("-total_sold")[:10]
+             .order_by("-total_sold")[:5]
 
     labels = [i["product__brand__name"] for i in data]
     units = [i["total_sold"] for i in data]

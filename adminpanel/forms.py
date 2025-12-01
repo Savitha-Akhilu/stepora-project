@@ -111,7 +111,7 @@ class AdminRegistrationForm(UserCreationForm):
     def save(self, commit=True):
         """Save admin user, using email as username."""
         user = super().save(commit=False)
-        user.fullname = self.cleaned_data['fullname']
+        user.first_name = self.cleaned_data['fullname']
         user.email = self.cleaned_data['email']
         user.phone = self.cleaned_data['phone']
         user.username = self.cleaned_data['email']  # use email as username

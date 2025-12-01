@@ -307,76 +307,67 @@ def edit_product(request, product_id):
                 #         image=f,
                 #         is_primary=is_primary
                 #        )
-                # files = request.FILES.getlist(f"variant_images_{i}[]")
-                # primary_selected_index = request.POST.get(f"primary_image_variant_{i}")
-
-                # #  CASE 1: If new files uploaded
-                # if files:
-                #     imgs = ProductImage.objects.filter(variant=v)
-                #     imgs.update(is_primary=False)
-
-                #     for j, f in enumerate(files):
-                #         is_primary = (str(j) == str(primary_selected_index))
-                #         ProductImage.objects.create(
-                #             variant=v,
-                #             image=f,
-                #             is_primary=is_primary
-                #         )
                 files = request.FILES.getlist(f"variant_images_{i}[]")
                 primary_selected_index = request.POST.get(f"primary_image_variant_{i}")
 
-                # CASE 1: If new files uploaded
+                #  CASE 1: If new files uploaded
                 if files:
-                    # remove primary flag for all existing variant images
                     imgs = ProductImage.objects.filter(variant=v)
                     imgs.update(is_primary=False)
 
-                    for f in files:
-                        # create the ProductImage first
-                        created = ProductImage.objects.create(variant=v, image=f, is_primary=False)
-
-                        # If primary_selected_index matches this uploaded file's name, mark it primary
-                        # note: uploaded file object has name attribute
-                        try:
-                            if primary_selected_index and primary_selected_index == f.name:
-                                created.is_primary = True
-                                created.save()
-                        except Exception:
-                            # fallback - ignore
-                            pass
-
+                    for j, f in enumerate(files):
+                        is_primary = (str(j) == str(primary_selected_index))
+                        ProductImage.objects.create(
+                            variant=v,
+                            image=f,
+                            is_primary=is_primary
+                        )
 
                 # CASE 2: Update primary image even if no new files uploaded
                 else:
+                    # Primary selection refers to an existing image
                     if primary_selected_index:
-                        imgs = ProductImage.objects.filter(variant=v)
-
                         try:
-                            # 1. Try image ID
-                            primary_img = imgs.filter(id=primary_selected_index).first()
+                            imgs = ProductImage.objects.filter(variant=v)
+                            imgs.update(is_primary=False)
 
-                            # 2. Try list index
-                            if not primary_img and primary_selected_index.isdigit():
+                            # Convert string index or image ID
+                            try:
+                                # If frontend sent image ID
+                                primary_img = imgs.get(id=primary_selected_index)
+                            except (ValueError, ProductImage.DoesNotExist):
+                                # fallback: use order index if value is numeric index
                                 all_imgs = list(imgs)
-                                idx = int(primary_selected_index)
-                                if 0 <= idx < len(all_imgs):
-                                    primary_img = all_imgs[idx]
+                                index = int(primary_selected_index)
+                                if 0 <= index < len(all_imgs):
+                                    primary_img = all_imgs[index]
+                                else:
+                                    primary_img = None
 
-                            # 3. Try matching filename (NEW uploads)
-                            if not primary_img:
-                                primary_img = imgs.filter(image__icontains=primary_selected_index).first()
-
-                            # Only update if found
                             if primary_img:
-                                imgs.update(is_primary=False)
                                 primary_img.is_primary = True
                                 primary_img.save()
                             else:
-                                print("Primary not found → keeping old primary.")
-
+                                print(" No valid primary image found to set.")
                         except Exception as e:
-                            print("Primary error:", e)
+                            print(" Error updating existing primary:", e)
 
+                # --- Validate each variant has ≥3 images and one primary ---
+                # imgs = ProductImage.objects.filter(variant=v)
+                # if imgs.count() < 3:
+                #     messages.error(request, f"Variant {name} must have at least 3 images.")
+                #     raise transaction.TransactionManagementError("Less than 3 images")
+
+                # primary_selected = request.POST.get(f"primary_image_variant_{i}")
+                # print("primary_selected",primary_selected)
+                # if primary_selected:
+                #     imgs.update(is_primary=False)
+                #     try:
+                #         primary_img = imgs[int(primary_selected)]
+                #         primary_img.is_primary = True
+                #         primary_img.save()
+                #     except Exception:
+                #         pass
      
         return redirect('products:product_list')
     else:

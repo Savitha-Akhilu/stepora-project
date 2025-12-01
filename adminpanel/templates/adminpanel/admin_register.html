@@ -199,6 +199,15 @@
   <!-- Signup Box -->
   <div class="container">
     <h2>Sign up</h2>
+        {% if messages %}
+      <div id="message-container">
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }}" role="alert">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
 
     {% if form.non_field_errors %}
       <div class="error-message">{{ form.non_field_errors.0 }}</div>
@@ -224,13 +233,14 @@
       {% if form.email.errors %}
         <div class="error-message">{{ form.email.errors.0 }}</div>
       {% endif %}
-      <label for="id_mobile">Mobile Number</label>
+<label for="id_mobile">Mobile Number</label>
 <input type="text" name="phone" id="id_mobile"
-       class="{% if form.mobile.errors %}error-field{% endif %}"
-       placeholder="Enter your mobile number"
-       value="{{ form.mobile.value|default_if_none:'' }}">
-{% if form.mobile.errors %}
-  <div class="error-message">{{ form.mobile.errors.0 }}</div>
+       class="{% if form.phone.errors %}error-field{% endif %}"
+       placeholder="Enter your mobile number" maxlength="10"
+       value="{{ form.phone.value|default_if_none:'' }}">
+
+{% if form.phone.errors %}
+  <div class="error-message">{{ form.phone.errors.0 }}</div>
 {% endif %}
 
 
