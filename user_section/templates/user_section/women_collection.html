@@ -1,0 +1,1081 @@
+{% extends 'user_section/base.html' %}
+{% load static %}
+
+{% block title %}Women's Collection | Stepora{% endblock %}
+
+{% block content %}
+<div id="page">
+
+    <!-- ===== HERO SECTION ===== -->
+    <!-- <div class="breadcrumbs-two">
+		<div class="container">
+			<div class="row">
+				<div class="col">
+					<div class="breadcrumbs-img" style="background-image: url('{% static "images/men.jpg" %}');">
+						<h2>MEN'S</h2>
+					</div>
+					<div class="menu text-center">
+						<p>
+							<a href="#">Top Arrivals</a>
+							<a href="#">Best Sellers</a>
+							<a href="#">Offer Zone</a>
+							<a href="#">New In</a>
+							<a href="#">Sale</a>
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div> -->
+
+
+
+    <!-- ===== BREADCRUMB ===== -->
+    <div class="breadcrumb-wrapper">
+        <div class="container">
+            <p class="breadcrumb-text">
+                <a href="{% url 'user_home' %}">Home</a> / <span>Women</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- ===== FULL-WIDTH HERO BANNER ===== -->
+    <section class="hero-banner">
+        <div class="banner-overlay"></div>
+        <div class="banner-content">
+            <h1>WOMEN'S</h1>
+        </div>
+    </section>
+
+    <!-- ===== NAVIGATION MENU BELOW BANNER ===== -->
+    <div class="banner-nav text-center">
+        <!-- <ul>
+            <li><a href="#">Top Arrivals</a></li>
+            <li><a href="#">Best Sellers</a></li>
+            <li><a href="#">Offer Zone</a></li>
+            <li><a href="#">New In</a></li>
+            <li><a href="#">Sale</a></li>
+        </ul> -->
+    </div>
+
+    <!-- ===== FEATURED CATEGORY CARDS ===== -->
+    <!-- <div class="colorlib-featured py-5">
+        <div class="wide-container">
+            <div class="row">
+                {% for c in categories %}
+                <div class="col-sm-4 text-center">
+                    <div class="featured">
+          <div class="featured-img featured-img-2"
+               style="background-image: url('{% if c.image %}{{ c.image.url }}{% else %}{% static "images/no-image.png" %}{% endif %}');">
+            <h2>{{ c.category_name }}</h2>                            <p><a href="#" class="btn btn-primary btn-lg">Shop now</a></p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div> -->
+
+
+<div class="container-fluid px-4 mt-3 category-container">
+  <div class="category-scroll d-flex align-items-center gap-4">
+    {% for c in categories %}
+      <div class="category-card text-center flex-shrink-0">
+        <div class="featured position-relative">
+          <div class="featured-img"
+               style="background-image: url('{% if c.image %}{{ c.image.url }}{% else %}{% static "images/no-image.png" %}{% endif %}');
+                      background-size: cover;
+                      background-position: center;
+                      height: 250px;
+                      width: 250px;
+                      border-radius: 10px;
+                      transition: all 0.3s ease;">
+          </div>
+          <div class="overlay position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center align-items-center text-white"
+               style="background: rgba(0,0,0,0.35); border-radius: 10px;">
+            <h5 class="fw-bold">{{ c.category_name }}</h5>
+            <a href="?category={{ c.id }}" class="btn btn-primary btn-sm mt-2">
+              Shop now
+            </a>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+
+
+    <!-- ===== PRODUCT SECTION ===== -->
+    <div class="colorlib-product">
+<div class="container-fluid px-4">
+            <div class="row">
+                <!-- Sidebar -->
+<div class="col-lg-2 col-xl-2"> <!-- Sidebar -->
+                      <div class="row">
+                        
+    <div class="col-sm-12">
+      <div class="side border mb-1">
+        <h3>Sort By</h3>
+<form method="get" id="sortForm">
+
+    {% for key, value in request.GET.items %}
+        {% if key and value and key != 'sort' %}
+            <input type="hidden" name="{{ key }}" value="{{ value }}">
+        {% endif %}
+    {% endfor %}
+
+    <select name="sort" id="sort" class="form-select"
+            onchange="document.getElementById('sortForm').submit();">
+
+        <option value="">Default</option>
+        <option value="price_low_high" {% if sort == 'price_low_high' %}selected{% endif %}>Price: Low → High</option>
+        <option value="price_high_low" {% if sort == 'price_high_low' %}selected{% endif %}>Price: High → Low</option>
+        <option value="a_z" {% if sort == 'a_z' %}selected{% endif %}>A → Z</option>
+        <option value="z_a" {% if sort == 'z_a' %}selected{% endif %}>Z → A</option>
+
+    </select>
+</form>
+      </div>
+    </div>
+<div class="col-sm-12">
+  <div class="side border mb-1">
+<h3>Brand</h3>
+
+{% with params=request.GET.urlencode %}
+<ul>
+{% for b in brands %}
+    <li>
+        <a href="?{% if params %}{{ params }}&{% endif %}brand={{ b.name|urlencode }}"
+           class="{% if brand_name == b.name %}fw-bold text-primary{% endif %}">
+           {{ b.name }}
+        </a>
+    </li>
+{% endfor %}
+</ul>
+{% endwith %}
+  </div>
+</div>
+
+<div class="col-sm-12">
+  <div class="side border mb-1">
+    <h3>Size</h3>
+
+    {% with params=request.GET.urlencode %}
+    <div class="size-grid">
+      {% for size in sizes %}
+        <a href="?{% if params %}{{ params }}&{% endif %}size={{ size.name|urlencode }}"
+           class="size-item {% if size_name == size.name %}active{% endif %}">
+           {{ size.name }}
+        </a>
+      {% endfor %}
+    </div>
+    {% endwith %}
+
+  </div>
+</div>
+
+
+<div class="col-sm-12">
+  <div class="side border mb-1">
+    <h3>Price</h3>
+
+    {% with params=request.GET.items %}
+    <form method="get" class="p-2">
+
+      <!-- Slider -->
+      <div class="slider-container position-relative">
+        <input type="range" id="minPriceRange" name="min_price"
+               min="500" max="5000" step="100"
+               value="{{ min_price|default:500 }}" oninput="updateSliderTrack()">
+
+        <input type="range" id="maxPriceRange" name="max_price"
+               min="500" max="5000" step="100"
+               value="{{ max_price|default:5000 }}" oninput="updateSliderTrack()">
+
+        <div id="sliderTrack"></div>
+      </div>
+
+      <div class="d-flex justify-content-between mt-2">
+        <span id="minPriceLabel">₹{{ min_price|default:500 }}</span>
+        <span id="maxPriceLabel">₹{{ max_price|default:5000 }}</span>
+      </div>
+
+
+      <!-- Preserve all GET parameters except min_price/max_price -->
+      {% for key, value in params %}
+        {% if key != "min_price" and key != "max_price" %}
+          <input type="hidden" name="{{ key }}" value="{{ value }}">
+        {% endif %}
+      {% endfor %}
+
+      <button type="submit" class="btn btn-sm btn-primary mt-3 w-100">Apply</button>
+
+    </form>
+    {% endwith %}
+
+  </div>
+</div>
+
+
+
+
+
+<div class="col-sm-12">
+  <div class="side border mb-1">
+    <h3>Occasion</h3>
+
+    {% with params=request.GET.urlencode %}
+    <ul>
+      {% for o in occasions %}
+        <li>
+          <a href="?{% if params %}{{ params }}&{% endif %}occasion={{ o.name|urlencode }}"
+             class="{% if occasion_name == o.name %}fw-bold text-primary{% endif %}">
+            {{ o.name }}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+    {% endwith %}
+
+  </div>
+</div>
+
+
+
+<div class="col-sm-12">
+  <div class="side border mb-1">
+    <h3>Colors</h3>
+
+    {% with params=request.GET.urlencode %}
+    <ul>
+      {% for c in colors %}
+        <li>
+          <a href="?{% if params %}{{ params }}&{% endif %}color={{ c.name|urlencode }}"
+             class="{% if color_name == c.name %}fw-bold text-primary{% endif %}">
+            {{ c.name }}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+    {% endwith %}
+
+  </div>
+</div>
+
+
+<div class="col-sm-12">
+  <div class="side border mb-1">
+    <h3>Material</h3>
+
+    {% with params=request.GET.urlencode %}
+    <ul>
+      {% for m in materials %}
+        <li>
+          <a href="?{% if params %}{{ params }}&{% endif %}material={{ m.name|urlencode }}"
+             class="{% if material_name == m.name %}fw-bold text-primary{% endif %}">
+            {{ m.name }}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+    {% endwith %}
+
+  </div>
+</div>
+
+
+                    </div>
+                </div>
+<!-- <div id="active-filters" class="mb-3 d-flex flex-wrap gap-2"></div> -->
+
+                <!-- Product Grid -->
+<div class="col-lg-10 col-xl-10"> <!-- Product Grid -->
+  {% if brand_name or size_name or color_name or occasion_name or material_name or sort %}
+<div class="active-filters d-flex flex-wrap align-items-center gap-2 mb-4">
+  <span class="fw-semibold text-muted">Filters:</span>
+
+{% if brand_name %}
+  <a href="?{% if size_name %}size={{ size_name }}&{% endif %}{% if color_name %}color={{ color_name }}&{% endif %}{% if occasion_name %}occasion={{ occasion_name }}&{% endif %}{% if material_name %}material={{ material_name }}&{% endif %}{% if sort %}sort={{ sort }}&{% endif %}{% if q %}q={{ q }}{% endif %}"
+     class="filter-chip">
+      {{ brand_name }} ×
+  </a>
+{% endif %}
+
+{% if size_name %}
+  <a href="?{% if brand_name %}brand={{ brand_name }}&{% endif %}{% if color_name %}color={{ color_name }}&{% endif %}{% if occasion_name %}occasion={{ occasion_name }}&{% endif %}{% if material_name %}material={{ material_name }}&{% endif %}{% if sort %}sort={{ sort }}&{% endif %}{% if q %}q={{ q }}{% endif %}"
+     class="filter-chip">
+    Size {{ size_name }} ×
+  </a>
+{% endif %}
+{% if color_name %}
+  <a href="?{% if brand_name %}brand={{ brand_name }}&{% endif %}{% if size_name %}size={{ size_name }}&{% endif %}{% if occasion_name %}occasion={{ occasion_name }}&{% endif %}{% if material_name %}material={{ material_name }}&{% endif %}{% if sort %}sort={{ sort }}&{% endif %}{% if q %}q={{ q }}{% endif %}"
+     class="filter-chip">
+    {{ color_name }} ×
+  </a>
+{% endif %}
+
+{% if occasion_name %}
+  <a href="?{% if brand_name %}brand={{ brand_name }}&{% endif %}{% if size_name %}size={{ size_name }}&{% endif %}{% if color_name %}color={{ color_name }}&{% endif %}{% if material_name %}material={{ material_name }}&{% endif %}{% if sort %}sort={{ sort }}&{% endif %}{% if q %}q={{ q }}{% endif %}"
+     class="filter-chip">
+    {{ occasion_name }} ×
+  </a>
+{% endif %}
+
+{% if material_name %}
+  <a href="?{% if brand_name %}brand={{ brand_name }}&{% endif %}{% if size_name %}size={{ size_name }}&{% endif %}{% if color_name %}color={{ color_name }}&{% endif %}{% if occasion_name %}occasion={{ occasion_name }}&{% endif %}{% if sort %}sort={{ sort }}&{% endif %}{% if q %}q={{ q }}{% endif %}"
+     class="filter-chip">
+    {{ material_name }} ×
+  </a>
+{% endif %}
+{% if min_price or max_price %}
+<a href="?{% if brand_name %}brand={{ brand_name }}&{% endif %}{% if size_name %}size={{ size_name }}&{% endif %}{% if color_name %}color={{ color_name }}&{% endif %}{% if occasion_name %}occasion={{ occasion_name }}&{% endif %}{% if material_name %}material={{ material_name }}&{% endif %}{% if sort %}sort={{ sort }}&{% endif %}{% if q %}q={{ q }}{% endif %}"
+   class="badge bg-light border text-dark">
+  Price: ₹{{ min_price|default:"0" }} - ₹{{ max_price|default:"5000" }} ×
+</a>
+{% endif %}
+
+
+{% if sort_label %}
+<a href="?{% if brand_name %}brand={{ brand_name }}&{% endif %}{% if size_name %}size={{ size_name }}&{% endif %}{% if color_name %}color={{ color_name }}&{% endif %}{% if occasion_name %}occasion={{ occasion_name }}&{% endif %} {% if material_name %}material={{ material_name }}&{% endif %}{% if q %}q={{ q }}{% endif %}"
+   class="filter-chip sort-chip">
+   Sort: {{ sort_label }} ×
+</a>
+{% endif %}
+
+  <a href="?{% if q %}q={{ q }}{% endif %}" class="clear-all">Clear All</a>
+</div>
+{% endif %}
+<div class="row g-4">
+  {% for variant in variants %}
+    {% with primary_image=variant.images.first %}
+      <div class="col-6 col-md-3 " data-category-id="{{ variant.product.category.id }}">
+        <div class="card product-card border-0 shadow-sm h-100 text-center">
+          <div class="image-container">
+            <!-- {% if primary_image %}
+              <img src="{{ primary_image.image.url }}" class="card-img-top" alt="{{ variant.variant_name }}">
+            {% else %}
+              <img src="{% static 'images/no-image.png' %}" class="card-img-top" alt="No image">
+            {% endif %} -->
+            <img src="{{ variant.image_url }}" class="card-img-top" alt="{{ variant.variant_name }}">
+
+            <div class="overlay">
+<a href="{% url 'product_detail' variant.product.id %}" class="btn btn-light btn-sm">
+  View
+</a>  
+<!-- <button 
+  class="btn btn-light btn-sm wishlist-btn"
+  data-variant-id="{{ variant.id }}"
+  data-url-template="{% url 'add_to_wishlist' 0 %}">
+  <i class="bi bi-heart me-2"></i> Wishlist
+</button> -->
+    {% if variant.id in wishlist_ids %}
+        <button class="wishlist-btn active" disabled>
+            <i class="fa fa-heart"></i> In Wishlist
+        </button>
+    {% else %}
+<button 
+  class="btn btn-light btn-sm wishlist-btn"
+  data-variant-id="{{ variant.id }}"
+  data-url-template="{% url 'add_to_wishlist' 0 %}">
+  <i class="bi bi-heart me-2"></i> Wishlist
+</button>    {% endif %}
+
+            </div>
+          </div>
+          <div class="card-body">
+  <h6 class="card-title fw-semibold">{{ variant.variant_name }}</h6>
+
+{% if variant.best_offer.has_offer %}
+  <h6 class="fw-bold text-dark mb-0">
+    ₹{{ variant.best_offer.final_price }}
+    <span class="text-muted text-decoration-line-through small ms-2">₹{{ variant.price }}</span>
+    <!-- <span class="text-success small">({{ variant.best_offer.discount_percent }}% OFF)</span> -->
+
+    {% if variant.best_offer.offer_type == 'PERCENT' %}
+      <span class="text-success small">({{ variant.best_offer.discount_percent }}% OFF)</span>
+    {% elif variant.best_offer.offer_type == 'FLAT' %}
+      <span class="text-success small">(₹{{ variant.best_offer.discount_percent }} OFF)</span>
+    {% endif %}
+  </h6>
+{% else %}
+  <h6 class="fw-bold text-dark">₹{{ variant.price }}</h6>
+{% endif %}
+</div>
+
+        </div>
+      </div>
+    {% endwith %}
+  {% empty %}
+    <p class="text-center text-muted">No products found.</p>
+  {% endfor %}
+</div>
+
+
+                    <!-- Pagination -->
+                    
+                </div> <!-- /Product grid -->
+                {% if page_obj.has_other_pages %}
+<nav aria-label="Page navigation" class="mt-4">
+  <ul class="pagination justify-content-center">
+    
+    {% if page_obj.has_previous %}
+      <li class="page-item">
+        <a class="page-link"
+           href="?page={{ page_obj.previous_page_number }}{% if brand_name %}&brand={{ brand_name }}{% endif %}{% if size_name %}&size={{ size_name }}{% endif %}{% if color_name %}&color={{ color_name }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}{% if q %}&q={{ q }}{% endif %}">
+          Previous
+        </a>
+      </li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">Previous</span></li>
+    {% endif %}
+
+    <li class="page-item disabled">
+      <span class="page-link">
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+      </span>
+    </li>
+                
+    {% if page_obj.has_next %}
+      <li class="page-item">
+        <a class="page-link"
+           href="?page={{ page_obj.next_page_number }}{% if brand_name %}&brand={{ brand_name }}{% endif %}{% if size_name %}&size={{ size_name }}{% endif %}{% if color_name %}&color={{ color_name }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}{% if q %}&q={{ q }}{% endif %}">
+          Next
+        </a>
+      </li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">Next</span></li>
+    {% endif %}
+  </ul>
+</nav>
+{% endif %}
+
+            </div>
+        </div>
+    </div>
+
+
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const products = document.querySelectorAll(".product-card-wrapper");
+  const chipsContainer = document.getElementById("active-filters");
+
+  let activeFilters = {
+    category: null,
+    brand: null,
+    size: null
+  };
+
+  // Apply filters to show/hide products
+  function applyFilters() {
+    products.forEach(card => {
+      const matchCategory = !activeFilters.category || card.dataset.categoryId === activeFilters.category;
+      const matchBrand = !activeFilters.brand || card.dataset.brandId === activeFilters.brand;
+      const matchSize = !activeFilters.size || card.dataset.sizeId === activeFilters.size;
+      card.style.display = (matchCategory && matchBrand && matchSize) ? "block" : "none";
+    });
+  }
+
+  // Add a filter chip
+function addChip(type, label) {
+  const existing = chipsContainer.querySelector(`[data-type="${type}"]`);
+  if (existing) existing.remove();
+
+  const chip = document.createElement("span");
+  chip.className = "badge rounded-pill bg-light text-dark border";
+  chip.dataset.type = type;
+  chip.innerHTML = `${label} <span class="ms-1 text-danger" style="cursor:pointer;">×</span>`;
+
+  // Remove chip on close (and hide if none left)
+  chip.querySelector("span").addEventListener("click", () => {
+    chip.remove();
+    activeFilters[type] = null;
+    applyFilters();
+    if (!chipsContainer.hasChildNodes()) {
+      chipsContainer.classList.add("d-none");
+    }
+  });
+
+  chipsContainer.classList.remove("d-none"); // show when chip added
+  chipsContainer.appendChild(chip);
+}
+ // BRAND filter
+  document.querySelectorAll(".brand-filter").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.preventDefault();
+      activeFilters.brand = btn.dataset.brand;
+      addChip("brand", btn.textContent.trim());
+      applyFilters();
+    });
+  });
+
+  // SIZE filter
+  document.querySelectorAll(".size-filter").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.preventDefault();
+      activeFilters.size = btn.dataset.size;
+      addChip("size", btn.textContent.trim());
+      applyFilters();
+    });
+  });
+});
+
+function updateSliderTrack() {
+  const minRange = document.getElementById("minPriceRange");
+  const maxRange = document.getElementById("maxPriceRange");
+  const sliderTrack = document.getElementById("sliderTrack");
+  const minLabel = document.getElementById("minPriceLabel");
+  const maxLabel = document.getElementById("maxPriceLabel");
+
+  let minVal = parseInt(minRange.value);
+  let maxVal = parseInt(maxRange.value);
+
+  if (maxVal - minVal <= 300) {
+    if (event.target.id === "minPriceRange") {
+      minRange.value = maxVal - 300;
+      minVal = maxVal - 300;
+    } else {
+      maxRange.value = minVal + 300;
+      maxVal = minVal + 300;
+    }
+  }
+
+  minLabel.textContent = "₹" + minVal;
+  maxLabel.textContent = "₹" + maxVal;
+
+  const percent1 = ((minVal - 500) / (5000 - 500)) * 100;
+  const percent2 = ((maxVal - 500) / (5000 - 500)) * 100;
+
+  sliderTrack.style.left = percent1 + "%";
+  sliderTrack.style.width = (percent2 - percent1) + "%";
+}
+
+// initialize once
+document.addEventListener("DOMContentLoaded", updateSliderTrack);
+
+
+</script>
+
+
+<style>
+
+  /* ===== FILTER CHIPS (Myntra style) ===== */
+.active-filters {
+  background: #fff;
+  padding: 8px 15px;
+  border-radius: 6px;
+  border: 1px solid #eee;
+}
+
+.filter-chip {
+  background-color: #f2f2f2;
+  border: 1px solid #ddd;
+  color: #333;
+  font-size: 14px;
+  padding: 4px 10px;
+  border-radius: 25px;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  transition: 0.2s;
+}
+
+.filter-chip:hover {
+  background-color: #ff3f6c;
+  color: #fff;
+  border-color: #ff3f6c;
+}
+
+.filter-chip span {
+  font-weight: 600;
+}
+
+.sort-chip {
+  background-color: #e6f7ff;
+  border-color: #b3e5fc;
+}
+
+.clear-all {
+  color: #ff3f6c;
+  font-weight: 600;
+  text-decoration: none;
+  margin-left: 10px;
+  font-size: 14px;
+}
+
+.clear-all:hover {
+  text-decoration: underline;
+}
+
+    /* ===== BREADCRUMB ===== */
+    .breadcrumb-wrapper {
+        background: #f9f9f9;
+        padding: 12px 0;
+    }
+.active-filters .badge {
+  font-size: 0.9rem;
+  padding: 0.45em 0.8em;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.active-filters .badge:hover {
+  background-color: #6ec3b0;
+  color: #fff;
+}
+.active-filters .badge.bg-danger:hover {
+  background-color: #dc3545;
+  color: #fff;
+}
+/* .category-card .featured-img {
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+} */
+.pagination {
+  margin-top: 20px;
+}
+.pagination .page-link {
+  color: #333;
+  border-radius: 4px;
+  margin: 0 3px;
+}
+.pagination .page-link:hover {
+  background-color: #6ec3b0;
+  color: #fff;
+}
+.pagination .page-item.disabled .page-link {
+  color: #bbb;
+  background-color: #f9f9f9;
+}
+
+    .breadcrumb-text a {
+        color: #6ec3b0;
+        font-weight: 500;
+        text-decoration: none;
+    }
+
+    .breadcrumb-text a:hover {
+        text-decoration: underline;
+    }
+.active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 15px;
+  transition: all 0.2s ease;
+}
+.active-filters .badge {
+  font-size: 0.9rem;
+  padding: 0.5em 0.8em;
+}
+
+    /* ===== FULL-WIDTH HERO BANNER ===== */
+    .hero-banner {
+        width: 100vw;
+        margin-left: calc(-50vw + 50%);
+        height: 420px;
+        background-image: url("{% static 'images/men.jpg' %}");
+        background-size: cover;
+        background-position: center;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+.side.border {
+  background-color: #fafafa;
+  border-radius: 6px;
+}
+
+    .banner-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.3);
+        /* subtle overlay for text contrast */
+    }
+
+    .banner-content h1 {
+        position: relative;
+        z-index: 2;
+        color: #fff;
+        font-size: 64px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        text-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    /* ===== NAV MENU BELOW BANNER ===== */
+    .banner-nav {
+        background-color: #2c2c2c;
+        padding: 14px 0;
+    }
+
+    .banner-nav ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        gap: 45px;
+    }
+
+    .banner-nav ul li a {
+        color: #fff;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 15px;
+        transition: color 0.3s;
+    }
+
+    .banner-nav ul li a:hover {
+        color: #6ec3b0;
+    }
+
+    .breadcrumbs-img {
+        background-size: cover;
+        background-position: center;
+        padding: 120px 0;
+        position: relative;
+        text-align: center;
+    }
+
+    .breadcrumbs-img h2 {
+        color: #fff;
+        font-size: 60px;
+        font-weight: 700;
+        position: relative;
+        z-index: 2;
+    }
+
+    .menu p a {
+        color: #666;
+        font-weight: 600;
+        margin: 0 12px;
+    }
+
+    .menu p a:hover {
+        color: #6ec3b0;
+    }
+
+    .featured-img {
+        background-size: cover;
+        background-position: center;
+        padding: 150px 0;
+        position: relative;
+        color: #fff;
+    }
+
+    .featured-img h2 {
+        font-size: 30px;
+        font-weight: 700;
+    }
+
+    .prod-img img {
+        transition: transform 0.3s ease;
+    }
+
+    .prod-img:hover img {
+        transform: scale(1.08);
+    }
+    /* ===== SIZE FILTER GRID ===== */
+.size-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-top: 10px;
+  background: #f5f5f5;
+  padding: 12px;
+  border-radius: 4px;
+}
+
+.size-item {
+  background: #fff;
+  color: #333;
+  border: 1px solid #ddd;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  padding: 6px 0;
+  border-radius: 3px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+/* ===== MAKE COLLECTION SECTION WIDER ===== */
+.wide-container {
+  max-width: 100%;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+@media (min-width: 1400px) {
+  .wide-container {
+    max-width: 1350px; /* still cap at large screens */
+  }
+}
+
+/* Adjust left and right content spacing */
+.colorlib-product .row {
+  margin: 15px;
+}
+
+/* Optional: reduce padding inside sidebar and product grid */
+.side.border {
+  padding: 15px;
+}
+
+.product-entry {
+  margin: 10px;
+}
+/* ===== PRICE RANGE FILTER ===== */
+form#priceFilterForm {
+  background: #fafafa;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+form#priceFilterForm input[type="range"] {
+  accent-color: #ff3f6c;
+}
+
+form#priceFilterForm button {
+  background-color: #ff3f6c;
+  border: none;
+}
+
+form#priceFilterForm button:hover {
+  background-color: #e73360;
+}
+.wishlist-btn {
+  border: none;
+  background: none;
+  color: #555;
+  font-weight: 600;
+}
+
+.wishlist-btn.active {
+  color: #e63946;
+  cursor: not-allowed;
+}
+
+.size-item:hover {
+  background: #6ec3b0;
+  color: #fff;
+  border-color: #6ec3b0;
+}
+
+.size-item.active {
+  background: #2c2c2c;
+  color: #fff;
+  border-color: #2c2c2c;
+}
+/* ===== Myntra-style PRICE SLIDER ===== */
+/* ===== Myntra-style PRICE SLIDER (Clickable + Pretty) ===== */
+.slider-container {
+  position: relative;
+  height: 6px;
+  margin: 20px 0 10px;
+}
+
+.slider-container input[type="range"] {
+  position: absolute;
+  width: 100%;
+  height: 6px;
+  appearance: none;
+  background: transparent;
+  pointer-events: auto;   /* ✅ allow clicks! */
+  z-index: 3;
+}
+
+/* Track (slider line) */
+.slider-container input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  background: transparent;
+  border-radius: 3px;
+}
+
+/* Slider thumb (circle) */
+.slider-container input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ff3f6c;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 5;
+}
+
+#sliderTrack {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 6px;
+  background-color: #ff3f6c;
+  z-index: 2;
+  border-radius: 4px;
+}
+.product-card {
+  margin-bottom: 15px;
+}
+
+.product-card .card-body {
+  padding: 10px;
+}
+
+.row.g-4 {
+  --bs-gutter-x: 1rem;
+  --bs-gutter-y: 1rem;
+}
+/* ===== HORIZONTAL SCROLLING CATEGORY ROW ===== */
+/* ===== Compact Horizontal Category Row ===== */
+/* ===== PERFECTLY ALIGNED CATEGORY SCROLL STRIP ===== */
+/* ===== SMART CENTER + SCROLL CATEGORY STRIP ===== */
+/* ===== CENTERED + EVENLY SPACED CATEGORY STRIP ===== */
+/* ===== FINAL CLEAN VERSION: CENTER + GAP + FADE ===== */
+.category-container {
+  max-width: 100%;
+  padding: 0 60px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+/* Scrollable + centered */
+.category-scroll {
+  display: flex;
+  justify-content: center;
+  flex-wrap: nowrap;
+  align-items: center;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  gap: 25px; /* ✅ final correct gap between cards */
+  padding: 15px 0;
+}
+
+/* Hide scrollbars */
+.category-scroll::-webkit-scrollbar {
+  display: none;
+}
+.category-scroll {
+  scrollbar-width: none;
+}
+
+/* Edge fade (Myntra style) */
+.category-container::before,
+.category-container::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 60px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.category-container::before {
+  left: 0;
+  background: linear-gradient(to right, #fff 60%, transparent);
+}
+
+.category-container::after {
+  right: 0;
+  background: linear-gradient(to left, #fff 60%, transparent);
+}
+
+/* Responsive tweak */
+@media (max-width: 768px) {
+  .category-container {
+    padding: 0 20px;
+  }
+  .category-card {
+    width: 180px;
+  }
+  .category-scroll {
+    gap: 15px;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .category-container {
+    padding: 0 20px;
+  }
+  .category-card {
+    width: 180px;
+  }
+  .category-scroll {
+    gap: 10px;
+  }
+}
+
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const wishlistButtons = document.querySelectorAll(".wishlist-btn");
+  const userAuthenticated = "{{ user_authenticated|yesno:'true,false' }}" === "true";
+
+  wishlistButtons.forEach(button => {
+    button.addEventListener("click", function () {
+      if (!userAuthenticated) {
+        window.location.href = "{% url 'login' %}?next={{ request.path }}";
+        return;
+      }
+
+      const variantId = this.dataset.variantId;
+      const urlTemplate = this.dataset.urlTemplate;
+      const url = urlTemplate.replace("0", variantId);
+
+      fetch(url, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": getCookie("csrftoken"),
+          "X-Requested-With": "XMLHttpRequest"
+        },
+        credentials: "include"   // important to send cookies/session
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          this.classList.remove("btn-light");
+          this.classList.add("btn-danger");
+          this.innerHTML = '<i class="bi bi-heart-fill me-2"></i>Added';
+        } else if (data.removed) {
+          this.classList.add("btn-light");
+          this.classList.remove("btn-danger");
+          this.innerHTML = '<i class="bi bi-heart me-2"></i>Wishlist';
+        } else if (data.error) {
+          alert(data.error);
+        }
+      })
+      .catch(err => console.error("Wishlist error:", err));
+    });
+  });
+
+  // Get CSRF token helper
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+});
+</script>
+
+{% endblock %}

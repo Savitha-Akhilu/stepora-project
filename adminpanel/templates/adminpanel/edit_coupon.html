@@ -1,0 +1,113 @@
+{% extends 'adminpanel/base.html' %}
+{% block title %}Edit Coupon{% endblock %}
+{% block content %}
+<div class="card p-4 shadow-sm">
+  <h4>Edit Coupon</h4>
+  {% if messages %}
+<div class="mt-2">
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+  <form method="POST">
+    {% csrf_token %}
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Code *</label>
+        <input type="text" name="code" class="form-control" value="{{ coupon.code }}" required>
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Description</label>
+        <input type="text" name="description" class="form-control" value="{{ coupon.description }}">
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Coupon Type *</label>
+        <select name="coupon_type" class="form-select" id="id_coupon_type" required>
+          <option value="PERCENTAGE" {% if coupon.coupon_type == 'PERCENTAGE' %}selected{% endif %}>Percentage</option>
+          <option value="FLAT" {% if coupon.coupon_type == 'FLAT' %}selected{% endif %}>Flat</option>
+        </select>
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Discount Value *</label>
+        <input type="number" name="discount_value" id="id_discount_value"step="0.01" class="form-control" value="{{ coupon.discount_value }}" required>
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Min Purchase Amount</label>
+        <input type="number" name="min_purchase_amount" step="0.01" class="form-control" value="{{ coupon.min_purchase_amount }}">
+      </div>
+
+      <div class="col-md-3 mb-3">
+        <label class="form-label">Valid From *</label>
+        <input type="date" name="valid_from" class="form-control" value="{{ coupon.valid_from|date:'Y-m-d' }}" required>
+      </div>
+
+      <div class="col-md-3 mb-3">
+        <label class="form-label">Valid To *</label>
+        <input type="date" name="valid_to" class="form-control" value="{{ coupon.valid_to|date:'Y-m-d' }}" required>
+      </div>
+
+      <div class="col-md-12 mb-3 form-check">
+        <input type="checkbox" name="active" class="form-check-input" {% if coupon.active %}checked{% endif %}>
+        <label class="form-check-label">Active</label>
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-success">Update Coupon</button>
+    <a href="{% url 'admin_coupons' %}" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const couponType = document.getElementById("id_coupon_type");
+    const discountVal = document.getElementById("id_discount_value");
+
+    function applyValidation() {
+        if (couponType.value === "PERCENTAGE") {
+            discountVal.setAttribute("max", "99");
+            discountVal.placeholder = "Max 99%";
+
+            if (parseFloat(discountVal.value) > 99) {
+                discountVal.value = "";
+            }
+        } else {
+            discountVal.removeAttribute("max");
+            discountVal.placeholder = "";
+        }
+    }
+
+    // Apply when changing dropdown
+    couponType.addEventListener("change", applyValidation);
+
+    // Apply immediately when page loads (important for EDIT)
+    applyValidation();
+});
+
+const codeInput = document.querySelector("input[name='code']");
+
+codeInput.addEventListener("blur", function () {
+    const code = this.value.trim();
+    if (code === "") return;
+
+    fetch(`/adminpanel/check-coupon/?code=${code}&exclude_id={{ coupon.id }}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.exists) {
+                alert("A coupon with this code already exists!");
+                codeInput.value = "{{ coupon.code }}";  // reset
+                codeInput.focus();
+            }
+        });
+});
+
+</script>
+{% endblock %}

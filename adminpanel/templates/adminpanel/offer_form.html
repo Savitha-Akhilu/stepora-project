@@ -1,0 +1,392 @@
+{% extends 'adminpanel/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid px-3 mt-3">
+
+  <!-- Header -->
+  <div class="text-center mb-4">
+    <h2 class="fw-bold text-primary mb-1">
+      <i class="fas fa-tags me-2"></i>{% if offer %}Edit Offer{% else %}Add New Offer{% endif %}
+    </h2>
+    <p class="text-muted small mb-0">Create or modify discount offers for products, categories, or brands</p>
+  </div>
+
+  <!-- Offer Info Card -->
+  <div class="card shadow-sm border-0 rounded-4 mx-auto" style="max-width: 950px;">
+    <div class="card-header bg-light py-3">
+      <h5 class="fw-semibold mb-0 text-secondary">
+        <i class="fas fa-info-circle me-2 text-primary"></i> Offer Information
+      </h5>
+    </div>
+
+    <div class="card-body px-5 py-4">
+      {% if messages %}
+<div class="mt-3">
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+      <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Offer Name & Target Type -->
+        <div class="row mb-4">
+<div class="col-md-6">
+    <label class="form-label fw-semibold mb-1">Offer Name</label>
+    {{ form.name }}
+
+    {% if form.name.errors %}
+      <div class="text-danger small mt-1">
+        {% for error in form.name.errors %}
+            {{ error }}
+        {% endfor %}
+      </div>
+    {% endif %}
+</div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold mb-1">Target Type</label>
+            {{ form.target_type }}
+          </div>
+        </div>
+
+        <!-- Target Dropdown & Discount Type -->
+        <div class="row mb-4">
+<div class="col-md-6">
+  <label class="form-label fw-semibold mb-1">Target (Product / Category)</label>
+  <select name="target_id" id="target-select" class="form-select select2-target">
+    <option value="">-- Select Target --</option>
+  </select>
+</div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold mb-1">Discount Type</label>
+            {{ form.discount_type }}
+          </div>
+        </div>
+
+        <!-- Discount Value -->
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold mb-1">Discount Value</label>
+            {{ form.discount_value }}
+          </div>
+        </div>
+
+        <!-- Dates -->
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold mb-1">Start At</label>
+            {{ form.start_at }}
+                  {% if form.start_at.errors %}
+        <div class="text-danger small mt-1">
+          {% for error in form.start_at.errors %}
+            {{ error }}
+          {% endfor %}
+        </div>
+      {% endif %}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold mb-1">End At</label>
+            {{ form.end_at }}
+                  {% if form.end_at.errors %}
+        <div class="text-danger small mt-1">
+          {% for error in form.end_at.errors %}
+            {{ error }}
+          {% endfor %}
+        </div>
+      {% endif %}
+          </div>
+        </div>
+
+        <!-- Active -->
+        <div class="row mb-4">
+          <div class="col-md-6 d-flex align-items-center">
+            <label class="form-check-label fw-semibold me-2">Active</label>
+            {{ form.is_active }}
+          </div>
+        </div>
+
+        <hr>
+
+        <!-- Buttons -->
+        <div class="text-end">
+          <button type="submit" class="btn btn-primary px-4 me-2">
+            <i class="fas fa-save me-2"></i>Save Offer
+          </button>
+          <a href="{% url 'offer_list' %}" class="btn btn-outline-secondary px-4">
+            <i class="fas fa-times me-2"></i>Cancel
+          </a>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Dynamic Dropdown Script -->
+<script>
+  const targetTypeSelect = document.querySelector('select[name="target_type"]');
+  const targetSelect = document.getElementById('target-select');
+
+  const data = {
+    product: [
+      {% for p in products %}{ id: {{p.id}}, name: "{{p.name|escapejs}}" },{% endfor %}
+    ],
+      category: [
+    {% for c in categories %}
+      { id: {{ c.id }}, name: "{{ c.category_name|escapejs }} — {{ c.gender.name|title|escapejs }}" },
+    {% endfor %}
+  ],
+
+    brand: [
+      {% for b in brands %}{ id: {{b.id}}, name: "{{b.name|escapejs}}" },{% endfor %}
+    ]
+  };
+
+  // Function to populate dropdown
+function updateTargets(selectedId = null) {
+  const type = targetTypeSelect.value;
+  // console.log(type)
+  targetSelect.innerHTML = '<option value="">-- Select Target --</option>';
+  
+  if (data[type]) {
+    data[type].forEach(item => {
+      const opt = document.createElement('option');
+      opt.value = item.id;
+      opt.textContent = item.name;
+
+      if (selectedId && item.id == selectedId) {
+        opt.selected = true;
+      }
+
+      targetSelect.appendChild(opt);
+    });
+  }
+
+  // Reinitialize Select2
+  $('#target-select').select2({
+    placeholder: "-- Search & Select --",
+    allowClear: true,
+    width: '100%'
+  });
+}
+
+  // Trigger change when target type changes
+  targetTypeSelect.addEventListener('change', updateTargets);
+
+  // Initialize on page load
+  $(document).ready(function() {
+    $('#target-select').select2({
+      placeholder: "-- Search & Select --",
+      allowClear: true,
+      width: '100%'
+    });
+      const currentType = "{{ offer.target_type|default:'' }}";
+  const currentTarget = "{{ offer.target_id|default:'' }}";
+  if (currentType) {
+    targetTypeSelect.value = currentType;
+    updateTargets(currentTarget);
+  }
+  });
+  document.querySelector('form').addEventListener('submit', function (e) {
+    const start = new Date(document.getElementById('id_start_at').value);
+    const end = new Date(document.getElementById('id_end_at').value);
+    // alert(start)
+    if (start && end) {
+      const diffDays = (end - start) / (1000 * 60 * 60 * 24);
+
+      if (start >= end) {
+        alert('⚠️ Start date must be earlier than end date.');
+        e.preventDefault();
+      } else if (diffDays < 3) {
+        alert('⚠️ Offer must be valid for at least 3 days.');
+        e.preventDefault();
+      }
+    }
+  });
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+const startInput = document.getElementById("id_start_at");
+
+  // if (startInput) {
+  //   const now = new Date();
+  //   now.setDate(now.getDate() + 1); // tomorrow
+  //   now.setHours(0, 0, 0, 0); // start from midnight
+
+  //   const formatted = now.toISOString().slice(0, 16); // yyyy-mm-ddTHH:MM
+  //   startInput.min = formatted;
+  // }
+/////////////////////my validation for today date
+  //   if (startInput) {
+  //   const now = new Date();
+  //   now.setDate(now.getDate() + 1); // tomorrow
+  //   now.setHours(0, 0, 0, 0); // midnight (IST)
+
+  //   // Format using local time, not UTC
+  //   const year = now.getFullYear();
+  //   const month = String(now.getMonth() + 1).padStart(2, '0');
+  //   const day = String(now.getDate()).padStart(2, '0');
+  //   const hours = String(now.getHours()).padStart(2, '0');
+  //   const minutes = String(now.getMinutes()).padStart(2, '0');
+
+  //   const formatted = `${year}-${month}-${day}T${hours}:${minutes}`;
+  //   startInput.min = formatted;
+  //   startInput.value = formatted;
+  // }
+/////////////end my validatrion
+  const form = document.querySelector("form");
+  const endInput = document.getElementById("id_end_at");
+
+  if (!form || !startInput || !endInput) return; // prevent null reference errors
+
+  form.addEventListener("submit", function (e) {
+    const start = new Date(startInput.value);
+    const end = new Date(endInput.value);
+
+    // Only run if both are selected
+    if (startInput.value && endInput.value) {
+      const diffDays = (end - start) / (1000 * 60 * 60 * 24);
+
+      // Check if start date is greater or equal to end date
+      if (start >= end) {
+        alert("⚠️ Start date must be earlier than end date.");
+        e.preventDefault();
+      } 
+      // Check if difference is less than 3 days
+      else if (diffDays < 3) {
+        alert("⚠️ Offer must be valid for at least 3 days.");
+        e.preventDefault();
+      }
+    } else {
+      // Handle missing inputs
+      if (!startInput.value) {
+        alert("⚠️ Please select a Start Date.");
+        e.preventDefault();
+      } else if (!endInput.value) {
+        alert("⚠️ Please select an End Date.");
+        e.preventDefault();
+      }
+    }
+  });
+});
+</script>
+
+<style>
+  /* --- Stepora Offer Form Beautiful Uniform Layout --- */
+  label {
+    font-size: 0.95rem;
+    color: #333;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  /* Make all input, select, and date fields same height and style */
+  input[type="text"],
+  input[type="number"],
+  input[type="datetime-local"],
+  select {
+    width: 100%;
+    height: 44px;
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    padding: 8px 12px;
+    font-size: 0.95rem;
+    background-color: #fff;
+    line-height: normal;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+  }
+
+  input:focus,
+  select:focus {
+    border-color: #3a86ff;
+    box-shadow: 0 0 0 2px rgba(58, 134, 255, 0.15);
+    outline: none;
+  }
+
+  /* Card and Form Layout */
+  .card {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  }
+
+  .card-body {
+    background: #fdfdfd;
+  }
+
+  .row {
+    align-items: center; /* Ensures perfect vertical alignment between elements */
+  }
+
+  /* Buttons */
+  .btn-primary {
+    background: linear-gradient(90deg, #2666cf, #3a86ff);
+    border: none;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    height: 42px;
+  }
+
+  .btn-primary:hover {
+    background: linear-gradient(90deg, #3a86ff, #2666cf);
+    box-shadow: 0 3px 6px rgba(58, 134, 255, 0.3);
+  }
+
+  .btn-outline-secondary {
+    border-radius: 6px;
+    height: 42px;
+  }
+
+  /* Extra spacing for neat visual flow */
+  .mb-4 {
+    margin-bottom: 1.5rem !important;
+  }
+
+  /* Small style for the header */
+  h2.fw-bold.text-primary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  /* Make Select2 match Bootstrap look */
+.select2-container--default .select2-selection--single {
+  height: 44px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  padding: 5px 10px;
+  display: flex;
+  align-items: center;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+  height: 100%;
+  right: 10px;
+}
+
+.select2-dropdown {
+  border-radius: 6px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+}
+
+.select2-search--dropdown .select2-search__field {
+  border-radius: 5px;
+  padding: 6px 8px;
+}
+
+</style>
+
+{% endblock %}

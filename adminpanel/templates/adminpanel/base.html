@@ -1,0 +1,296 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stepora | Admin Panel</title>
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+  referrerpolicy="no-referrer"
+/>
+
+    <!--  Bootstrap + Font Awesome -->
+    <link rel="stylesheet" href="{% static 'adminpanel/css/bootstrap.min.css' %}">
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"> -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<!-- Select2 CSS -->
+<!-- <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" /> -->
+
+<link
+  href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css"
+  rel="stylesheet"
+/>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+
+
+
+    <style>
+      body {
+        font-family: "Public Sans", sans-serif;
+        background-color: #f8f9fa;
+      }
+
+      /* ========== Sidebar ========== */
+      .sidebar {
+        background: #1c2434;
+        color: #fff;
+        width: 240px;
+        min-height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        display: flex;
+        flex-direction: column;
+        z-index: 1000;
+        transition: 0.3s ease;
+      }
+
+      .sidebar .brand {
+        font-size: 1.4rem;
+        font-weight: 600;
+        padding: 1.3rem 1rem;
+        background-color: #17202f;
+        text-align: center;
+        color: #23c5b6;
+        border-bottom: 1px solid #111926;
+      }
+
+      .sidebar a {
+        color: #b9c4d8;
+        text-decoration: none;
+        padding: 12px 20px;
+        display: block;
+        font-size: 0.95rem;
+        transition: 0.3s;
+      }
+
+      .sidebar a:hover {
+        background: #23c5b6;
+        color: #fff;
+      }
+
+      .sidebar a.active {
+        background: #23c5b6;
+        color: #fff !important;
+        font-weight: 600;
+        border-left: 4px solid #20bfae;
+        transition: all 0.3s ease;
+      }
+
+      /* ========== Main Wrapper ========== */
+      .main-wrapper {
+        margin-left: 240px;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* ========== Navbar ========== */
+      .navbar {
+        background-color: #fff;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        padding: 0.8rem 1.5rem;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      .navbar .nav-link {
+        color: #333 !important;
+      }
+
+      .navbar .nav-link:hover {
+        color: #23c5b6 !important;
+      }
+
+      /* ========== Footer ========== */
+      footer {
+        text-align: center;
+        color: #777;
+        padding: 1rem 0;
+        border-top: 1px solid #eaeaea;
+        background-color: #fff;
+        margin-top: auto;
+      }
+
+      /* ========== Responsive ========== */
+      @media (max-width: 991px) {
+        .sidebar {
+          position: fixed;
+          transform: translateX(-100%);
+          transition: 0.3s ease;
+        }
+        .sidebar.show {
+          transform: translateX(0);
+        }
+        .main-wrapper {
+          margin-left: 0;
+        }
+        .toggle-sidebar {
+          display: inline-block;
+          background: none;
+          border: none;
+          color: #333;
+          font-size: 1.3rem;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <div class="brand">
+        <img src="{% static 'images/logo_shoe.png' %}" alt="Stepora Logo" width="30" class="me-2" />
+        Stepora
+      </div>
+
+      <!-- Sidebar Links -->
+      <a href="{% url 'admin_dashboard' %}" class="{% if '/adminpanel/dashboard' in request.path %}active{% endif %}">
+        <i class="fas fa-home me-2"></i> Dashboard
+      </a>
+
+      <a href="{% url 'products:product_list' %}" class="{% if '/adminpanel/products' in request.path %}active{% endif %}">
+        <i class="fas fa-box me-2"></i> Products
+      </a>
+
+      <a href="{% url 'admin_orders' %}" class="{% if '/adminpanel/orders' in request.path %}active{% endif %}">
+        <i class="fas fa-shopping-cart me-2"></i> Orders
+      </a>
+
+      <a href="{% url 'admin_users' %}" class="{% if '/adminpanel/users' in request.path %}active{% endif %}">
+        <i class="fas fa-users me-2"></i> Users
+      </a>
+<a href="{% url 'return_requests' %}" class="{% if '/adminpanel/return-requests' in request.path %}active{% endif %}">
+  <i class="fas fa-undo-alt me-2"></i> Return Requests
+</a>
+
+      <a href="{% url 'admin_inventory' %}" class="{% if '/adminpanel/inventory' in request.path %}active{% endif %}">
+        <i class="fas fa-tags me-2"></i> Inventory
+      </a>
+<a href="#productSetupMenu" data-bs-toggle="collapse" class="d-flex justify-content-between align-items-center">
+  <span><i class="fas fa-boxes me-2"></i> Product Setup</span>
+  <i class="fas fa-chevron-down small"></i>
+</a>
+<div class="collapse" id="productSetupMenu">
+  <a href="{% url 'admin_categories' %}" class="ps-4">Categories</a>
+  <a href="{% url 'admin_colors' %}" class="ps-4">Colors</a>
+  <a href="{% url 'admin_sizes' %}" class="ps-4">Sizes</a>
+  <a href="{% url 'admin_materials' %}" class="ps-4">Materials</a>
+  <a href="{% url 'admin_brands' %}" class="ps-4">Brands</a>
+  <a href="{% url 'admin_occasions' %}" class="ps-4">Occasions</a>
+</div>
+
+<li class="{% if request.path == '/adminpanel/coupons/' %}active{% endif %}">
+  <a href="{% url 'admin_coupons' %}">
+    <i class="bi bi-ticket"></i> Coupons
+  </a>
+</li>
+<a href="{% url 'offer_list' %}" 
+   class="{% if '/adminpanel/offers' in request.path %}active{% endif %}">
+  <i class="fas fa-percent me-2"></i> Offers
+</a>
+
+      <a href="{% url 'sales_report' %}" class="{% if '/adminpanel/sales' in request.path %}active{% endif %}">
+        <i class="fas fa-chart-bar me-2"></i> Reports
+      </a>
+
+      <a href="#" class="{% if '/adminpanel/settings' in request.path %}active{% endif %}">
+        <i class="fas fa-cog me-2"></i> Settings
+      </a>
+
+      <a href="{% url 'admin_logout' %}" class="text-danger">
+        <i class="fas fa-sign-out-alt me-2"></i> Logout
+      </a>
+    </div>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+      <!--  Navbar Header -->
+      <nav class="navbar navbar-expand-lg border-bottom bg-white shadow-sm">
+        <div class="container-fluid">
+          <!-- Mobile Sidebar Toggle -->
+          <button class="toggle-sidebar d-lg-none me-3" id="toggleSidebarBtn">
+            <i class="fa fa-bars"></i>
+          </button>
+
+          <div class="d-flex align-items-center ms-auto">
+            <!-- Notification -->
+            <a href="#" class="nav-link position-relative me-3">
+              <i class="fa fa-bell fs-5 text-secondary"></i>
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">3</span>
+            </a>
+
+            <!-- Messages -->
+            <a href="#" class="nav-link position-relative me-3">
+              <i class="fa fa-envelope fs-5 text-secondary"></i>
+            </a>
+
+            <!-- Profile Dropdown -->
+            <div class="dropdown">
+              <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle"
+                 id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fa fa-user-circle fs-4 text-secondary"></i>
+                <span class="ms-2 fw-semibold text-dark">
+                  {{ request.user.first_name|default:"Admin" }}
+                </span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="profileDropdown">
+                <!-- <li><a class="dropdown-item" href="#">My Profile</a></li> -->
+<li><a class="dropdown-item" href="{% url 'admin_change_password' %}">Change Password</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="{% url 'admin_logout' %}">Logout</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </nav>
+      <!--  End Navbar Header -->
+
+      <!-- Content -->
+      <main class="p-4">
+        {% block content %}
+        {% endblock %}
+      </main>
+
+      <!-- Footer -->
+      <footer>
+        <p class="mb-0">© 2025 Stepora Admin Panel | Crafted with ❤️ by India</p>
+      </footer>
+    </div>
+
+    <!--  Minimal JS -->
+    <!-- Sidebar toggle for mobile -->
+
+    <!--  Bootstrap JS (bundle includes Popper.js — needed for dropdowns) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+
+<!--  Font Awesome (for icons) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js"
+        integrity="sha512-bugMJsC6A+gEc6uWvjUpzUbiMzNjQXlUs3MVVflcM13+7q8nY3d5s32ZxUG+1AmQqUwBrS06JExXf2sZkTYWgA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<!-- Optional jQuery (for your sidebar toggle, not needed for dropdown) -->
+<!-- <script src="{% static 'adminpanel/js/jquery-3.7.1.min.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script> -->
+<!-- Sidebar Toggle Script -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const toggleBtn = document.getElementById("toggleSidebarBtn");
+    const sidebar = document.getElementById("sidebar");
+    toggleBtn?.addEventListener("click", () => {
+      sidebar.classList.toggle("show");
+    });
+  });
+</script>
+
+  </body>
+</html>

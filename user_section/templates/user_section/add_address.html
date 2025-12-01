@@ -1,0 +1,301 @@
+{% extends 'user_section/profile_base.html' %}
+{% load static %}
+
+{% block profile_content %}
+<link rel="stylesheet" href="{% static 'css/profile.css' %}">
+<style>
+  .form-section {
+    background: #fff;
+    border-radius: 10px;
+    padding: 25px 30px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  }
+  .form-label { font-weight: 500; }
+  .radio-group label {
+    margin-right: 20px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .form-check label {
+    cursor: pointer;
+  }
+  .btn-black {
+    background: #ff3f6c;
+    border: none;
+    color: #fff;
+    font-weight: 500;
+    padding: 8px 35px;
+    border-radius: 4px;
+  }
+  .btn-black:hover {
+    background: #e1355b;
+  }
+</style>
+
+<div class="form-section">
+  <h5 class="mb-4 text-uppercase">Add New Address</h5>
+
+  <form method="POST" id="addressForm">
+    {% csrf_token %}
+<input type="hidden" name="next" value="{{ request.GET.next }}">
+
+    <!-- Name & Phone -->
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label class="form-label">Full Name *</label>
+        <input type="text" class="form-control" name="full_name" value="{{ user.first_name }} {{ user.last_name }}" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Phone Number *</label>
+        <input type="text" class="form-control" name="mobile" maxlength="15" required>
+      </div>
+    </div>
+
+    <!-- Pincode + Auto State + District -->
+    <div class="row mb-3">
+      <div class="col-md-4">
+        <label class="form-label">Pincode *</label>
+        <input type="text" class="form-control" name="pincode" id="pincodeInput" maxlength="6" required>
+        <small id="pincodeError" class="text-danger d-none">Invalid Pincode</small>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">State *</label>
+        <input type="text" class="form-control" name="state" id="stateInput" readonly required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">District *</label>
+        <input type="text" class="form-control" name="city" id="cityInput" readonly required>
+      </div>
+    </div>
+
+    <!-- House Number -->
+    <div class="mb-3">
+      <label class="form-label">House Number / Building *</label>
+      <input type="text" class="form-control" name="house_name" required>
+    </div>
+
+    <!-- Locality / Town -->
+    <div class="mb-3">
+      <label class="form-label">Locality / Town *</label>
+      <input type="text" class="form-control" name="locality" required>
+    </div>
+
+    <!-- Address Type -->
+    <div class="mb-3">
+      <label class="form-label d-block">Type of Address *</label>
+      <div class="radio-group">
+        <label><input type="radio" name="address_type" value="Home" checked> Home</label>
+        <label><input type="radio" name="address_type" value="Office"> Office</label>
+      </div>
+    </div>
+
+    <!-- Default Checkbox -->
+    <div class="form-check mb-4">
+      <input class="form-check-input" type="checkbox" name="is_default" id="defaultCheck">
+      <label class="form-check-label" for="defaultCheck">
+        Make this my default address
+      </label>
+    </div>
+
+    <!-- Buttons -->
+    <div class="text-center mt-4">
+      <button type="submit" class="btn btn-black">Save Address</button>
+      <a href="{% url 'user_address' %}" class="btn btn-secondary ms-2">Cancel</a>
+    </div>
+    
+  </form>
+</div>
+
+<!-- Auto-Fill State & City via Pincode -->
+<script>
+const pincodeInput = document.getElementById("pincodeInput");
+const stateInput = document.getElementById("stateInput");
+const cityInput = document.getElementById("cityInput");
+const pincodeError = document.getElementById("pincodeError");
+
+pincodeInput.addEventListener("blur", async () => {
+  const pin = pincodeInput.value.trim();
+  if (pin.length !== 6 || isNaN(pin)) {
+    pincodeError.classList.remove("d-none");
+    stateInput.value = "";
+    cityInput.value = "";
+    return;
+  }
+
+  try {
+    const res = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+    const data = await res.json();
+
+    if (data[0].Status === "Success" && data[0].PostOffice.length > 0) {
+      const info = data[0].PostOffice[0];
+      stateInput.value = info.State;
+      cityInput.value = info.District;
+      pincodeError.classList.add("d-none");
+    } else {
+      pincodeError.classList.remove("d-none");
+      stateInput.value = "";
+      cityInput.value = "";
+    }
+  } catch (error) {
+    console.error(error);
+    pincodeError.classList.remove("d-none");
+    stateInput.value = "";
+    cityInput.value = "";
+  }
+});
+
+document.getElementById('addressForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+
+  const response = await fetch("{% url 'add_address' %}", {
+    method: "POST",
+    headers: {
+      "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+    },
+    body: formData
+  });
+
+//   const data = await response.json();
+let data;
+try {
+  data = await response.json();
+} catch (error) {
+  console.error("Invalid JSON:", error);
+  const text = await response.text();
+  console.log("Server Response:", text);
+  alert("⚠️ Unexpected response from server.");
+  return;
+}
+
+if (data.status === "success") {
+  alert("✅ Address added successfully!");
+  const next = "{{ request.GET.next|default:'' }}";
+  if (next) {
+    window.location.href = next;  // Redirect back to checkout
+  } else {
+    window.location.href = "{% url 'user_address' %}";  // Normal redirect
+  }
+}
+ else {
+    alert("❌ Failed to save address!");
+  }
+});
+</script>
+
+<script>
+// ----------------------
+// VALIDATION RULES
+// ----------------------
+
+function showError(input, message) {
+    let error = input.nextElementSibling;
+    if (!error || !error.classList.contains("error-msg")) {
+        error = document.createElement("small");
+        error.classList.add("text-danger", "error-msg");
+        input.parentNode.appendChild(error);
+    }
+    error.textContent = message;
+}
+
+function clearError(input) {
+    let error = input.nextElementSibling;
+    if (error && error.classList.contains("error-msg")) {
+        error.remove();
+    }
+}
+
+// Full Name Validation
+function validateName() {
+    let field = document.querySelector("[name='full_name']");
+    let value = field.value.trim();
+
+    if (value.length < 3) {
+        showError(field, "Enter a valid name");
+        return false;
+    }
+    clearError(field);
+    return true;
+}
+
+// Phone Number Validation
+function validatePhone() {
+    let field = document.querySelector("[name='mobile']");
+    let value = field.value.trim();
+
+    // Allow ONLY numbers
+    if (!/^\d+$/.test(value)) {
+        showError(field, "Phone number must contain only digits");
+        return false;
+    }
+
+    // Must be exactly 10 digits
+    if (value.length !== 10) {
+        showError(field, "Phone number must be exactly 10 digits");
+        return false;
+    }
+
+    // Optional: Indian number should start with 6/7/8/9
+    if (!/^[6-9]/.test(value)) {
+        showError(field, "Phone number must start with 6, 7, 8, or 9");
+        return false;
+    }
+
+    clearError(field);
+    return true;
+}
+
+// Pincode Validation (6 digits)
+function validatePincode() {
+    let field = document.querySelector("[name='pincode']");
+    let value = field.value.trim();
+
+    if (!/^\d{6}$/.test(value)) {
+        showError(field, "Enter a valid 6-digit pincode");
+        return false;
+    }
+    clearError(field);
+    return true;
+}
+
+// House Number Validation
+function validateHouse() {
+    let field = document.querySelector("[name='house_name']");
+    let value = field.value.trim();
+
+    if (value.length < 2) {
+        showError(field, "Enter a valid house/building name");
+        return false;
+    }
+    clearError(field);
+    return true;
+}
+
+// Locality Validation
+function validateLocality() {
+    let field = document.querySelector("[name='locality']");
+    let value = field.value.trim();
+
+    if (value.length < 2) {
+        showError(field, "Enter a valid locality/town");
+        return false;
+    }
+    clearError(field);
+    return true;
+}
+
+// Address type validation
+function validateAddressType() {
+    const selected = document.querySelector("input[name='address_type']:checked");
+    return !!selected;  // must be selected
+}
+document.querySelector("[name='mobile']").addEventListener("input", function(e) {
+    this.value = this.value.replace(/\D/g, ""); // allow only digits
+    if (this.value.length > 10) {
+        this.value = this.value.slice(0, 10);
+    }
+});
+
+</script>
+
+{% endblock %}

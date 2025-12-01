@@ -1,0 +1,65 @@
+{% extends "adminpanel/base.html" %}
+{% block content %}
+<div class="container-fluid">
+  <div class="d-flex justify-content-between mb-3 align-items-center">
+    <h4>Brands</h4>
+    <a href="{% url 'admin_brand_add' %}" class="btn btn-primary btn-sm">Add Brand</a>
+  </div>
+
+  <!-- Search -->
+  <form method="get" class="d-flex mb-3">
+    <input type="text" name="q" value="{{ q }}" class="form-control me-2" placeholder="Search by name or description...">
+    <button class="btn btn-outline-primary me-2">Search</button>
+    <a href="{% url 'admin_brands' %}" class="btn btn-outline-secondary">Clear</a>
+  </form>
+
+  <!-- Brand Table -->
+  <table class="table table-hover align-middle">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Name</th>
+        <th>Description</th>
+        <th class="text-end">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for brand in page_obj.object_list %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ brand.name }}</td>
+        <td>{{ brand.description|default:"—" }}</td>
+        <td class="text-end">
+          <a href="{% url 'admin_brand_edit' brand.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+          <form action="{% url 'admin_brand_delete' brand.pk %}" method="post" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete {{ brand.name }}?')">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" class="text-center">No brands found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+  <nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+      {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?q={{ q }}&page={{ page_obj.previous_page_number }}">&laquo;</a></li>
+      {% endif %}
+      {% for p in page_obj.paginator.page_range %}
+        <li class="page-item {% if page_obj.number == p %}active{% endif %}">
+          <a class="page-link" href="?q={{ q }}&page={{ p }}">{{ p }}</a>
+        </li>
+      {% endfor %}
+      {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?q={{ q }}&page={{ page_obj.next_page_number }}">&raquo;</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+</div>
+{% endblock %}

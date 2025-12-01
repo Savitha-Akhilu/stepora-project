@@ -14,10 +14,22 @@ from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
+import os
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+
+# MEDIA_URL = '/media/'
+# MEDIA_ROOT = BASE_DIR / "media"
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-ll4@uu17bk0v1(hzr$0utaall^9(hkaj!+8b1ev+#rxp=^-hoi'
@@ -25,9 +37,18 @@ SECRET_KEY = 'django-insecure-ll4@uu17bk0v1(hzr$0utaall^9(hkaj!+8b1ev+#rxp=^-hoi
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# ALLOWED_HOSTS = []
 
-
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'localhost',
+    'nonendurable-salvador-precisely.ngrok-free.dev'
+]
+CSRF_TRUSTED_ORIGINS = [
+    "https://nonendurable-salvador-precisely.ngrok-free.dev",
+    'https://*.ngrok-free.app',
+    'https://*.ngrok-free.dev'
+]
 # Application definition
 
 INSTALLED_APPS = [
@@ -37,6 +58,26 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+        # Required for allauth
+    'django.contrib.sites',
+
+    # Allauth core apps
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+
+    # Google provider
+    'allauth.socialaccount.providers.google',
+
+    'adminpanel',
+    'category',
+    'products',
+    'user_section',
+    'cart',
+    'cloudinary',
+    'cloudinary_storage',
+
+
 ]
 
 MIDDLEWARE = [
@@ -45,6 +86,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -61,6 +103,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'cart.context_processors.cart_count',
+
             ],
         },
     },
@@ -74,10 +118,14 @@ WSGI_APPLICATION = 'stepora.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'stepora_db',          # your database name
+        'USER': 'postgres',             # your MySQL username
+        'PASSWORD': 'pg@2024', # your MySQL password
+        'HOST': '127.0.0.1',        # or 'localhost'
     }
 }
+
 
 
 # Password validation
@@ -104,13 +152,13 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 
 USE_TZ = True
 
-
+# TIME_ZONE = 'UTC'
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
@@ -120,3 +168,138 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+AUTH_USER_MODEL = 'adminpanel.CustomUser'
+SITE_ID = 2
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',  # Default
+    'allauth.account.auth_backends.AuthenticationBackend',  # Needed for allauth
+]
+# LOGIN_REDIRECT_URL = '/'
+# LOGOUT_REDIRECT_URL = '/'
+ACCOUNT_LOGOUT_ON_GET = True
+
+# Optional: Auto-redirect to Google login instead of showing plain "Continue" page
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_QUERY_EMAIL = True
+
+
+# Provider settings
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+            'prompt': 'select_account', 
+        },
+    }
+}
+SOCIALACCOUNT_LOGIN_ON_GET = True
+LOGIN_REDIRECT_URL = '/redirect-after-login/'
+# Separate redirect for admin Google login
+
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+SOCIALACCOUNT_AUTO_SIGNUP = True
+# ------------------ EMAIL SETTINGS ------------------
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+#  Django Allauth updated configuration
+ACCOUNT_LOGIN_METHODS = {"email"}  # replaces ACCOUNT_AUTHENTICATION_METHOD
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]  # replaces the deprecated ones
+ACCOUNT_EMAIL_VERIFICATION = "none"  # optional, for testing
+ACCOUNT_UNIQUE_EMAIL = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True  
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_COOKIE_AGE = 1200  # 20 minutes
+LOGIN_URL = '/login/'           # for normal user section
+LOGIN_REDIRECT_URL = '/redirect-after-login/'  # after login, redirect here
+LOGOUT_REDIRECT_URL = '/login/'  # after logout, go to user login page
+
+ADMIN_LOGIN_URL = '/adminpanel/login/'
+
+# Razorpay Keys
+RAZORPAY_KEY_ID = os.getenv('RAZORPAY_KEY_ID')
+RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET')
+import os
+from logging.handlers import RotatingFileHandler
+
+LOG_LEVEL = os.getenv("DJANGO_LOG_LEVEL", "INFO")  # set to DEBUG for local dev
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "standard": {
+            "format": "[%(levelname)s] %(asctime)s %(name)s: %(message)s"
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "standard",
+        },
+        "rotating_info": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "formatter": "standard",
+            "filename": os.path.join(BASE_DIR, "logs", "info.log"),
+            "maxBytes": 10 * 1024 * 1024,  # 10 MB
+            "backupCount": 5,
+            "level": "INFO",
+            "encoding": "utf-8",
+        },
+        "rotating_warning": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "formatter": "standard",
+            "filename": os.path.join(BASE_DIR, "logs", "warnings.log"),
+            "maxBytes": 10 * 1024 * 1024,
+            "backupCount": 5,
+            "level": "WARNING",
+            "encoding": "utf-8",
+        },
+        "rotating_error": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "formatter": "standard",
+            "filename": os.path.join(BASE_DIR, "logs", "errors.log"),
+            "maxBytes": 10 * 1024 * 1024,
+            "backupCount": 10,
+            "level": "ERROR",
+            "encoding": "utf-8",
+        },
+    },
+    "loggers": {
+        # django internal logs (errors)
+        "django": {
+            "handlers": ["console", "rotating_error"],
+            "level": "ERROR",
+            "propagate": True,
+        },
+        # main project logger for stepora
+        "stepora": {
+            "handlers": ["console", "rotating_info", "rotating_warning", "rotating_error"],
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
+    },
+}
+
+
+# Cloudinary Configuration
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
+}
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+MEDIA_URL = ''
+MEDIA_ROOT = ''

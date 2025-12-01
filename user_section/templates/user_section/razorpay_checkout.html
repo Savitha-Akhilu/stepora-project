@@ -1,0 +1,84 @@
+{% extends 'user_section/base.html' %}
+{% block title %}Razorpay Payment{% endblock %}
+
+{% block content %}
+<div class="container text-center py-5">
+  <h3>Redirecting to Razorpay...</h3>
+  <p>Click the button below if the popup doesn’t open automatically.</p>
+
+  <button id="rzp-button1" class="btn btn-primary">Pay Now</button>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  var options = {
+      "key": "{{ razorpay_key }}",
+      "amount": "{{ amount }}",
+      "currency": "{{ currency }}",
+      "name": "Stepora",
+      "description": "Order Payment",
+      "order_id": "{{ razorpay_order_id }}",
+
+      //  Add this section for auto-fill
+      "prefill": {
+          "name": "{{ order.address.full_name }}",
+          "email": "{{ request.user.email }}",
+          "contact": "{{ request.user.phone }}"
+              },
+
+      "handler": function (response){
+          //  Send payment details to Django for verification
+          const form = document.createElement("form");
+          form.method = "POST";
+          form.action = "{% url 'cart:razorpay_success' %}";
+
+          const fields = {
+              "razorpay_payment_id": response.razorpay_payment_id,
+              "razorpay_order_id": response.razorpay_order_id,
+              "razorpay_signature": response.razorpay_signature,
+              "order_id": "{{ order.id }}"
+          };
+
+          for (const key in fields) {
+              const input = document.createElement("input");
+              input.type = "hidden";
+              input.name = key;
+              input.value = fields[key];
+              form.appendChild(input);
+          }
+
+          document.body.appendChild(form);
+          form.submit();
+      },
+      "modal": {
+    "ondismiss": function() {
+        window.location.href = "{% url 'cart:payment_failed' order.id %}";
+    }
+},
+
+
+      "theme": {
+          "color": "#3399cc"
+      }
+  };
+
+  var rzp1 = new Razorpay(options);
+rzp1.on('payment.failed', function (response) {
+    // Immediately redirect to failed page without needing to close modal
+    // window.location.href = "{% url 'cart:payment_failed' order.id %}";
+        window.location.href = "{% url 'cart:razorpay_failed' order.id %}";
+});
+
+  //  Automatically open Razorpay on page load
+  window.onload = function(){
+      rzp1.open();
+  };
+
+  // Optional: if you have a button with id="rzp-button1"
+  document.getElementById('rzp-button1').onclick = function(e){
+      rzp1.open();
+      e.preventDefault();
+  };
+</script>
+
+{% endblock %}

@@ -1,0 +1,240 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify OTP | Stepora</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      margin: 0;
+      background: #ffffff;
+      font-family: 'Poppins', sans-serif;
+      color: #111;
+    }
+
+    .otp-section {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 70vh;
+    }
+
+    .otp-box {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+      width: 360px;
+      padding: 40px 30px;
+      text-align: center;
+    }
+
+    .otp-box h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .otp-box p {
+      font-size: 0.9rem;
+      color: #555;
+      margin-bottom: 25px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: 0.3s;
+      margin-bottom: 18px;
+      text-align: center;
+      letter-spacing: 3px;
+    }
+
+    input[type="text"]:focus {
+      border-color: #6ec3b0;
+      box-shadow: 0 0 5px #bce7de;
+    }
+
+    .login-btn {
+      width: 100%;
+      background: #6ec3b0;
+      border: none;
+      color: #fff;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .login-btn:hover {
+      background: #5ab09c;
+    }
+
+    .alert {
+      padding: 10px 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .alert-success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
+    .alert-error {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+
+    .countdown {
+      font-size: 0.85rem;
+      color: #777;
+      margin-bottom: 10px;
+    }
+
+    .resend a {
+      color: #6ec3b0;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .resend a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 480px) {
+      .otp-box {
+        width: 90%;
+        padding: 30px 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  {% include 'user_section/header.html' %}
+
+  <section class="otp-section">
+    <div class="otp-box">
+      <!-- {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %} -->
+      {% if messages %}
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+
+    {% if "expired" in message.message %}
+    <script>
+        time = 0; // force timer to end now
+        localStorage.removeItem("reset_otp_end_time"); 
+    </script>
+    {% endif %}
+  {% endfor %}
+{% endif %}
+
+
+      <h2>Enter OTP</h2>
+      <p>We’ve sent a verification code to <strong>{{ request.session.reset_email }}</strong></p>
+
+      <form method="POST">
+        {% csrf_token %}
+        <input type="text" name="otp" placeholder="Enter 6-digit OTP" maxlength="6" required>
+        <div class="countdown">Send code again in <span id="timer">01:00</span></div>
+        <div class="resend">Didn’t receive a code? <a href="{% url 'forgot_password' %}" id="resendLink">Resend</a></div>
+        <button type="submit" class="login-btn">Verify OTP</button>
+      </form>
+    </div>
+  </section>
+
+  {% include 'user_section/authentication_footer.html' %}
+
+  <script>
+    // Timer countdown (1 min)
+    // let time = 60;
+    // const timerDisplay = document.getElementById("timer");
+    // const resendLink = document.getElementById("resendLink");
+
+    // resendLink.style.pointerEvents = "none";
+    // resendLink.style.opacity = "0.6";
+
+    // const countdown = setInterval(() => {
+    //   const seconds = time % 60;
+    //   timerDisplay.textContent = `00:${String(seconds).padStart(2, '0')}`;
+    //   time--;
+
+    //   if (time < 0) {
+    //     clearInterval(countdown);
+    //     resendLink.style.pointerEvents = "auto";
+    //     resendLink.style.opacity = "1";
+    //     timerDisplay.textContent = "00:00";
+    //   }
+    // }, 1000);
+
+
+    const timerDisplay = document.getElementById("timer");
+const resendLink = document.getElementById("resendLink");
+
+// Use a unique key for password reset timer
+const RESET_TIMER_KEY = "reset_otp_end_time";
+
+let endTime = localStorage.getItem(RESET_TIMER_KEY);
+
+// If no saved timer, create a new 60-second endTime
+if (!endTime) {
+    endTime = Date.now() + 60000;
+    localStorage.setItem(RESET_TIMER_KEY, endTime);
+}
+
+function updateTimer() {
+    const now = Date.now();
+    const remaining = Math.floor((endTime - now) / 1000);
+
+    // If expired
+    if (remaining <= 0) {
+        timerDisplay.textContent = "00:00";
+        resendLink.style.pointerEvents = "auto";
+        resendLink.style.opacity = "1";
+        localStorage.removeItem(RESET_TIMER_KEY);
+        return;
+    }
+
+    timerDisplay.textContent = `00:${String(remaining).padStart(2, '0')}`;
+}
+
+// Disable resend until timer expires
+resendLink.style.pointerEvents = "none";
+resendLink.style.opacity = "0.6";
+
+// Start countdown
+updateTimer();
+setInterval(updateTimer, 1000);
+
+// When clicking "Resend", reset timer
+resendLink.addEventListener("click", () => {
+    localStorage.removeItem(RESET_TIMER_KEY);
+});
+
+    // Auto-fade alert
+    setTimeout(() => {
+      document.querySelectorAll('.alert').forEach(alert => {
+        alert.style.transition = "opacity 0.6s ease";
+        alert.style.opacity = "0";
+        setTimeout(() => alert.remove(), 600);
+      });
+    }, 3000);
+  </script>
+</body>
+</html>

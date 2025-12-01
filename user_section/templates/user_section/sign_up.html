@@ -1,0 +1,483 @@
+{% load static %}
+{% load socialaccount %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stepora | Sign Up</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    body {
+      margin: 0;
+      background: #ffffff;
+      font-family: 'Poppins', sans-serif;
+      color: #111;
+    }
+
+    .signup-section {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      flex-direction: column;
+      min-height: 80vh;
+      margin-top: 60px;
+    }
+
+    h2 {
+      font-size: 1.7rem;
+      font-weight: 600;
+      margin-bottom: 25px;
+      text-align: center;
+      width: 100%;
+    }
+
+    form {
+      width: 380px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin: 0 auto;
+    }
+
+    label {
+      font-size: 0.9rem;
+      color: #333;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: 0.3s;
+    }
+
+    input:focus {
+      border-color: #6ec3b0;
+      box-shadow: 0 0 5px #bce7de;
+    }
+
+    .password-wrapper {
+      position: relative;
+    }
+
+    .password-wrapper .toggle-icon {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #777;
+      cursor: pointer;
+    }
+
+    /* Error Message Styling */
+    .error {
+      color: #e74c3c;
+      font-size: 0.8rem;
+      line-height: 1.2;
+      margin-top: 4px;
+      height: 16px;
+      display: block;
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    .error.show {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .signup-btn {
+      width: 100%;
+      background: #6ec3b0;
+      border: none;
+      color: #fff;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .signup-btn:hover {
+      background: #5ab09c;
+    }
+
+    .login-text {
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    .login-text a {
+      color: #6ec3b0;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #aaa;
+      margin: 20px 0;
+      font-size: 0.85rem;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: #ddd;
+      margin: 0 10px;
+    }
+
+    .google-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: 0.3s;
+    }
+
+    .google-btn:hover {
+      background: #f7f7f7;
+    }
+
+    .google-btn svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    input.valid {
+      border-color: #4CAF50 !important;
+      box-shadow: 0 0 5px #b7e1c4;
+    }
+
+    input.invalid {
+      border-color: #e74c3c !important;
+      box-shadow: 0 0 5px #f4b0a6;
+    }
+
+    @media (max-width: 480px) {
+      form {
+        width: 90%;
+      }
+      .signup-section {
+        margin-top: 40px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  {% include 'user_section/header.html' %}
+
+  <section class="signup-section">
+    <h2>Create Your Account</h2>
+
+    <form id="signupForm" onsubmit="return validateForm()" method="POST" action="{% url 'signup' %}" novalidate>
+      {% csrf_token %}
+
+      <div>
+        <label>Full Name</label>
+        <input type="text" id="fullname" name="first_name" placeholder="Enter your full name" />
+        <div id="nameError" class="error">Full name is required.</div>
+      </div>
+
+      <div>
+        <label>Email</label>
+        <input type="email" id="email" name="email" placeholder="Enter your email" />
+        <div id="emailError" class="error">Enter a valid email address.</div>
+      </div>
+
+      <div>
+        <label>Mobile Number</label>
+        <input type="text" id="mobile" name="phone" placeholder="10-digit mobile number" maxlength="10"/>
+        <div id="mobileError" class="error">Enter a valid 10-digit mobile number.</div>
+      </div>
+
+      <div class="password-wrapper">
+        <label>Password</label>
+        <input type="password" id="password" name="password1" placeholder="Enter password" />
+        <i class="fa-solid fa-eye toggle-icon" id="togglePassword"></i>
+        <div id="passwordError" class="error">Password must be at least 8 characters, include 1 uppercase, 1 number, and 1 symbol.</div>
+      </div>
+
+      <div class="password-wrapper">
+        <label>Confirm Password</label>
+        <input type="password" id="confirmPassword" name="password2" placeholder="Re-enter password" />
+        <i class="fa-solid fa-eye toggle-icon" id="toggleConfirm"></i>
+        <div id="confirmError" class="error">Passwords do not match.</div>
+      </div>
+
+<div>
+  <label>Referral Code (optional)</label>
+  <input type="text" id="referral" name="referral" placeholder="Referral code" />
+  <div id="referralMessage" style="font-size: 0.85rem; margin-top: 4px;"></div>
+</div>
+
+      <div class="login-text">
+        Already have an account? <a href="{% url 'login' %}">Log in</a>
+      </div>
+
+      <button type="submit" class="signup-btn">Sign Up</button>
+
+      <!-- <div class="divider">Or Sign Up with</div>
+
+      <button type="button" class="google-btn" onclick="window.location.href='{% provider_login_url 'google' %}'">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.69 1.22 9.17 3.6l6.84-6.84C35.82 2.6 30.32 0 24 0 14.64 0 6.54 5.36 2.56 13.12l7.97 6.19C12.5 13.56 17.8 9.5 24 9.5z"/>
+          <path fill="#34A853" d="M46.98 24.5c0-1.64-.15-3.22-.43-4.75H24v9.02h12.94c-.56 2.84-2.25 5.25-4.8 6.88l7.4 5.76C43.82 37.17 46.98 31.31 46.98 24.5z"/>
+          <path fill="#4A90E2" d="M9.53 28.31A14.5 14.5 0 0 1 9.5 19l-7.94-6.18A24.04 24.04 0 0 0 0 24c0 3.89.93 7.55 2.56 10.82l7.97-6.51z"/>
+          <path fill="#FBBC05" d="M24 48c6.32 0 11.63-2.09 15.5-5.69l-7.4-5.76C29.5 38.11 26.88 39 24 39c-6.18 0-11.43-4.09-13.47-9.69l-7.97 6.51C6.54 42.64 14.64 48 24 48z"/>
+        </svg>
+        Google
+      </button> -->
+    </form>
+  </section>
+
+  {% include 'user_section/authentication_footer.html' %}
+<script>
+  // ---------------- PASSWORD VISIBILITY ----------------
+  const togglePassword = document.querySelector("#togglePassword");
+  const toggleConfirm = document.querySelector("#toggleConfirm");
+  const password = document.querySelector("#password");
+  const confirmPassword = document.querySelector("#confirmPassword");
+
+  togglePassword.addEventListener("click", () => {
+    password.type = password.type === "password" ? "text" : "password";
+    togglePassword.classList.toggle("fa-eye");
+    togglePassword.classList.toggle("fa-eye-slash");
+  });
+
+  toggleConfirm.addEventListener("click", () => {
+    confirmPassword.type = confirmPassword.type === "password" ? "text" : "password";
+    toggleConfirm.classList.toggle("fa-eye");
+    toggleConfirm.classList.toggle("fa-eye-slash");
+  });
+
+  // ---------------- FIELD VARIABLES ----------------
+  const fullname = document.getElementById("fullname");
+  const email = document.getElementById("email");
+  const mobile = document.getElementById("mobile");
+  const emailError = document.getElementById("emailError");
+  const mobileError = document.getElementById("mobileError");
+  const nameError = document.getElementById("nameError");
+  const passwordError = document.getElementById("passwordError");
+  const confirmError = document.getElementById("confirmError");
+  const signupForm = document.getElementById("signupForm");
+
+  let emailExists = false;
+  let phoneExists = false;
+
+  // ---------------- ASYNC CHECKS ----------------
+  async function checkEmailExists() {
+    const emailVal = email.value.trim();
+    if (emailVal === "") return false;
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(emailVal)) return false;
+
+    try {
+      const response = await fetch(`/check-email/?email=${encodeURIComponent(emailVal)}`);
+      const data = await response.json();
+      if (data.exists) {
+        emailExists = true;
+        emailError.textContent = "⚠️ This email is already registered.";
+        emailError.classList.add("show");
+        email.classList.add("invalid");
+        email.classList.remove("valid");
+      } else {
+        emailExists = false;
+        emailError.classList.remove("show");
+        email.classList.remove("invalid");
+        email.classList.add("valid");
+      }
+    } catch (error) {
+      console.error("Error checking email:", error);
+      emailExists = false;
+    }
+    return emailExists;
+  }
+
+  async function checkPhoneExists() {
+    const phoneVal = mobile.value.trim();
+    if (phoneVal === "") return false;
+
+    // const phonePattern = /^[0-9]{10}$/;
+    const phonePattern = /^[6-9]\d{9}$/;
+    if (!phonePattern.test(phoneVal)) return false;
+
+    try {
+      const response = await fetch(`/check-phone/?phone=${encodeURIComponent(phoneVal)}`);
+      const data = await response.json();
+      if (data.exists) {
+        phoneExists = true;
+        mobileError.textContent = "⚠️ This phone number is already registered.";
+        mobileError.classList.add("show");
+        mobile.classList.add("invalid");
+        mobile.classList.remove("valid");
+      } else {
+        phoneExists = false;
+        mobileError.classList.remove("show");
+        mobile.classList.remove("invalid");
+        mobile.classList.add("valid");
+      }
+    } catch (error) {
+      console.error("Error checking phone:", error);
+      phoneExists = false;
+    }
+    return phoneExists;
+  }
+
+  // Run real-time checks on blur
+  email.addEventListener("blur", checkEmailExists);
+  mobile.addEventListener("blur", checkPhoneExists);
+
+  // ---------------- REAL-TIME CLEANUP ----------------
+  const fields = ['fullname', 'email', 'mobile', 'password', 'confirmPassword'];
+  fields.forEach(id => {
+    const input = document.getElementById(id);
+    input.addEventListener('input', () => {
+      document.querySelectorAll('.error').forEach(e => e.classList.remove('show'));
+      input.classList.remove("invalid", "valid");
+    });
+  });
+
+  // ---------------- VALIDATION ----------------
+  function validateForm() {
+    let valid = true;
+    const name = fullname.value.trim();
+    const emailVal = email.value.trim();
+    const mobileVal = mobile.value.trim();
+    const pass = password.value.trim();
+    const confirm = confirmPassword.value.trim();
+
+    document.querySelectorAll(".error").forEach(e => e.classList.remove("show"));
+
+    if (name.length < 3) {
+      nameError.classList.add("show");
+      fullname.classList.add("invalid");
+      valid = false;
+    }
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(emailVal)) {
+      emailError.classList.add("show");
+      email.classList.add("invalid");
+      valid = false;
+    }
+
+const mobilePattern = /^[6-9]\d{9}$/;
+    if (!mobilePattern.test(mobileVal)) {
+        mobileError.textContent = "Enter a valid Indian 10-digit mobile number (starts with 6-9).";
+      mobileError.classList.add("show");
+      mobile.classList.add("invalid");
+      valid = false;
+    }
+
+    const passwordPattern = /^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*]).{8,}$/;
+    if (!passwordPattern.test(pass)) {
+      passwordError.classList.add("show");
+      password.classList.add("invalid");
+      valid = false;
+    }
+
+    if (pass !== confirm || confirm === "") {
+      confirmError.classList.add("show");
+      confirmPassword.classList.add("invalid");
+      valid = false;
+    }
+
+    return valid;
+  }
+
+  // ---------------- FINAL SUBMIT HANDLER ----------------
+  signupForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    // await checkEmailExists();
+    // await checkPhoneExists();
+
+    if (emailExists || phoneExists) {
+      // Stop if email or phone already exists
+      return false;
+    }
+
+    if (!validateForm()) {
+      return false;
+    }
+
+    //  Submit if everything passes
+    signupForm.submit();
+  });
+</script>
+<script>
+  const referralInput = document.getElementById("referral");
+  const referralMessage = document.getElementById("referralMessage");
+  let referralTimer;
+
+  referralInput.addEventListener("input", function () {
+    clearTimeout(referralTimer); // debounce input
+    const code = referralInput.value.trim();
+
+    if (code === "") {
+      referralMessage.textContent = "";
+      referralInput.classList.remove("valid", "invalid");
+      return;
+    }
+
+    referralTimer = setTimeout(() => {
+      fetch(`/validate-referral/?code=${encodeURIComponent(code)}`)
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.valid) {
+            referralMessage.textContent = data.message;
+            referralMessage.style.color = "#28a745"; // green clr
+            referralInput.classList.add("valid");
+            referralInput.classList.remove("invalid");
+          } else {
+            referralMessage.textContent = data.message;
+            referralMessage.style.color = "#e74c3c"; // red
+            referralInput.classList.add("invalid");
+            referralInput.classList.remove("valid");
+          }
+        })
+        .catch((error) => {
+          console.error("Referral check failed:", error);
+        });
+    }, 500); 
+  });
+</script>
+<style>input.valid {
+  border-color: #4CAF50 !important;
+  box-shadow: 0 0 5px #b7e1c4;
+}
+input.invalid {
+  border-color: #e74c3c !important;
+  box-shadow: 0 0 5px #f4b0a6;
+}
+</style>
+
+</body>
+</html>

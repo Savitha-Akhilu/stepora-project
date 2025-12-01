@@ -1,0 +1,116 @@
+{% extends 'user_section/base.html' %}
+{% load static %}
+
+{% block title %}Order Complete{% endblock %}
+
+{% block content %}
+<!--  Step Progress Tracker -->
+      {% if messages %}
+      <div id="message-container">
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }}" role="alert">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+<div class="container text-center mt-4">
+  <div class="d-flex justify-content-center align-items-center mb-4">
+    <div class="step completed">
+      <span>01</span>
+      <p>Shopping Cart</p>
+    </div>
+    <div class="line"></div>
+    <div class="step completed">
+      <span>02</span>
+      <p>Checkout</p>
+    </div>
+    <div class="line"></div>
+    <div class="step active">
+      <span>03</span>
+      <p>Order Complete</p>
+    </div>
+  </div>
+</div>
+
+<!-- Success Section -->
+<div class="container my-5">
+  <div class="row justify-content-center align-items-center">
+    <!-- Left Section -->
+    <div class="col-md-6 text-center">
+      <h3 class="fw-bold mb-3">Thank You for Your Order!</h3>
+      <p class="mb-4">Your order has been successfully placed. Here are your order details:</p>
+      <img src="{% static 'images/order.jpg' %}" alt="Success" width="250" class="mb-3">
+      <p class="text-muted mb-4">
+        You will receive an email confirmation shortly with your order details.
+      </p>
+      <div class="d-flex justify-content-center gap-3">
+        <a href="{% url 'cart:order_detail' order.id %}" class="btn btn-info text-white px-4">View Orders</a>
+        <a href="{% url 'user_home' %}" class="btn btn-dark px-4">Continue Shopping</a>
+      </div>
+    </div>
+
+    <!-- Right Section -->
+    <div class="col-md-5">
+      <div class="order-card shadow-sm p-4 rounded">
+        <div class="text-center mb-3">
+          <div class="success-icon mb-2">
+            <i class="bi bi-check-circle-fill text-success" style="font-size: 2rem;"></i>
+          </div>
+          <h5 class="fw-bold text-success">Payment Success!</h5>
+        </div>
+        <hr>
+        <div class="order-info">
+          <p><strong>Order ID:</strong> {{ order.iorderid }}</p>
+          <p><strong>Payment Time:</strong> {{ order.created_at|date:"d-m-Y, H:i:s" }}</p>
+          <p><strong>Payment Method:</strong> {{ order.payment_method|default:"Cash on Delivery" }}</p>
+          <p><strong>Customer Name:</strong> {{ order.user.first_name }} {{ order.user.last_name }}</p>
+          <p><strong>Total Amount:</strong> ₹{{ order.total }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.step {
+  text-align: center;
+  width: 100px;
+}
+.step span {
+  display: inline-block;
+  width: 35px;
+  height: 35px;
+  line-height: 35px;
+  border-radius: 50%;
+  background-color: #d3d3d3;
+  color: white;
+  font-weight: 600;
+}
+.step p {
+  margin-top: 5px;
+  font-size: 14px;
+}
+.step.completed span {
+  background-color: #00b894;
+}
+.step.active span {
+  background-color: #00b894;
+  box-shadow: 0 0 8px rgba(0, 184, 148, 0.5);
+}
+.line {
+  height: 3px;
+  width: 80px;
+  background-color: #ccc;
+  margin: 0 10px;
+}
+.order-card {
+  background-color: #fff;
+  border-radius: 12px;
+}
+.order-info p {
+  margin-bottom: 8px;
+}
+</style>
+{% endblock %}

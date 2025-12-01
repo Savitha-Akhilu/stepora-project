@@ -1,0 +1,467 @@
+{% extends "adminpanel/base.html" %}
+{% load static %}
+
+{% block title %}Edit Product{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+  <h2 class="mb-4 text-center fw-bold text-primary">Edit Product</h2>
+
+  <form id="editProductForm" method="post" enctype="multipart/form-data" class="shadow p-5 rounded bg-white">
+    {% csrf_token %}
+
+    {% if product_form.non_field_errors %}
+    <div class="alert alert-danger mb-3">
+      {% for error in product_form.non_field_errors %}
+      <p>{{ error }}</p>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- 🛍 Product Information -->
+    <div class="mb-5">
+      <h4 class="section-title mb-4 text-secondary border-bottom pb-2">
+        <i class="bi bi-box"></i> Product Information
+      </h4>
+      <div class="row gy-4 gx-5">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Product Name</label>
+          <input type="text" name="name" class="form-control" value="{{ product.name }}" required>
+        </div>
+
+        <!-- <div class="col-md-6">
+          <label class="form-label fw-semibold">Category</label>
+          <select name="category" class="form-select" required>
+            <option value="">-- Select Category --</option>
+            {% for categories in categories %}
+            <option value="{{ categories.id }}" {% if product.category and product.category.id == categories.id %}selected{% endif %}>
+              {{ categories.category_name }}
+              {% if categories.gender %}- {{ categories.gender.name }}{% endif %}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Brand</label>
+          <select name="brand" class="form-select" required>
+            <option value="">-- Select Brand --</option>
+            {% for brand in brands %}
+            <option value="{{ brand.id }}" {% if product.brand and product.brand.id == brand.id %}selected{% endif %}>{{ brand.name }}</option>
+            {% endfor %}
+          </select>
+        </div> -->
+
+        <div class="col-md-6">
+    <label class="form-label fw-semibold">Category</label>
+    <input type="text" class="form-control" value="{{ product.category.category_name }}{% if product.category.gender %} - {{ product.category.gender.name }}{% endif %}" readonly>
+    <input type="hidden" name="category" value="{{ product.category.id }}">
+</div>
+
+<div class="col-md-6">
+    <label class="form-label fw-semibold">Brand</label>
+    <input type="text" class="form-control" value="{{ product.brand.name }}" readonly>
+    <input type="hidden" name="brand" value="{{ product.brand.id }}">
+</div>
+
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Material</label>
+          <select name="material" class="form-select" required>
+            <option value="">-- Select Material --</option>
+            {% for m in materials %}
+            <option value="{{ m.id }}" {% if product.material and product.material.id == m.id %}selected{% endif %}>{{ m.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Occasion</label>
+          <select name="occasion" class="form-select" required>
+            <option value="">-- Select Occasion --</option>
+            {% for o in occasions %}
+            <option value="{{ o.id }}" {% if product.occasion and product.occasion.id == o.id %}selected{% endif %}>{{ o.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Product Variants -->
+    <div class="mb-5">
+      <h4 class="section-title mb-4 text-secondary border-bottom pb-2">
+        <i class="bi bi-tags"></i> Product Variants
+      </h4>
+
+      <!--   container -->
+      <div id="variant-container">
+        {% for variant in variants %}
+        <div class="variant-row row gy-3 gx-3 mb-4 border p-4 rounded bg-light">
+
+          <!-- Variant Details -->
+          <div class="col-md-3">
+            <label class="form-label fw-semibold mb-2">Variant Name</label>
+            <input type="text" name="variant_name[]" class="form-control" value="{{ variant.variant_name }}" required>
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label fw-semibold mb-2">SKU Code</label>
+            <input type="text" name="sku[]" class="form-control" value="{{ variant.sku }}" required>
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label fw-semibold mb-2">Stock</label>
+            <input type="number" name="stock[]" class="form-control" min="0" value="{{ variant.stock }}" required>
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label fw-semibold mb-2">Low Stock Qty</label>
+            <input type="number" name="low_stock_qty[]" class="form-control" min="0" value="{{ variant.low_stock_qty }}">
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label fw-semibold mb-2">Color</label>
+            <select name="color[]" class="form-select" required>
+              <option value="">-- Select Color --</option>
+              {% for color in colors %}
+              <option value="{{ color.id }}" {% if variant.color and variant.color.id == color.id %}selected{% endif %}>{{ color.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label fw-semibold mb-2">Size</label>
+            <select name="size[]" class="form-select" required>
+              <option value="">-- Select Size --</option>
+              {% for size in sizes %}
+              <option value="{{ size.id }}" {% if variant.size and variant.size.id == size.id %}selected{% endif %}>{{ size.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label fw-semibold mb-2">Discount (%)</label>
+            <input type="number" name="discount[]" class="form-control" min="0" max="100" value="{{ variant.discount }}">
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label fw-semibold mb-2">Price (₹)</label>
+            <input type="number" name="price[]" class="form-control" min="0" step="0.01" value="{{ variant.price }}" required>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold mb-2">Short Description</label>
+            <input type="text" name="short_desc[]" class="form-control" value="{{ variant.short_description }}">
+          </div>
+
+          <div class="col-md-8">
+            <label class="form-label fw-semibold mb-2">Long Description</label>
+            <textarea name="long_desc[]" class="form-control" rows="2">{{ variant.long_description }}</textarea>
+          </div>
+
+          <!--  Variant Images -->
+          <div class="col-md-12 mt-3">
+            <label class="form-label fw-semibold">Upload Images (min 3)</label>
+            <input type="file" name="variant_images_{{ forloop.counter0 }}[]" class="form-control variant-image-input" accept="image/*" multiple>
+
+            <div class="variant-image-previews d-flex flex-wrap gap-3 mt-3"><!-- no duplicate id -->
+              {% for image in variant.images.all %}
+              <div class="position-relative" data-id="{{ image.id }}">
+                <div class="card shadow-sm" style="width:150px;">
+                  <img src="{{ image.image.url }}" class="card-img-top preview-img" style="object-fit:cover; height:150px;">
+                  <div class="card-body text-center p-2">
+                    <div class="form-check">
+                      <input class="form-check-input is-primary" type="checkbox" name="primary_image_variant_{{ forloop.parentloop.counter0 }}" value="{{ image.id }}" {% if image.is_primary %}checked{% endif %}>
+                      <label class="form-check-label small">Is Primary</label>
+                    </div>
+                    <button type="button" class="btn btn-outline-primary btn-sm mt-1 crop-btn">Crop</button>
+                    <button type="button" class="btn btn-outline-danger btn-sm mt-1 remove-btn">Remove</button>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="col-md-1 d-flex align-items-end">
+            <button type="button" class="btn btn-danger remove-variant w-100">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="text-end">
+        <button type="button" id="add-variant" class="btn btn-primary mt-2">
+          <i class="bi bi-plus-lg"></i> Add Another Variant
+        </button>
+      </div>
+    </div>
+
+    <!--  Submit -->
+    <div class="text-center">
+      <button type="submit" class="btn btn-success px-5 py-2 fw-semibold">
+        <i class="bi bi-save"></i> Update Product
+      </button>
+      <a href="{% url 'products:product_list' %}" class="btn btn-outline-secondary px-4 py-2 ms-2">
+        <i class="bi bi-arrow-left"></i> Back to Product List
+      </a>
+    </div>
+  </form>
+</div>
+
+<!--  Crop Modal -->
+<div class="modal fade" id="cropModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Crop Image</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img id="crop-image" style="max-width:90%; max-height:80vh;">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success" id="crop-save">Save Crop</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--  Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+<script>
+/* ===============================
+   🔸 GLOBAL VARIABLES
+   =============================== */
+let currentCropImage = null;
+let cropper = null;
+
+/* ===============================
+   🔸 CROP & REMOVE BUTTON HANDLERS
+   =============================== */
+document.addEventListener("click", function (e) {
+  // 🟢 Crop button
+  if (e.target.classList.contains("crop-btn")) {
+    e.preventDefault();
+    const card = e.target.closest(".card");
+    if (!card) return;
+
+    currentCropImage = card.querySelector(".preview-img");
+    if (!currentCropImage) return;
+
+    const modalImage = document.getElementById("crop-image");
+    modalImage.src = currentCropImage.src;
+
+    const modal = new bootstrap.Modal(document.getElementById("cropModal"));
+    modal.show();
+
+    setTimeout(() => {
+      if (cropper) cropper.destroy();
+      cropper = new Cropper(modalImage, {
+        aspectRatio: 1,
+        viewMode: 1,
+        autoCropArea: 1,
+      });
+    }, 200);
+  }
+
+  //  Remove button
+  if (e.target.classList.contains("remove-btn")) {
+    e.preventDefault();
+    const cardCol = e.target.closest(".position-relative") || e.target.closest(".col-md-3");
+    if (!cardCol) return;
+
+    // if it's an existing DB image → mark for deletion
+    const imageId = cardCol.dataset.id;
+    if (imageId) {
+      const form = document.getElementById("editProductForm");
+      const hidden = document.createElement("input");
+      hidden.type = "hidden";
+      hidden.name = "delete_images[]";
+      hidden.value = imageId;
+      form.appendChild(hidden);
+    }
+
+    cardCol.remove();
+  }
+});
+
+/* ===============================
+   🔸 SAVE CROPPED IMAGE
+   =============================== */
+document.addEventListener("click", function (e) {
+  if (e.target.id === "crop-save") {
+    e.preventDefault();
+    if (!cropper || !currentCropImage) return;
+
+    const canvas = cropper.getCroppedCanvas({ width: 600, height: 600 });
+    currentCropImage.src = canvas.toDataURL("image/jpeg");
+
+    cropper.destroy();
+    cropper = null;
+    const modal = bootstrap.Modal.getInstance(document.getElementById("cropModal"));
+    modal.hide();
+  }
+});
+
+/* ===============================
+   🔸 PER-VARIANT IMAGE UPLOAD HANDLER
+   =============================== */
+document.addEventListener("change", function (e) {
+  if (e.target.classList.contains("variant-image-input")) {
+    const files = Array.from(e.target.files);
+    const previewsContainer = e.target
+      .closest(".variant-row")
+      .querySelector(".variant-image-previews");
+
+
+    // if (files.length < 3) {
+    //   alert("Each variant must have at least 3 images.");
+    //   e.target.value = "";
+    //   return;
+    // }
+
+    files.forEach((file, index) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const col = document.createElement("div");
+        col.className = "position-relative";
+        col.setAttribute("data-new", "true");
+        col.innerHTML = `
+          <div class="card shadow-sm" style="width:150px;">
+            <img src="${event.target.result}" class="card-img-top preview-img" style="object-fit:cover; height:150px;">
+            <div class="card-body text-center p-2">
+              <div class="form-check">
+                <input class="form-check-input is-primary" type="checkbox" name="primary_image_variant_${index}" value="${index}">
+                <label class="form-check-label small">Is Primary</label>
+              </div>
+              <button type="button" class="btn btn-outline-primary btn-sm mt-1 crop-btn">Crop</button>
+              <button type="button" class="btn btn-outline-danger btn-sm mt-1 remove-btn">Remove</button>
+            </div>
+          </div>`;
+        previewsContainer.appendChild(col);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+});
+
+/* ===============================
+   🔸 ADD & REMOVE VARIANT HANDLERS
+   =============================== */
+document.addEventListener("DOMContentLoaded", function () {
+  const variantContainer = document.getElementById("variant-container");
+  const addVariantBtn = document.getElementById("add-variant");
+
+  // ➕ Add Variant
+  addVariantBtn.addEventListener("click", function () {
+    const allVariants = variantContainer.querySelectorAll(".variant-row");
+    const firstVariant = allVariants[0];
+    if (!firstVariant) return;
+
+    const newVariant = firstVariant.cloneNode(true);
+    const newIndex = allVariants.length;
+
+    // Clear all input fields & reset file input names
+    newVariant.querySelectorAll("input, textarea, select").forEach((el) => {
+      if (el.tagName === "SELECT") el.selectedIndex = 0;
+      else if (el.type === "file") {
+        el.value = "";
+        el.name = `variant_images_${newIndex}[]`;
+      } else if (el.type === "checkbox" || el.type === "radio") el.checked = false;
+      else el.value = "";
+    });
+
+    const previewBox = newVariant.querySelector(".variant-image-previews");
+    if (previewBox) previewBox.innerHTML = "";
+
+    variantContainer.appendChild(newVariant);
+    newVariant.scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+
+  // ❌ Remove Variant
+  variantContainer.addEventListener("click", function (event) {
+    if (event.target.closest(".remove-variant")) {
+      const variants = variantContainer.querySelectorAll(".variant-row");
+      if (variants.length > 1) {
+        event.target.closest(".variant-row").remove();
+      } else {
+        alert("At least one variant is required.");
+      }
+    }
+  });
+});
+
+/* ===============================
+   🔸 ONE PRIMARY IMAGE PER VARIANT
+   =============================== */
+document.addEventListener("change", function (e) {
+  if (e.target.classList.contains("is-primary")) {
+    // Find this variant
+    const variant = e.target.closest(".variant-row");
+    if (!variant) return;
+
+    // Uncheck all other "Is Primary" boxes in the same variant
+    const allPrimary = variant.querySelectorAll(".is-primary");
+    allPrimary.forEach((chk) => {
+      if (chk !== e.target) chk.checked = false;
+    });
+  }
+});
+// ===============================
+// Ensure One Primary Per Variant
+// ===============================
+document.addEventListener('change', function (e) {
+  if (e.target.classList.contains('is-primary')) {
+    // Find which variant this belongs to
+    const variantBlock = e.target.closest('.variant-row');
+    if (variantBlock) {
+      // Uncheck other primary checkboxes in same variant
+      const allPrimaries = variantBlock.querySelectorAll('.is-primary');
+      allPrimaries.forEach(chk => {
+        if (chk !== e.target) chk.checked = false;
+      });
+    }
+  }
+});
+
+// ===============================
+//  Prevent Form Submit if Missing Primary
+// ===============================
+document.getElementById("editProductForm").addEventListener("submit", function (e) {
+  const variantBlocks = document.querySelectorAll(".variant-row");
+  let allValid = true;
+
+  variantBlocks.forEach((variant, idx) => {
+    const imageCount = variant.querySelectorAll('.variant-image-previews .card').length;
+    const hasPrimary = variant.querySelector('.is-primary:checked');
+
+    if (imageCount < 3) {
+      alert(`Variant ${idx + 1} must have at least 3 images.`);
+      allValid = false;
+    } else if (!hasPrimary) {
+      alert(`Variant ${idx + 1} must have one image marked as Primary.`);
+      allValid = false;
+    }
+  });
+
+  if (!allValid) {
+    e.preventDefault();
+    return false;
+  }
+});
+
+</script>
+<style>
+  input[readonly] {
+    background-color: #f8f9fa !important;
+    cursor: not-allowed;
+}
+
+</style>
+{% endblock %}

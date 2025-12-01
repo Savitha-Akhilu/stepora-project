@@ -1,0 +1,536 @@
+{% extends 'user_section/base.html' %}
+{% load static %}
+
+{% block title %}Men's Collection | Stepora{% endblock %}
+
+{% block content %}
+<div id="page">
+
+    <!-- ===== HERO SECTION ===== -->
+    <!-- <div class="breadcrumbs-two">
+		<div class="container">
+			<div class="row">
+				<div class="col">
+					<div class="breadcrumbs-img" style="background-image: url('{% static "images/men.jpg" %}');">
+						<h2>MEN'S</h2>
+					</div>
+					<div class="menu text-center">
+						<p>
+							<a href="#">Top Arrivals</a>
+							<a href="#">Best Sellers</a>
+							<a href="#">Offer Zone</a>
+							<a href="#">New In</a>
+							<a href="#">Sale</a>
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div> -->
+
+
+
+    <!-- ===== BREADCRUMB ===== -->
+    <div class="breadcrumb-wrapper">
+        <div class="container">
+            <p class="breadcrumb-text">
+                <a href="{% url 'user_home' %}">Home</a> / <span>Men</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- ===== FULL-WIDTH HERO BANNER ===== -->
+    <section class="hero-banner">
+        <div class="banner-overlay"></div>
+        <div class="banner-content">
+            <h1>MEN'S</h1>
+        </div>
+    </section>
+
+    <!-- ===== NAVIGATION MENU BELOW BANNER ===== -->
+    <div class="banner-nav text-center">
+        <ul>
+            <li><a href="#">Top Arrivals</a></li>
+            <li><a href="#">Best Sellers</a></li>
+            <li><a href="#">Offer Zone</a></li>
+            <li><a href="#">New In</a></li>
+            <li><a href="#">Sale</a></li>
+        </ul>
+    </div>
+
+    <!-- ===== FEATURED CATEGORY CARDS ===== -->
+    <!-- <div class="colorlib-featured py-5">
+        <div class="wide-container">
+            <div class="row">
+                {% for c in categories %}
+                <div class="col-sm-4 text-center">
+                    <div class="featured">
+          <div class="featured-img featured-img-2"
+               style="background-image: url('{% if c.image %}{{ c.image.url }}{% else %}{% static "images/no-image.png" %}{% endif %}');">
+            <h2>{{ c.category_name }}</h2>                            <p><a href="#" class="btn btn-primary btn-lg">Shop now</a></p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div> -->
+
+
+    <div class="container my-4">
+  <div class="d-flex flex-wrap justify-content-center gap-3">
+    {% for c in categories %}
+      <div class="category-card text-center flex-grow-1" style="min-width: 200px; max-width: 280px;">
+        <div class="featured position-relative">
+          <div class="featured-img featured-img-2"
+               style="background-image: url('{% if c.image %}{{ c.image.url }}{% else %}{% static "images/no-image.png" %}{% endif %}');
+                      background-size: cover;
+                      background-position: center;
+                      height: 280px;
+                      border-radius: 10px;
+                      transition: all 0.3s ease;">
+          </div>
+          <div class="overlay position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center align-items-center text-white"
+               style="background: rgba(0,0,0,0.3); border-radius: 10px;">
+            <h2 class="fw-bold">{{ c.category_name }}</h2>
+<a href="#" 
+   class="btn btn-primary btn-sm mt-2 category-filter-btn" 
+   data-category-id="{{ c.id }}">
+   Shop now
+</a>          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+    <!-- ===== PRODUCT SECTION ===== -->
+    <div class="colorlib-product">
+        <div class="wide-container">
+            <div class="row">
+                <!-- Sidebar -->
+                <div class="col-lg-3 col-xl-3">
+                    <div class="row">
+                        
+    <div class="col-sm-12">
+      <div class="side border mb-1">
+        <h3>Sort By</h3>
+        <form method="get" id="sortForm">
+          {% if q %}
+            <input type="hidden" name="q" value="{{ q }}">
+          {% endif %}
+          <select name="sort" id="sort" class="form-select"
+                  onchange="document.getElementById('sortForm').submit();">
+            <option value="">Default</option>
+            <option value="price_low_high" {% if sort == 'price_low_high' %}selected{% endif %}>Price: Low → High</option>
+            <option value="price_high_low" {% if sort == 'price_high_low' %}selected{% endif %}>Price: High → Low</option>
+            <option value="a_z" {% if sort == 'a_z' %}selected{% endif %}>A → Z</option>
+            <option value="z_a" {% if sort == 'z_a' %}selected{% endif %}>Z → A</option>
+          </select>
+        </form>
+      </div>
+    </div>
+<div class="col-sm-12">
+  <div class="side border mb-1">
+    <h3>Brand</h3>
+    <ul>
+      {% for b in brands %}
+        <li>
+          <a 
+            href="?brand={{ b.name|urlencode }}{% if sort %}&sort={{ sort }}{% endif %}{% if q %}&q={{ q|urlencode }}{% endif %}" 
+            class="{% if brand_name == b.name %}fw-bold text-primary{% endif %}"
+          >
+            {{ b.name }}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+
+    {% if brand_name %}
+      <!-- Reset Brand Filter -->
+      <div class="mt-2">
+        <a href="?{% if sort %}sort={{ sort }}&{% endif %}{% if q %}q={{ q|urlencode }}{% endif %}" class="btn btn-sm btn-outline-secondary">
+          Clear Brand
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="col-sm-12">
+  <div class="side border mb-1">
+    <h3>Size</h3>
+    <div class="size-grid">
+      {% for size in sizes %}
+        <a href="?size={{ size.name|urlencode }}{% if brand_name %}&brand={{ brand_name|urlencode }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}{% if q %}&q={{ q|urlencode }}{% endif %}"
+           class="size-item {% if size_name == size.name %}active{% endif %}">
+          {{ size.name }}
+        </a>
+      {% empty %}
+        <p>No sizes available.</p>
+      {% endfor %}
+    </div>
+
+    {% if size_name %}
+      <div class="mt-2 text-center">
+        <a href="?{% if brand_name %}brand={{ brand_name|urlencode }}&{% endif %}{% if sort %}sort={{ sort }}&{% endif %}{% if q %}q={{ q|urlencode }}{% endif %}"
+           class="btn btn-sm btn-outline-secondary">
+          Clear Size
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+
+
+<div class="col-sm-12">
+  <div class="side border mb-1">
+    <h3>Occasion</h3>
+    <ul>
+      {% for o in occasions %}
+        <li>
+          <a href="?occasion={{ o.name|urlencode }}
+                    {% if brand_name %}&brand={{ brand_name|urlencode }}{% endif %}
+                    {% if size_name %}&size={{ size_name|urlencode }}{% endif %}
+                    {% if sort %}&sort={{ sort }}{% endif %}
+                    {% if q %}&q={{ q|urlencode }}{% endif %}"
+             class="{% if occasion_name == o.name %}fw-bold text-primary{% endif %}">
+            {{ o.name }}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+
+    {% if occasion_name %}
+      <div class="mt-2">
+        <a href="?{% if brand_name %}brand={{ brand_name|urlencode }}&{% endif %}
+                 {% if size_name %}size={{ size_name|urlencode }}&{% endif %}
+                 {% if sort %}sort={{ sort }}&{% endif %}
+                 {% if q %}q={{ q|urlencode }}{% endif %}"
+           class="btn btn-sm btn-outline-secondary">
+          Clear Occasion
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+
+                       <div class="col-sm-12">
+  <div class="side border mb-1">
+    <h3>Colors</h3>
+    <ul>
+      {% for c in colors %}
+        <li>
+          <a href="?color={{ c.name|urlencode }}
+                    {% if brand_name %}&brand={{ brand_name|urlencode }}{% endif %}
+                    {% if size_name %}&size={{ size_name|urlencode }}{% endif %}
+                    {% if occasion_name %}&occasion={{ occasion_name|urlencode }}{% endif %}
+                    {% if sort %}&sort={{ sort }}{% endif %}
+                    {% if q %}&q={{ q|urlencode }}{% endif %}
+                    {% if material_name %}&material={{ material_name|urlencode }}{% endif %}"
+             class="{% if color_name == c.name %}fw-bold text-primary{% endif %}">
+            {{ c.name }}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+
+    {% if color_name %}
+      <div class="mt-2">
+        <a href="?{% if brand_name %}brand={{ brand_name|urlencode }}&{% endif %}
+                 {% if size_name %}size={{ size_name|urlencode }}&{% endif %}
+                 {% if occasion_name %}occasion={{ occasion_name|urlencode }}&{% endif %}
+                 {% if sort %}sort={{ sort }}&{% endif %}
+                 {% if q %}q={{ q|urlencode }}{% endif %}
+                 {% if material_name %}&material={{ material_name|urlencode }}{% endif %}"
+           class="btn btn-sm btn-outline-secondary">
+          Clear Color
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="col-sm-12">
+  <div class="side border mb-1">
+    <h3>Material</h3>
+    <ul>
+      {% for m in materials %}
+        <li>
+          <a href="?material={{ m.name|urlencode }}
+                    {% if brand_name %}&brand={{ brand_name|urlencode }}{% endif %}
+                    {% if size_name %}&size={{ size_name|urlencode }}{% endif %}
+                    {% if occasion_name %}&occasion={{ occasion_name|urlencode }}{% endif %}
+                    {% if sort %}&sort={{ sort }}{% endif %}
+                    {% if q %}&q={{ q|urlencode }}{% endif %}
+                    {% if color_name %}&color={{ color_name|urlencode }}{% endif %}"
+             class="{% if material_name == m.name %}fw-bold text-primary{% endif %}">
+            {{ m.name }}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+
+    {% if material_name %}
+      <div class="mt-2">
+        <a href="?{% if brand_name %}brand={{ brand_name|urlencode }}&{% endif %}
+                 {% if size_name %}size={{ size_name|urlencode }}&{% endif %}
+                 {% if occasion_name %}occasion={{ occasion_name|urlencode }}&{% endif %}
+                 {% if sort %}sort={{ sort }}&{% endif %}
+                 {% if q %}q={{ q|urlencode }}{% endif %}
+                 {% if color_name %}&color={{ color_name|urlencode }}{% endif %}"
+           class="btn btn-sm btn-outline-secondary">
+          Clear Material
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+                    </div>
+                </div>
+
+                <!-- Product Grid -->
+                <div class="col-lg-9 col-xl-9">
+<div class="row g-4">
+  {% for variant in variants %}
+    {% with primary_image=variant.images.first %}
+      <div class="col-6 col-md-3 " data-category-id="{{ variant.product.category.id }}">
+        <div class="card product-card border-0 shadow-sm h-100 text-center">
+          <div class="image-container">
+            {% if primary_image %}
+              <img src="{{ primary_image.image.url }}" class="card-img-top" alt="{{ variant.variant_name }}">
+            {% else %}
+              <img src="{% static 'images/no-image.png' %}" class="card-img-top" alt="No image">
+            {% endif %}
+            <div class="overlay">
+<a href="{% url 'product_detail' variant.product.id %}" class="btn btn-light btn-sm">
+  View
+</a>     <a href="#" class="btn btn-dark btn-sm">Add to Cart</a>
+            </div>
+          </div>
+          <div class="card-body">
+            <h6 class="card-title fw-semibold">{{ variant.product.name }}</h6>
+            <p class="text-muted mb-0">₹{{ variant.price }}</p>
+          </div>
+        </div>
+      </div>
+    {% endwith %}
+  {% empty %}
+    <p class="text-center text-muted">No products found.</p>
+  {% endfor %}
+</div>
+
+
+                    <!-- Pagination -->
+                    
+                </div> <!-- /Product grid -->
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+<style>
+    /* ===== BREADCRUMB ===== */
+    .breadcrumb-wrapper {
+        background: #f9f9f9;
+        padding: 12px 0;
+    }
+
+    .breadcrumb-text {
+        margin: 0;
+        font-size: 15px;
+        color: #444;
+    }
+.category-card .featured-img {
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+    .breadcrumb-text a {
+        color: #6ec3b0;
+        font-weight: 500;
+        text-decoration: none;
+    }
+
+    .breadcrumb-text a:hover {
+        text-decoration: underline;
+    }
+
+    /* ===== FULL-WIDTH HERO BANNER ===== */
+    .hero-banner {
+        width: 100vw;
+        margin-left: calc(-50vw + 50%);
+        height: 420px;
+        background-image: url("{% static 'images/men.jpg' %}");
+        background-size: cover;
+        background-position: center;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .banner-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.3);
+        /* subtle overlay for text contrast */
+    }
+
+    .banner-content h1 {
+        position: relative;
+        z-index: 2;
+        color: #fff;
+        font-size: 64px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        text-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    /* ===== NAV MENU BELOW BANNER ===== */
+    .banner-nav {
+        background-color: #2c2c2c;
+        padding: 14px 0;
+    }
+
+    .banner-nav ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        gap: 45px;
+    }
+
+    .banner-nav ul li a {
+        color: #fff;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 15px;
+        transition: color 0.3s;
+    }
+
+    .banner-nav ul li a:hover {
+        color: #6ec3b0;
+    }
+
+    .breadcrumbs-img {
+        background-size: cover;
+        background-position: center;
+        padding: 120px 0;
+        position: relative;
+        text-align: center;
+    }
+
+    .breadcrumbs-img h2 {
+        color: #fff;
+        font-size: 60px;
+        font-weight: 700;
+        position: relative;
+        z-index: 2;
+    }
+
+    .menu p a {
+        color: #666;
+        font-weight: 600;
+        margin: 0 12px;
+    }
+
+    .menu p a:hover {
+        color: #6ec3b0;
+    }
+
+    .featured-img {
+        background-size: cover;
+        background-position: center;
+        padding: 150px 0;
+        position: relative;
+        color: #fff;
+    }
+
+    .featured-img h2 {
+        font-size: 30px;
+        font-weight: 700;
+    }
+
+    .prod-img img {
+        transition: transform 0.3s ease;
+    }
+
+    .prod-img:hover img {
+        transform: scale(1.08);
+    }
+    /* ===== SIZE FILTER GRID ===== */
+.size-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-top: 10px;
+  background: #f5f5f5;
+  padding: 12px;
+  border-radius: 4px;
+}
+
+.size-item {
+  background: #fff;
+  color: #333;
+  border: 1px solid #ddd;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  padding: 6px 0;
+  border-radius: 3px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+/* ===== MAKE COLLECTION SECTION WIDER ===== */
+.wide-container {
+  max-width: 95%;      /* use 95% of the screen width */
+  margin: 0 auto;      /* keep it centered */
+}
+
+@media (min-width: 1400px) {
+  .wide-container {
+    max-width: 1350px; /* still cap at large screens */
+  }
+}
+
+/* Adjust left and right content spacing */
+.colorlib-product .row {
+  margin: 0;
+}
+
+/* Optional: reduce padding inside sidebar and product grid */
+.side.border {
+  padding: 15px;
+}
+
+.product-entry {
+  margin: 10px;
+}
+
+.size-item:hover {
+  background: #6ec3b0;
+  color: #fff;
+  border-color: #6ec3b0;
+}
+
+.size-item.active {
+  background: #2c2c2c;
+  color: #fff;
+  border-color: #2c2c2c;
+}
+
+</style>
+
+{% endblock %}

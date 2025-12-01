@@ -1,0 +1,121 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify OTP | Stepora Admin</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f7f7f7;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .login-container {
+      background: #fff;
+      padding: 2rem 2.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+      width: 360px;
+      text-align: center;
+    }
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: #2b2b2b;
+    }
+    input {
+      width: 90%;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      margin-bottom: 15px;
+      text-align: center;
+      letter-spacing: 3px;
+      font-weight: 600;
+    }
+    input:focus {
+      border-color: #23c5b6;
+    }
+    .btn {
+      width: 100%;
+      background-color: #23c5b6;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background-color: #1fb3a6;
+    }
+    a {
+      color: #23c5b6;
+      text-decoration: none;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="login-container">
+    <img src="{% static 'images/logo.png' %}" width="70">
+{% if messages %}
+  <div style="background:#ffe1e1; padding:10px; border-radius:6px; margin-bottom:15px; color:#b30000; font-size:14px;">
+    {% for message in messages %}
+      {{ message }}
+    {% endfor %}
+  </div>
+{% endif %}
+
+    <h2>Verify OTP</h2>
+    <p style="margin-bottom: 15px; font-size: 14px; color:#555;">
+      Enter the 6-digit code sent to your email
+    </p>
+
+    <form method="POST">
+      {% csrf_token %}
+      <input type="text" name="otp" placeholder="______" maxlength="6" required>
+      <button type="submit" class="btn">Verify</button>
+    </form>
+
+<p style="margin-top:12px; font-size:14px;">
+  Didn’t receive OTP?
+  <span id="timer" style="color:#23c5b6; font-weight:600;"></span>
+  <a id="resendLink" href="{% url 'admin_forgot_password' %}" style="display:none;">Resend</a>
+</p>
+
+  </div>
+  <script>
+  let countdown = 60; // seconds
+  let timerSpan = document.getElementById("timer");
+  let resendLink = document.getElementById("resendLink");
+
+  function updateTimer() {
+      if (countdown <= 0) {
+          timerSpan.style.display = "none";
+          resendLink.style.display = "inline";
+      } else {
+          timerSpan.textContent = `Resend OTP in ${countdown}s`;
+          countdown--;
+          setTimeout(updateTimer, 1000);
+      }
+  }
+
+  updateTimer();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sales Report PDF</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 25px;
+            color: #333;
+        }
+        h2 {
+            text-align: center;
+            color: #1a73e8;
+        }
+        .summary {
+            margin-bottom: 25px;
+        }
+        .summary-table, .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+            color: #333;
+        }
+        .summary-table th {
+            background-color: #e9f5ff;
+        }
+    </style>
+</head>
+<body>
+<!-- {% if start_date and end_date %}
+    <h2>Stepora Sales Report ({{ start_date }} to {{ end_date }})</h2>
+{% else %}
+    <h2>Stepora Sales Report</h2>
+{% endif %} -->
+
+{% if start_date and end_date %}
+    <h2>Stepora Sales Report ({{ start_date }} to {{ end_date }})</h2>
+{% else %}
+    <h2>Stepora Sales Report</h2>
+{% endif %}
+
+
+    <div class="summary">
+        <h4>Summary</h4>
+        <table class="summary-table">
+            <tr>
+                <th>Total Orders</th>
+                <th>Total Sales (₹)</th>
+                <th>Total Discount (₹)</th>
+                <th>Coupon Deduction (₹)</th>
+                                <th>Total Revenue (₹)</th>
+            </tr>
+            <tr>
+                <td>{{ summary.total_orders|default:0 }}</td>
+                <td>₹{{ summary.total_sales|default:0 }}</td>
+                <td>₹{{ summary.total_discount|default:0 }}</td>
+                <td>₹{{ summary.total_coupon|default:0 }}</td>
+                                <td>₹{{ summary.total_revenue|default:0 }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <h4>Detailed Report ({{ period|title }})</h4>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Total Orders</th>
+                <th>Total Sales (₹)</th>
+                <th>Discount (₹)</th>
+                <th>Coupon (₹)</th>
+                <th>Delivery (₹)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in grouped_data %}
+            <tr>
+                <td>{{ row.period|date:"d/m/Y" }}</td>
+                <td>{{ row.total_orders }}</td>
+                <td>{{ row.total_sales|default:0 }}</td>
+                <td>{{ row.total_discount|default:0 }}</td>
+                <td>{{ row.coupon_deduction|default:0 }}</td>
+                <td>{{ row.delivery_charge|default:0 }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6">No data available for selected period.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

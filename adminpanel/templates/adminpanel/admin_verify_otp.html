@@ -1,0 +1,160 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stepora | Verify OTP</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f7f8fa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      position: relative;
+    }
+
+    .container {
+      background: #fff;
+      width: 450px;
+      padding: 2.5rem 3rem;
+      box-shadow: 0 4px 25px rgba(0, 0, 0, 0.05);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: stretch;
+    }
+
+    h2 {
+      text-align: center;
+      font-weight: 600;
+      color: #2b2b2b;
+      margin-bottom: 1.5rem;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .btn {
+      background-color: #23c5b6;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      margin-top: 10px;
+    }
+
+    .error {
+      color: red;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    .timer {
+      text-align: center;
+      color: #333;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+
+    .expired {
+      color: red;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .resend-btn {
+      background-color: #444;
+      color: #fff;
+      padding: 10px;
+      border-radius: 8px;
+      text-align: center;
+      display: block;
+      margin-top: 10px;
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+  <h2>Verify OTP</h2>
+        {% if messages %}
+      <div id="message-container">
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }}" role="alert">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+  {% if error %}
+  <p class="error">{{ error }}</p>
+  {% endif %}
+
+  {% if expired %}
+    <p class="expired">OTP expired! Please request a new one.</p>
+    <a href="{% url 'admin_register' %}" class="resend-btn">Resend OTP</a>
+
+  {% else %}
+    <form method="POST">
+      {% csrf_token %}
+      <input type="text" name="otp" maxlength="6" placeholder="Enter OTP" required>
+      <button class="btn" type="submit">Verify</button>
+    </form>
+
+    <p class="timer">
+       OTP expires in <span id="countdown"></span>
+    </p>
+  {% endif %}
+</div>
+
+
+<script>
+  // only run countdown if OTP is not expired
+  {% if not expired %}
+    // 2 min countdown (120 seconds)
+    let timeLeft = 120;
+
+    const timerDisplay = document.getElementById("countdown");
+
+    const countInterval = setInterval(() => {
+      let minutes = Math.floor(timeLeft / 60);
+      let seconds = timeLeft % 60;
+
+      timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+
+      timeLeft--;
+
+      if (timeLeft < 0) {
+        clearInterval(countInterval);
+        location.reload();  // refresh page to show expired message
+      }
+    }, 1000);
+  {% endif %}
+</script>
+
+</body>
+</html>

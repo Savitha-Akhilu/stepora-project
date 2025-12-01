@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Invoice - {{ order.iorderid }}</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    .invoice-box {
+      width: 100%;
+      border: 1px solid #eee;
+      padding: 20px 30px;
+      border-radius: 10px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #000;
+    }
+    .header, .footer {
+      text-align: center;
+      font-size: 13px;
+      color: #777;
+    }
+    .details {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .details div {
+      width: 48%;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    table th, table td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      font-size: 14px;
+    }
+    table th {
+      background-color: #f8f8f8;
+      text-align: left;
+    }
+    .logo {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .logo h3 {
+      margin: 0;
+    }
+    .status {
+      font-weight: bold;
+    }
+    .status.Placed { color: #f59e0b; }
+    .status.Delivered { color: #16a34a; }
+    .status.Cancelled { color: #dc2626; }
+    .status.Returned { color: #2563eb; }
+
+    .total {
+      text-align: right;
+      font-size: 14px;
+      line-height: 1.6;
+      margin-top: 15px;
+    }
+
+    .total hr {
+      border: none;
+      border-top: 1px solid #000;
+      margin: 8px 0;
+    }
+
+    .total p {
+      margin: 0;
+      padding: 0;
+    }
+
+    .total p strong {
+      font-size: 16px;
+    }
+
+    .text-success {
+      color: #16a34a;
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="invoice-box">
+  <div class="logo">
+    <h3>Stepora</h3>
+    <small>www.stepora.com</small>
+  </div>
+
+  <h2>Order Invoice</h2>
+
+  <div class="details">
+    <div>
+      <h4>Billing Details</h4>
+      <p><strong>{{ order.user.username }}</strong></p>
+      <p>{{ order.address.street_address }}</p>
+      <p>{{ order.address.city }}, {{ order.address.state }}</p>
+      <p>{{ order.address.pincode }}</p>
+      <p>Phone: {{ order.address.mobile }}</p>
+    </div>
+
+    <div>
+      <h4>Order Details</h4>
+      <p>Order ID: {{ order.iorderid }}</p>
+      <p>Date: {{ order.created_at|date:"d M, Y h:i A" }}</p>
+      <p>Payment Method: {{ order.payment_method }}</p>
+      <p>Status: <span class="status {{ order.status }}">{{ order.status }}</span></p>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th>Variant</th>
+        <th>Qty</th>
+        <th>Price (₹)</th>
+        <th>Subtotal (₹)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in order_items %}
+      <tr>
+        <td>{{ item.product.name }}</td>
+        <td>{{ item.variant.size }} / {{ item.variant.color }}</td>
+        <td>{{ item.quantity }}</td>
+        <td>
+          ₹{{ item.final_price|floatformat:2 }}
+          {% if item.discount_value %}
+            <small class="text-success">(- ₹{{ item.discount_value|floatformat:2 }} OFF)</small>
+          {% endif %}
+        </td>
+        <td>₹{{ item.item_subtotal|floatformat:2}}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="total">
+    <p>Total MRP: ₹{{ total_mrp|floatformat:2 }}</p>
+    <p class="text-success">Discount on MRP: - ₹{{ offer_discount|floatformat:2 }}</p>
+    {% if order.coupon_code %}
+      <p class="text-success">Coupon Discount ({{ order.coupon_code }}): - ₹{{ coupon_discount|floatformat:2 }}</p>
+    {% endif %}
+    <p>Delivery Charge: ₹{{ delivery_charge|floatformat:2 }}</p>
+    <hr>
+    <p><strong>Total Amount: ₹{{ total|floatformat:2 }}</strong></p>
+  </div>
+
+  <div class="footer">
+    <p>Thank you for shopping with Stepora ❤️</p>
+  </div>
+</div>
+
+</body>
+</html>

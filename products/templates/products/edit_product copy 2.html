@@ -1,0 +1,525 @@
+{% extends "adminpanel/base.html" %}
+{% load static %}
+
+{% block title %}Edit Product{% endblock %}
+
+{% block content %}
+{% if messages %}
+<div class="mb-3">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="container-fluid py-4">
+    <h2 class="mb-4 text-center fw-bold text-primary">Edit Product</h2>
+
+    <form id="editProductForm" method="post" enctype="multipart/form-data" class="shadow p-5 rounded bg-white">
+        {% csrf_token %}
+        {% if product_form.non_field_errors %}
+        <div class="alert alert-danger mb-3">
+            {% for error in product_form.non_field_errors %}
+            <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- 🛍 Product Information -->
+        <div class="mb-5">
+            <h4 class="section-title mb-4 text-secondary border-bottom pb-2">
+                <i class="bi bi-box"></i> Product Information
+            </h4>
+            <div class="row gy-4 gx-5">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Product Name</label>
+                    <input type="text" name="name" class="form-control" value="{{ product.name }}" required>
+                </div>
+<div class="col-md-6">
+    <label class="form-label fw-semibold">Category</label>
+    <select name="category" class="form-select" required>
+        <option value="">-- Select Category --</option>
+        {% for categories in categories %}
+        <option value="{{ categories.id }}" {% if product.category and product.category.id == categories.id %}selected{% endif %}>
+            {{ categories.category_name }}
+            {% if categories.gender %}
+                - {{ categories.gender.name }}
+            {% endif %}
+        </option>
+        {% endfor %}
+    </select>
+</div>
+
+
+
+<div class="col-md-6">
+    <label class="form-label fw-semibold">Brand</label>
+    <select name="brand" class="form-select" required>
+        <option value="">-- Select Brand --</option>
+        {% for brand in brands %}
+        <option value="{{ brand.id }}" {% if product.brand and product.brand.id == brand.id %}selected{% endif %}>
+            {{ brand.name }}
+        </option>
+        {% endfor %}
+    </select>
+</div>
+
+
+
+<div class="col-md-6">
+    <label class="form-label fw-semibold">Material</label>
+    <select name="material" class="form-select" required>
+        <option value="">-- Select Material --</option>
+        {% for m in materials %}
+        <option value="{{ m.id }}" {% if product.material and product.material.id == m.id %}selected{% endif %}>
+            {{ m.name }}
+        </option>
+        {% endfor %}
+    </select>
+</div>
+
+
+
+<div class="col-md-6">
+    <label class="form-label fw-semibold">Occasion</label>
+    <select name="occasion" class="form-select" required>
+        <option value="">-- Select Occasion --</option>
+        {% for o in occasions %}
+        <option value="{{ o.id }}" {% if product.occasion and product.occasion.id == o.id %}selected{% endif %}>
+            {{ o.name }}
+        </option>
+        {% endfor %}
+    </select>
+</div>
+
+
+            </div>
+        </div>
+
+        <!-- Product Variant -->
+        <div class="mb-5">
+            <h4 class="section-title mb-4 text-secondary border-bottom pb-2">
+                <i class="bi bi-tags"></i> Product Variants
+            </h4>
+
+{% for variant in variants %}
+<div class="variant-row row gy-3 gx-3 mb-4 border p-4 rounded bg-light">
+
+    <!-- Variant Information -->
+    <div class="col-md-3">
+        <label class="form-label fw-semibold mb-2">Variant Name</label>
+        <input type="text" name="variant_name[]" class="form-control" value="{{ variant.variant_name }}" required>
+    </div>
+    <div class="col-md-2">
+        <label class="form-label fw-semibold mb-2">SKU Code</label>
+        <input type="text" name="sku[]" class="form-control" value="{{ variant.sku }}" required>
+    </div>
+    <div class="col-md-2">
+        <label class="form-label fw-semibold mb-2">Stock</label>
+        <input type="number" name="stock[]" class="form-control" min="0" value="{{ variant.stock }}" required>
+    </div>
+    <div class="col-md-2">
+        <label class="form-label fw-semibold mb-2">Low Stock Qty</label>
+        <input type="number" name="low_stock_qty[]" class="form-control" min="0" value="{{ variant.low_stock_qty }}">
+    </div>
+    <div class="col-md-2">
+        <label class="form-label fw-semibold mb-2">Color</label>
+        <select name="color[]" class="form-select" required>
+            <option value="">-- Select Color --</option>
+            {% for color in colors %}
+            <option value="{{ color.id }}" {% if variant.color and variant.color.id == color.id %}selected{% endif %}>{{ color.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2">
+        <label class="form-label fw-semibold mb-2">Size</label>
+        <select name="size[]" class="form-select" required>
+            <option value="">-- Select Size --</option>
+            {% for size in sizes %}
+            <option value="{{ size.id }}" {% if variant.size and variant.size.id == size.id %}selected{% endif %}>{{ size.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label fw-semibold mb-2">Discount (%)</label>
+        <input type="number" name="discount[]" class="form-control" min="0" max="100" value="{{ variant.discount }}">
+    </div>
+    <div class="col-md-2">
+        <label class="form-label fw-semibold mb-2">Price (₹)</label>
+        <input type="number" name="price[]" class="form-control" min="0" step="0.01" value="{{ variant.price }}" required>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label fw-semibold mb-2">Short Description</label>
+        <input type="text" name="short_desc[]" class="form-control" value="{{ variant.short_description }}">
+    </div>
+    <div class="col-md-8">
+        <label class="form-label fw-semibold mb-2">Long Description</label>
+        <textarea name="long_desc[]" class="form-control" rows="2">{{ variant.long_description }}</textarea>
+    </div>
+
+    <div class="col-md-12 mt-3">
+        <!-- 🖼 Variant Images -->
+        <label class="form-label fw-semibold">Upload Images (min 3)</label>
+        <input type="file" id="multi-image-input"name="variant_images_{{ forloop.counter0 }}[]" class="form-control variant-image-input" accept="image/*" multiple>
+
+        <!-- Existing images for this variant -->
+        <div class="variant-image-previews d-flex flex-wrap gap-3 mt-3" id="image-previews">
+            {% for image in variant.images.all %}
+            <div class="position-relative">
+                <div class="card shadow-sm" style="width:150px;">
+                    <img src="{{ image.image.url }}" class="card-img-top preview-img" style="object-fit:cover; height:150px;">
+                    <div class="card-body text-center p-2">
+                        <div class="form-check">
+                            <input class="form-check-input is-primary" type="checkbox" name="primary_image_variant_{{ forloop.counter0 }}" value="{{ forloop.counter0 }}" {% if image.is_primary %}checked{% endif %}>
+                            <label class="form-check-label small">Is Primary</label>
+                        </div>
+                        <button type="button" class="btn btn-outline-primary btn-sm mt-1 crop-btn">Crop</button>
+                        <button type="button" class="btn btn-outline-danger btn-sm mt-1 remove-btn">Remove</button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="col-md-1 d-flex align-items-end">
+        <button type="button" class="btn btn-danger remove-variant w-100">
+            <i class="bi bi-trash"></i>
+        </button>
+    </div>
+</div>
+{% endfor %}
+
+
+            <div class="text-end">
+                <button type="button" id="add-variant" class="btn btn-primary mt-2">
+                    <i class="bi bi-plus-lg"></i> Add Another Variant
+                </button>
+            </div>
+        </div>
+
+
+        <!-- Submit -->
+        <div class="text-center">
+            <button type="submit" class="btn btn-success px-5 py-2 fw-semibold">
+                <i class="bi bi-save"></i> Update Product
+            </button>
+            <a href="{% url 'products:product_list' %}" class="btn btn-outline-secondary px-4 py-2 ms-2">
+                <i class="bi bi-arrow-left"></i> Back to Product List
+            </a>
+        </div>
+    </form>
+</div>
+<!-- Crop Modal -->
+<div class="modal fade" id="cropModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Crop Image</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img id="crop-image" style="max-width:90%; max-height:80vh;">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success" id="crop-save">Save Crop</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JS & CSS (Bootstrap, Cropper) same as add_product.html -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    // ==============================
+    // IMAGE MANAGEMENT
+    // ==============================
+
+    const previewContainer = document.getElementById("image-previews");
+    const input = document.getElementById("multi-image-input");
+
+    //  Clear only new upload previews before showing new ones
+    input.addEventListener("change", function (event) {
+        const newUploads = previewContainer.querySelectorAll('.col-md-3[data-new="true"]');
+        newUploads.forEach(el => el.remove());
+
+        for (const file of event.target.files) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const col = document.createElement("div");
+                col.classList.add("col-md-3", "position-relative");
+                col.setAttribute("data-new", "true");
+                col.innerHTML = `
+                    <div class="card shadow-sm">
+                        <img src="${e.target.result}" class="card-img-top preview-img" style="object-fit:cover;height:200px;">
+                        <div class="card-body text-center">
+                            <div class="form-check">
+                                <input class="form-check-input is-primary" type="radio" name="primary_image">
+                                <label class="form-check-label">Is Primary</label>
+                            </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm mt-2 crop-btn">Crop</button>
+                            <button type="button" class="btn btn-outline-danger btn-sm mt-2 remove-btn">Remove</button>
+                        </div>
+                    </div>
+                `;
+                previewContainer.appendChild(col);
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Allow only one primary radio selection
+    previewContainer.addEventListener("change", function (event) {
+        if (event.target.classList.contains("is-primary")) {
+            const allRadios = previewContainer.querySelectorAll('.is-primary');
+            allRadios.forEach(r => {
+                if (r !== event.target) r.checked = false;
+            });
+        }
+    });
+
+    // Remove an image preview
+    previewContainer.addEventListener("click", function (event) {
+        if (event.target.classList.contains("remove-btn")) {
+            const card = event.target.closest(".col-md-3");
+            card.remove();
+        }
+    });
+
+    // ==============================
+    //  VARIANT MANAGEMENT
+    // ==============================
+    const variantContainer = document.getElementById("variant-container");
+    const addVariantBtn = document.getElementById("add-variant");
+
+    //  Add Another Variant
+    addVariantBtn.addEventListener("click", function () {
+        const firstVariant = variantContainer.querySelector(".variant-row");
+        alert("hghjghjhghgh")
+        if (!firstVariant) return;
+
+        const newVariant = firstVariant.cloneNode(true);
+
+        // Clear all inputs
+        newVariant.querySelectorAll("input, textarea, select").forEach(el => {
+            if (el.tagName === "SELECT") {
+                el.selectedIndex = 0;
+            } else if (["number", "text", "textarea"].includes(el.type) || el.tagName === "TEXTAREA") {
+                el.value = "";
+            }
+        });
+
+        variantContainer.appendChild(newVariant);
+    });
+
+    //  Remove a Variant
+    variantContainer.addEventListener("click", function (event) {
+        if (event.target.classList.contains("remove-variant") || event.target.closest(".remove-variant")) {
+            const allVariants = variantContainer.querySelectorAll(".variant-row");
+            if (allVariants.length > 1) {
+                event.target.closest(".variant-row").remove();
+            } else {
+                alert("At least one variant is required.");
+            }
+        }
+    });
+});
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("editProductForm");
+
+    form.addEventListener("submit", function (e) {
+        const primaryChecked = document.querySelector('input[name="primary_image"]:checked');
+
+        if (!primaryChecked) {
+            e.preventDefault(); // Stop form submission
+            alert(" Please select one image as the Primary Image before updating the product.");
+            window.scrollTo({ top: document.querySelector("#image-previews").offsetTop - 100, behavior: "smooth" });
+            return false;
+        }
+    });
+});
+</script>
+<script>
+/* ===== GLOBALS for cropper ===== */
+let currentCropImage = null;
+let cropper = null;
+
+/* Utility: find the nearest preview card img */
+function findPreviewImg(el) {
+  // card contains .preview-img
+  const card = el.closest('.card') || el.closest('.position-relative') || el.closest('.col-md-3');
+  if (!card) return null;
+  return card.querySelector('.preview-img');
+}
+
+/* ===== Delegated click handler for Crop buttons ===== */
+document.addEventListener('click', function (e) {
+  // Crop button clicked
+  if (e.target.classList.contains('crop-btn')) {
+    e.preventDefault();
+    const img = findPreviewImg(e.target);
+    if (!img) return;
+
+    currentCropImage = img;
+    const modalImage = document.getElementById('crop-image');
+    modalImage.src = currentCropImage.src;
+
+    const modalEl = document.getElementById('cropModal');
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
+
+    // Small delay so modal content is painted before Cropper init
+    setTimeout(() => {
+      if (cropper) {
+        try { cropper.destroy(); } catch (err) {}
+      }
+      cropper = new Cropper(modalImage, {
+        aspectRatio: 1,
+        viewMode: 1,
+        autoCropArea: 1
+      });
+    }, 200);
+
+    return;
+  }
+
+  // Remove button clicked
+  if (e.target.classList.contains('remove-btn')) {
+    e.preventDefault();
+    const cardCol = e.target.closest('.col-md-3') || e.target.closest('.position-relative');
+    if (!cardCol) return;
+
+    // If this preview is an existing DB image, it should have data-id
+    const existingId = cardCol.getAttribute('data-id') || cardCol.dataset.id;
+    if (existingId) {
+      // append hidden input to form: delete_images[] = existingId
+      const form = document.getElementById('editProductForm') || document.querySelector('form');
+      if (form) {
+        const hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.name = 'delete_images[]';
+        hidden.value = existingId;
+        form.appendChild(hidden);
+      }
+    }
+
+    // remove preview from DOM
+    cardCol.remove();
+    return;
+  }
+});
+
+/* ===== Crop Save Handler ===== */
+document.addEventListener('click', function (e) {
+  if (e.target && e.target.id === 'crop-save') {
+    e.preventDefault();
+    if (!cropper || !currentCropImage) return;
+    try {
+      const canvas = cropper.getCroppedCanvas({ width: 600, height: 600 });
+      currentCropImage.src = canvas.toDataURL('image/jpeg');
+
+      // cleanup
+      cropper.destroy();
+      cropper = null;
+
+      // hide modal
+      const modalEl = document.getElementById('cropModal');
+      bootstrap.Modal.getInstance(modalEl).hide();
+    } catch (err) {
+      console.error('Crop save error', err);
+    }
+  }
+});
+
+/* ===== File input change handler for new uploads (existing logic kept) =====
+   This will create preview cards which the above delegation will handle.
+   Make sure file inputs have class "variant-image-input" or your multi-image input has id "multi-image-input".
+*/
+document.addEventListener('change', function (e) {
+  // If using the global multi-image input (existing edit template has #multi-image-input)
+  if (e.target && e.target.id === 'multi-image-input') {
+    const files = Array.from(e.target.files);
+    const previewsContainer = document.getElementById('image-previews');
+    // Remove only previews marked as "data-new=true" so existing stays
+    const oldNew = previewsContainer.querySelectorAll('[data-new="true"]');
+    oldNew.forEach(n => n.remove());
+
+    files.forEach((file, index) => {
+      const reader = new FileReader();
+      reader.onload = function (ev) {
+        const col = document.createElement('div');
+        col.className = 'col-md-3 position-relative';
+        col.setAttribute('data-new', 'true'); // mark as new upload
+        col.innerHTML = `
+          <div class="card shadow-sm">
+            <img src="${ev.target.result}" class="card-img-top preview-img" alt="Image Preview" style="object-fit:cover; height:200px;">
+            <div class="card-body text-center">
+              <div class="form-check">
+                <input class="form-check-input is-primary" type="radio" name="primary_image">
+                <label class="form-check-label">Is Primary</label>
+              </div>
+              <button type="button" class="btn btn-outline-primary btn-sm mt-2 crop-btn">Crop</button>
+              <button type="button" class="btn btn-outline-danger btn-sm mt-2 remove-btn">Remove</button>
+            </div>
+          </div>
+        `;
+        previewsContainer.appendChild(col);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // If you also have per-variant inputs with class 'variant-image-input', handle them too:
+  if (e.target && e.target.classList && e.target.classList.contains('variant-image-input')) {
+    const files = Array.from(e.target.files);
+    const previewsContainer = e.target.closest('.variant-row')?.querySelector('.variant-image-previews') || e.target.closest('.variant-row')?.querySelector('.variant-image-previews') || e.target.closest('.variant-row')?.querySelector('.variant-image-previews');
+    if (!previewsContainer) return;
+    // clear previews for this variant (only newly added)
+    const oldNew = previewsContainer.querySelectorAll('[data-new="true"]');
+    oldNew.forEach(n => n.remove());
+
+    files.forEach((file, index) => {
+      const reader = new FileReader();
+      reader.onload = function (ev) {
+        const col = document.createElement('div');
+        col.className = 'position-relative';
+        col.setAttribute('data-new', 'true');
+        col.innerHTML = `
+          <div class="card shadow-sm" style="width:150px;">
+            <img src="${ev.target.result}" class="card-img-top preview-img" alt="Image Preview" style="object-fit:cover; height:150px;">
+            <div class="card-body text-center p-2">
+              <div class="form-check">
+                <input class="form-check-input is-primary" type="checkbox" name="primary_image_variant_${index}" value="${index}">
+                <label class="form-check-label small">Is Primary</label>
+              </div>
+              <button type="button" class="btn btn-outline-primary btn-sm mt-1 crop-btn">Crop</button>
+              <button type="button" class="btn btn-outline-danger btn-sm mt-1 remove-btn">Remove</button>
+            </div>
+          </div>
+        `;
+        previewsContainer.appendChild(col);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+});
+
+/* ===== Keep single primary among preview radios (if needed) ===== */
+document.addEventListener('change', function (e) {
+  if (e.target && e.target.classList && e.target.classList.contains('is-primary')) {
+    // If radio name is same across new and old, ensure uniqueness manually:
+    const all = document.querySelectorAll('.is-primary');
+    all.forEach(r => {
+      if (r !== e.target) r.checked = false;
+    });
+  }
+});
+</script>
+
+{% endblock %}

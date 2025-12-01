@@ -1,0 +1,170 @@
+{% extends 'adminpanel/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+  <h4 class="mb-4 text-primary">
+    <i class="fa fa-ticket"></i> Add New Coupon
+  </h4>
+{% if messages %}
+<div class="mt-3">
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="card shadow-sm p-4">
+
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="id_code" class="form-label">Code *</label>
+          <input type="text" name="code" id="id_code" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+          <label for="id_coupon_type" class="form-label">Coupon Type *</label>
+          <select name="coupon_type" id="id_coupon_type" class="form-select" required>
+            <option value="">-- Select Type --</option>
+            <option value="PERCENTAGE">Percentage</option>
+            <option value="FLAT">Flat</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="id_discount_value" class="form-label">Discount Value *</label>
+          <input type="number" name="discount_value" id="id_discount_value" class="form-control" min="1" required>
+        </div>
+        <div class="col-md-6">
+          <label for="id_min_purchase_amount" class="form-label">Min Purchase Amount</label>
+          <input type="number" name="min_purchase_amount" id="id_min_purchase_amount" class="form-control" min="0">
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="id_description" class="form-label">Description</label>
+        <textarea name="description" id="id_description" class="form-control" rows="2" placeholder="Optional"></textarea>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="id_valid_from" class="form-label">Valid From *</label>
+          <input type="date" name="valid_from" id="id_valid_from" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+          <label for="id_valid_to" class="form-label">Valid To *</label>
+          <input type="date" name="valid_to" id="id_valid_to" class="form-control" required>
+        </div>
+      </div>
+
+      <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" name="active" id="id_active" checked>
+        <label class="form-check-label" for="id_active">
+          Active
+        </label>
+      </div>
+
+      <div class="text-end">
+        <button type="submit" class="btn btn-primary">
+          <i class="fa fa-save"></i> Save Coupon
+        </button>
+        <a href="{% url 'admin_coupons' %}" class="btn btn-secondary ms-2">Cancel</a>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- <script>
+document.addEventListener("DOMContentLoaded", function() {
+  const validFrom = document.getElementById("id_valid_from");
+
+  if (validFrom) {
+    const today = new Date();
+    today.setDate(today.getDate() + 1); // Tomorrow
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const formatted = `${yyyy}-${mm}-${dd}`;
+    validFrom.min = formatted;
+    validFrom.value = formatted;
+  }
+
+      const couponType = document.getElementById("id_coupon_type");
+    const discountVal = document.getElementById("id_discount_value");
+    couponType.addEventListener("change", function () {
+        if (this.value === "percentage") {
+            discountVal.setAttribute("max", "100");
+        } else {
+            discountVal.removeAttribute("max");
+        }
+    });
+
+});
+
+</script> -->
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+
+    // ────────────────────────────────
+    // 1️⃣ VALID FROM – MIN DATE SET
+    // ────────────────────────────────
+    const validFrom = document.getElementById("id_valid_from");
+    if (validFrom) {
+        const today = new Date();
+        today.setDate(today.getDate() + 1);
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const formatted = `${yyyy}-${mm}-${dd}`;
+        validFrom.min = formatted;
+        validFrom.value = formatted;
+    }
+
+    // ────────────────────────────────
+    // 2️⃣ PERCENTAGE MAX VALIDATION
+    // ────────────────────────────────
+    const couponType = document.getElementById("id_coupon_type");
+    const discountVal = document.getElementById("id_discount_value");
+
+    couponType.addEventListener("change", function () {
+        if (this.value === "percentage") {
+            discountVal.setAttribute("max", "99");
+            discountVal.value = "";   // clear invalid old value
+            discountVal.placeholder = "Max 99%";
+        } else {
+            discountVal.removeAttribute("max");
+            discountVal.placeholder = "";
+        }
+    });
+
+});
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const codeInput = document.getElementById("id_code");
+
+    codeInput.addEventListener("blur", function () {
+        const code = this.value.trim();
+        if (code === "") return;
+
+        fetch(`/adminpanel/check-coupon/?code=${code}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.exists) {
+                    alert("A coupon with this code already exists!");
+                    codeInput.value = "";
+                    codeInput.focus();
+                }
+            });
+    });
+});
+</script>
+
+{% endblock %}

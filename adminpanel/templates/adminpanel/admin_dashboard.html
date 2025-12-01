@@ -1,0 +1,944 @@
+{% extends "adminpanel/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<!-- Messages -->
+{% if messages %}
+  <div class="container mt-2">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+
+<div class="container-fluid mt-3">
+
+  <!-- ================= KPI CARDS ================= -->
+  <div class="row g-3 mb-4">
+
+    <div class="col-md-3">
+      <div class="card text-center shadow-sm p-3">
+        <h6 class="text-muted">Users</h6>
+        <h3>{{ total_users }}</h3>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card text-center shadow-sm p-3">
+        <h6 class="text-muted">Admins</h6>
+        <h3>{{ total_admins }}</h3>
+      </div>
+    </div>
+
+    <!-- <div class="col-md-3">
+      <div class="card text-center shadow-sm p-3">
+        <h6 class="text-muted">Orders</h6>
+        <h3>{{ total_orders }}</h3>
+      </div>
+    </div> -->
+
+    <div class="col-md-3">
+      <div class="card text-center shadow-sm p-3">
+        <h6 class="text-muted">Products</h6>
+        <h3>{{ total_products }}</h3>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ================= SALES BAR CHART ================= -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <!-- <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="card-title">Sales Overview</h5>
+
+        <select id="salesFilter" class="form-select w-auto">
+          <option value="monthly">Monthly</option>
+          <option value="yearly">Yearly</option>
+        </select>
+        <select id="yearSelect" class="form-select" style="width:120px;">
+</select>
+
+      </div> -->
+      <div class="d-flex justify-content-between align-items-center mb-3">
+
+    <h5 class="card-title" id="chart-title">Sales Overview</h5>
+
+    <div class="d-flex gap-2">   <!-- group dropdowns here -->
+        <select id="salesFilter" class="form-select w-auto">
+          <option value="monthly">Monthly</option>
+          <option value="yearly">Yearly</option>
+        </select>
+
+        <select id="yearSelect" class="form-select w-auto" style="width:120px;"></select>
+    </div>
+
+</div>
+
+
+      <canvas id="salesBarChart" height="120"></canvas>
+    </div>
+  </div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="card-title" id="order-chart-title">Product Order Overview</h5>
+
+        <div class="d-flex gap-2">
+            <select id="orderFilter" class="form-select w-auto">
+              <option value="monthly">Monthly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+
+            <select id="orderYearSelect" class="form-select w-auto" style="width:120px;"></select>
+        </div>
+      </div>
+
+      <canvas id="ordersBarChart" height="120"></canvas>
+    </div>
+</div>
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="card-title" id="orderStackChartTitle">Order Overview </h5>
+
+            <div class="d-flex gap-2">
+                <select id="orderStackFilter" class="form-select w-auto">
+                    <option value="monthly">Monthly</option>
+                    <option value="yearly">Yearly</option>
+                </select>
+
+                <select id="orderStackYearSelect" class="form-select w-auto" style="width:120px;"></select>
+            </div>
+        </div>
+
+        <canvas id="orderStackChart" height="120"></canvas>
+    </div>
+</div>
+
+  <!-- ================= BRAND PIE CHART ================= -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h5 class="card-title mb-3">Brand Sales Share</h5>
+<div class="d-flex justify-content-center">
+  <div style="width: 350px; height: 350px;">
+      <canvas id="brandPieChart"></canvas>
+  </div>
+</div>
+    </div>
+  </div>
+
+<!-- <div class="card shadow-sm mb-4">
+    <div class="card-body">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="card-title" id="topSellingTitle">Top Selling Products</h5>
+
+            <div class="d-flex gap-2">
+                <select id="filterType" class="form-select w-auto">
+                    <option value="monthly">Monthly</option>
+                    <option value="yearly">Yearly</option>
+                </select>
+
+                <select id="year" class="form-select w-auto" style="width:120px;"></select>
+            </div>
+        </div>
+
+        <div style="height: 350px;">
+            <canvas id="topSellingChart"></canvas>
+        </div>
+
+    </div>
+</div> -->
+
+
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+
+        <!-- Header + Filters -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="card-title" id="topSellingTitle">Top Selling Products</h5>
+
+            <div class="d-flex gap-2">
+
+                <!-- monthly / yearly -->
+                <select id="filterType" class="form-select w-auto">
+                    <option value="monthly">Monthly</option>
+                    <option value="yearly">Yearly</option>
+                </select>
+
+                <!-- year -->
+                <select id="year" class="form-select w-auto" style="width:120px;"></select>
+
+                <!-- month -->
+        <select id="month" class="form-select w-auto" style="width:140px; ">
+            <option value="">Select Month</option>
+        </select>            </div>
+        </div>
+
+        <div style="height:350px;">
+            <canvas id="topSellingChart"></canvas>
+        </div>
+
+    </div>
+</div>
+
+
+
+
+
+  <!-- ================= TOP PRODUCTS ================= -->
+  <!-- <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h5 class="card-title">Top 10 Best Selling Products</h5>
+
+      <table class="table table-bordered text-center mt-3">
+        <thead class="table-light">
+          <tr>
+            <th>#</th>
+            <th>Product</th>
+            <th>Units Sold</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for item in top_products %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ item.product__name }}</td>
+            <td>{{ item.total_sold }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="3">No sales yet.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div> -->
+
+
+  <!-- ================= TOP CATEGORIES ================= -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h5 class="card-title">Top 10 Best Selling Categories</h5>
+<div class="d-flex gap-2 mb-2">
+<select id="catFilter" class="form-select form-select-sm w-auto">
+          <option value="yearly">Yearly</option>
+        <option value="monthly">Monthly</option>
+    </select>
+
+<select id="catYear" class="form-select form-select-sm w-auto"></select>
+<select id="catMonth" class="form-select form-select-sm w-auto" style="display:none"></select>
+
+</div>
+
+      <table class="table table-bordered text-center mt-3">
+        <thead class="table-light">
+          <tr>
+            <th>#</th>
+            <th>Category</th>
+            <th>Units Sold</th>
+          </tr>
+        </thead>
+<tbody id="catTableBody">
+{% for c in top_categories %}
+  <tr>
+    <td>{{ forloop.counter }}</td>
+    <td>{{ c.product__category__category_name }} - {{ c.product__category__gender__name }}</td>
+    <td>{{ c.total_sold }}</td>
+  </tr>
+{% empty %}
+  <tr><td colspan="3">No category sales yet.</td></tr>
+{% endfor %}
+</tbody>
+
+      </table>
+    </div>
+  </div>
+
+
+  <!-- ================= TOP BRANDS ================= -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h5 class="card-title">Top 5 Best Selling Brands</h5>
+<div class="d-flex gap-2 mb-2">
+<select id="brandFilter" class="form-select form-select-sm w-auto">
+          <option value="yearly">Yearly</option>
+        <option value="monthly">Monthly</option>
+    </select>
+
+<select id="brandYear" class="form-select form-select-sm w-auto"></select>
+<select id="brandMonth" class="form-select form-select-sm w-auto" style="display:none"></select>
+
+</div>
+
+      <table class="table table-bordered text-center mt-3">
+        <thead class="table-light">
+          <tr>
+            <th>#</th>
+            <th>Brand</th>
+            <th>Units Sold</th>
+          </tr>
+        </thead>
+<tbody id="brandTableBody">
+{% for b in top_brands %}
+  <tr>
+    <td>{{ forloop.counter }}</td>
+    <td>{{ b.product__brand__name }}</td>
+    <td>{{ b.total_sold }}</td>
+  </tr>
+{% empty %}
+  <tr><td colspan="3">No brand sales yet.</td></tr>
+{% endfor %}
+</tbody>
+
+      </table>
+    </div>
+  </div>
+
+</div>
+
+
+
+<!-- CHART JS for graph-->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+// ================== YEAR DROPDOWN ==================
+const yearSelect = document.getElementById("yearSelect");
+const salesFilter = document.getElementById("salesFilter");
+
+// Fill last 10 years
+const currentYear = new Date().getFullYear();
+for (let i = 0; i < 10; i++) {
+    const y = currentYear - i;
+    const opt = document.createElement("option");
+    opt.value = y;
+    opt.text = y;
+    yearSelect.appendChild(opt);
+}
+
+// Hide year dropdown initially if yearly is selected
+yearSelect.style.display = "none";
+
+let salesBarChart;
+let brandPieChart;
+
+
+// ================== LOAD BAR CHART (MAIN FUNCTION) ==================
+function loadSalesBarChart(filter = "monthly") {
+
+    // If filter = monthly → send year
+    let url = `/adminpanel/sales-chart-data/?filter=${filter}`;
+
+    if (filter === "monthly") {
+        yearSelect.style.display = "block";  // show year dropdown
+        url += `&year=${yearSelect.value}`;
+    } else {
+        yearSelect.style.display = "none";   // hide year dropdown
+    }
+
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+
+            const ctx = document.getElementById("salesBarChart").getContext("2d");
+
+            if (salesBarChart) salesBarChart.destroy();
+
+            salesBarChart = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: "Sales Amount (₹)",
+                        data: data.values,
+                        backgroundColor: "rgba(0,123,255,0.7)",
+                        borderColor: "#007bff",
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+
+            // Update chart title
+            document.querySelector(".card-title").innerHTML =
+                `Sales Overview (${data.year})`;
+        });
+}
+
+
+// ================== LOAD PIE CHART ==================
+function loadBrandPieChart() {
+
+    fetch(`/adminpanel/brand-chart-data/`)
+        .then(res => res.json())
+        .then(data => {
+
+            const ctx = document.getElementById("brandPieChart").getContext("2d");
+
+            if (brandPieChart) brandPieChart.destroy();
+
+            brandPieChart = new Chart(ctx, {
+                type: "pie",
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        data: data.values,
+                        backgroundColor: [
+                            "#ff6384", "#36a2eb", "#ffcd56",
+                            "#4bc0c0", "#9966ff", "#ff9f40"
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'right' }
+                    }
+                }
+            });
+        });
+}
+
+
+// ================== EVENT LISTENERS ==================
+salesFilter.addEventListener("change", function () {
+    loadSalesBarChart(this.value);
+});
+
+// When year changes → reload monthly chart
+yearSelect.addEventListener("change", function () {
+    loadSalesBarChart("monthly");
+});
+
+
+// ================== INITIAL LOAD ==================
+loadSalesBarChart();  // default monthly
+loadBrandPieChart();
+
+</script>
+<script>
+// const currentYear = new Date().getFullYear();
+const orderYearSelect = document.getElementById("orderYearSelect");
+
+// Fill dropdown last 10 years
+for (let i = 0; i < 10; i++) {
+    const y = currentYear - i;
+    orderYearSelect.innerHTML += `<option value="${y}">${y}</option>`;
+}
+
+let ordersBarChart;
+
+function loadOrdersBarChart(filter="monthly") {
+
+    let selectedYear = orderYearSelect.value;
+    let url = `/adminpanel/order-chart-data/?filter=${filter}`;
+
+    if (filter === "monthly") {
+        url += `&year=${selectedYear}`;
+        orderYearSelect.style.display = "block";
+    } else {
+        orderYearSelect.style.display = "none";
+    }
+
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+
+            const ctx = document.getElementById("ordersBarChart").getContext("2d");
+
+            if (ordersBarChart) ordersBarChart.destroy();
+
+            ordersBarChart = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: data.labels,
+                    datasets: [
+                        {
+                            label: "Delivered Items",
+                            data: data.success,
+                            backgroundColor: "#ff6fa8",
+                        },
+                        {
+                            label: "Cancelled Items",
+                            data: data.cancelled,
+                            backgroundColor: "#4a90e2",
+                        },
+                        {
+                            label: "Returned Items",
+                            data: data.returned,
+                            backgroundColor: "#f5d142",
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        });
+}
+
+document.getElementById("orderFilter").addEventListener("change", function () {
+    loadOrdersBarChart(this.value);
+});
+
+orderYearSelect.addEventListener("change", function () {
+    loadOrdersBarChart("monthly");
+});
+
+loadOrdersBarChart();
+</script>
+<script>
+const orderStackFilter = document.getElementById("orderStackFilter");
+const orderStackYearSelect = document.getElementById("orderStackYearSelect");
+
+// Fill last 10 years dropdown
+for (let i = 0; i < 10; i++) {
+    const year = currentYear - i;
+    orderStackYearSelect.innerHTML += `<option value="${year}">${year}</option>`;
+}
+
+let orderStackChart;
+
+// ================== LOAD STACKED ORDER CHART ==================
+function loadOrderStackChart(filter = "monthly") {
+
+    let year = orderStackYearSelect.value;
+    let url = `/adminpanel/order-stackchart-data/?filter=${filter}`;
+
+    if (filter === "monthly") {
+        url += `&year=${year}`;
+        orderStackYearSelect.style.display = "block";
+    } else {
+        orderStackYearSelect.style.display = "none";
+    }
+
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+
+            const ctx = document.getElementById("orderStackChart").getContext("2d");
+
+            if (orderStackChart) orderStackChart.destroy();
+
+            orderStackChart = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: data.labels,
+                    datasets: [
+                        {
+                            label: "Delivered Orders",
+                            data: data.delivered, 
+                            backgroundColor: "#3b82f6", // blue
+                            stack: "orders",
+                        },
+                        {
+                            label: "Returned Orders",
+                            data: data.returned,
+                            backgroundColor: "#f59e0b", // orange
+                            stack: "orders",
+                        },
+                        {
+                            label: "Cancelled Orders",
+                            data: data.cancelled,
+                            backgroundColor: "#ef4444", // red
+                            stack: "orders",
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        tooltip: {
+                            mode: "index",
+                            intersect: false
+                        },
+                        legend: { position: "top" }
+                    },
+                    scales: {
+                        x: { stacked: true },
+                        y: { stacked: true, beginAtZero: true }
+                    }
+                }
+            });
+
+            document.getElementById("orderStackChartTitle").innerText =
+                `Order Overview (Stacked) — ${data.year}`;
+        });
+}
+
+// Event listeners
+orderStackFilter.addEventListener("change", function () {
+    loadOrderStackChart(this.value);
+});
+
+orderStackYearSelect.addEventListener("change", function () {
+    loadOrderStackChart("monthly");
+});
+
+// Initial chart load
+loadOrderStackChart();
+</script>
+<script>
+const currentYearTop = new Date().getFullYear();
+const currentMonth = new Date().getMonth() + 1;
+
+// Elements
+const topYearSelect = document.getElementById("year");
+const topMonthSelect = document.getElementById("month");
+const filterType = document.getElementById("filterType");
+let topSellingChart;
+
+// Month Names
+const monthNames = [
+    "", "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+];
+
+// ========== Fill YEAR dropdown ==========
+for (let i = 0; i < 10; i++) {
+    let y = currentYearTop - i;
+    topYearSelect.innerHTML += `<option value="${y}">${y}</option>`;
+}
+
+// ========== Fill MONTH dropdown ==========
+for (let i = 1; i <= 12; i++) {
+    topMonthSelect.innerHTML += `<option value="${i}">${monthNames[i]}</option>`;
+}
+
+// Auto-select current month
+topMonthSelect.value = currentMonth;
+
+// ========== Show/Hide Month Select ==========
+filterType.addEventListener("change", () => {
+    if (filterType.value === "monthly") {
+        topMonthSelect.style.display = "block";
+    } else {
+        topMonthSelect.style.display = "none";
+    }
+    loadTopSelling();
+});
+
+// ========== FETCH & LOAD CHART ==========
+function loadTopSelling() {
+    let filter = filterType.value;
+    let year = topYearSelect.value;
+    let month = topMonthSelect.value;
+
+    let url = `/adminpanel/top-selling-products/?filter=${filter}&year=${year}`;
+
+    if (filter === "monthly" && month !== "") {
+        url += `&month=${month}`;
+    }
+
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            if (topSellingChart) topSellingChart.destroy();
+
+            const ctx = document.getElementById("topSellingChart");
+
+            topSellingChart = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        data: data.units,
+                        backgroundColor: "#a600b8",
+                        borderRadius: 6,
+                            barThickness: 20,
+                       maxBarThickness: 25
+                    }]
+                },
+                options: {
+                    indexAxis: "y",
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+
+            // Update Title
+            if (filter === "monthly") {
+                document.getElementById("topSellingTitle").innerText =
+                    `Top Selling Products — ${monthNames[data.month]} ${data.year}`;
+            } else {
+                document.getElementById("topSellingTitle").innerText =
+                    `Top Selling Products — ${data.year}`;
+            }
+        });
+}
+
+// Events
+topYearSelect.addEventListener("change", loadTopSelling);
+topMonthSelect.addEventListener("change", loadTopSelling);
+
+// Initial load
+window.addEventListener("load", loadTopSelling);
+</script>
+
+<!-- <script>
+  // ================== YEAR DROPDOWN FOR TOP SELLING ==================
+// ========== Dropdown Fillers ============
+const topYearSelect = document.getElementById("year");
+const topMonthSelect = document.getElementById("month");
+const filterType = document.getElementById("filterType");
+
+const monthNames = [
+    "", "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+];
+
+// Fill YEAR dropdown (last 10 years)
+for (let i = 0; i < 10; i++) {
+    const y = currentYear - i;
+    topYearSelect.innerHTML += `<option value="${y}">${y}</option>`;
+}
+
+// Fill MONTH dropdown
+for (let i = 1; i <= 12; i++) {
+    topMonthSelect.innerHTML += `<option value="${i}">${monthNames[i]}</option>`;
+}
+
+// Show/hide month dropdown based on filter
+filterType.addEventListener("change", () => {
+    if (filterType.value === "monthly") {
+        topMonthSelect.style.display = "block";
+    } else {
+        topMonthSelect.style.display = "none";
+    }
+    loadTopSelling();
+});
+
+let topSellingChart;
+
+function loadTopSelling() {
+
+    let filter = filterType.value;
+    let year = topYearSelect.value;
+    let month = topMonthSelect.value;
+
+    let url = `/adminpanel/top-selling-products/?filter=${filter}&year=${year}`;
+
+    if (filter === "monthly" && month !== "") {
+        url += `&month=${month}`;
+    }
+
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+
+            if (topSellingChart) topSellingChart.destroy();
+
+            const ctx = document.getElementById("topSellingChart");
+
+            topSellingChart = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        data: data.units,
+                        backgroundColor: "#a600b8",
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    indexAxis: "y",
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+
+            // ---- Title Update ----
+            if (filter === "monthly") {
+                document.getElementById("topSellingTitle").innerText =
+                    `Top Selling Products — ${monthNames[data.month]} ${data.year}`;
+            } else {
+                document.getElementById("topSellingTitle").innerText =
+                    `Top Selling Products — ${data.year}`;
+            }
+        });
+}
+
+topYearSelect.addEventListener("change", loadTopSelling);
+topMonthSelect.addEventListener("change", loadTopSelling);
+// === AUTO SELECT CURRENT MONTH ===
+const monthSelect = document.getElementById("month");
+
+if (monthSelect) {
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1; // Months 1–12
+    monthSelect.value = currentMonth;
+}
+
+// === RELOAD CHART WHEN MONTH CHANGES ===
+monthSelect?.addEventListener("change", loadTopSelling);
+
+window.addEventListener("load", loadTopSelling);
+
+</script> -->
+<script>
+const monthNamesCB = [
+    "", "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+];
+
+const curYear = new Date().getFullYear();
+const curMonth = new Date().getMonth() + 1;
+
+// ===========================
+// CATEGORY ELEMENTS
+// ===========================
+const catFilter = document.getElementById("catFilter");
+const catYear = document.getElementById("catYear");
+const catMonth = document.getElementById("catMonth");
+const catTableBody = document.getElementById("catTableBody");
+
+// ===========================
+// BRAND ELEMENTS
+// ===========================
+const brandFilter = document.getElementById("brandFilter");
+const brandYear = document.getElementById("brandYear");
+const brandMonth = document.getElementById("brandMonth");
+const brandTableBody = document.getElementById("brandTableBody");
+
+// ===========================
+// Fill Year Dropdowns (10 years)
+// ===========================
+for (let i = 0; i < 10; i++) {
+    let y = curYear - i;
+    catYear.innerHTML += `<option value="${y}">${y}</option>`;
+    brandYear.innerHTML += `<option value="${y}">${y}</option>`;
+}
+
+// ===========================
+// Fill Month Dropdowns
+// ===========================
+for (let m = 1; m <= 12; m++) {
+    catMonth.innerHTML += `<option value="${m}">${monthNamesCB[m]}</option>`;
+    brandMonth.innerHTML += `<option value="${m}">${monthNamesCB[m]}</option>`;
+}
+
+// Default select current month
+catMonth.value = curMonth;
+brandMonth.value = curMonth;
+
+// ===========================
+// Toggle Month dropdown
+// ===========================
+function toggleMonth(filter, month) {
+    month.style.display = filter.value === "monthly" ? "block" : "none";
+}
+
+// ===========================
+// Load CATEGORIES TABLE
+// ===========================
+function loadCategories() {
+    let filter = catFilter.value;
+    let year = catYear.value;
+    let month = catMonth.value;
+
+    let url = `/adminpanel/top-selling-categories/?filter=${filter}&year=${year}`;
+    if (filter === "monthly") url += `&month=${month}`;
+
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            catTableBody.innerHTML = "";
+
+            data.labels.forEach((cat, i) => {
+                catTableBody.innerHTML += `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td>${cat}</td>
+                        <td>${data.units[i]}</td>
+                    </tr>`;
+            });
+        });
+}
+
+// ===========================
+// Load BRANDS TABLE
+// ===========================
+function loadBrands() {
+    let filter = brandFilter.value;
+    let year = brandYear.value;
+    let month = brandMonth.value;
+
+    let url = `/adminpanel/top-selling-brands/?filter=${filter}&year=${year}`;
+    if (filter === "monthly") url += `&month=${month}`;
+
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            brandTableBody.innerHTML = "";
+
+            data.labels.forEach((brand, i) => {
+                brandTableBody.innerHTML += `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td>${brand}</td>
+                        <td>${data.units[i]}</td>
+                    </tr>`;
+            });
+        });
+}
+
+// ===========================
+// EVENT LISTENERS
+// ===========================
+catFilter.addEventListener("change", () => {
+    toggleMonth(catFilter, catMonth);
+    loadCategories();
+});
+catYear.addEventListener("change", loadCategories);
+catMonth.addEventListener("change", loadCategories);
+
+brandFilter.addEventListener("change", () => {
+    toggleMonth(brandFilter, brandMonth);
+    loadBrands();
+});
+brandYear.addEventListener("change", loadBrands);
+brandMonth.addEventListener("change", loadBrands);
+
+// ===========================
+// INITIAL LOAD
+// ===========================
+window.addEventListener("load", () => {
+    toggleMonth(catFilter, catMonth);
+    toggleMonth(brandFilter, brandMonth);
+    loadCategories();
+    loadBrands();
+});
+</script>
+
+<style>
+  #brandPieChart {
+    max-width: 350px !important;
+    max-height: 350px !important;
+    margin: auto;
+  }
+</style>
+
+{% endblock %}

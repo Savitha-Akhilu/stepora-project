@@ -1,0 +1,100 @@
+{% extends 'adminpanel/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+  <h4 class="fw-bold mb-3">Order #{{ order.iorderid }}</h4>
+    <a href="{% url 'admin_orders' %}" class="btn btn-outline-primary">
+      ← Back to Orders
+    </a>
+{% if messages %}
+  <div class="container mt-2">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+
+  <div class="card shadow-sm mb-3">
+    <div class="card-body">
+      <p><strong>User:</strong> {{ order.user.username }}</p>
+      <p><strong>Date:</strong> {{ order.created_at|date:"d M Y, h:i A" }}</p>
+      <p><strong>Status:</strong> {{ order.status }}</p>
+      <p><strong>Payment:</strong> {{ order.payment_method }}</p>
+      {% if order.coupon_discount %}
+  <p><strong>Coupon:</strong> {{ order.coupon_code }}</p>
+  <p><strong>Coupon Discount:</strong> ₹{{ order.coupon_discount }}</p>
+{% endif %}
+<p><strong>Delivery Charge:</strong> ₹{{ order.delivery_charge|floatformat:2 }}</p>
+{% if address %}
+<hr>
+<h6 class="fw-bold">Delivery Address</h6>
+<p>{{ address.full_name }}</p>
+<p>{{ address.house_name }}, {{ address.city }}</p>
+<p>{{ address.city }} - {{ address.pincode }}</p>
+<p>{{ address.state }}, {{ address.country }}</p>
+<p><strong>Phone:</strong> {{ address.mobile }}</p>
+{% else %}
+<p class="text-danger">No address found</p>
+{% endif %}
+
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body table-responsive">
+      <h5 class="mb-3 fw-bold">Items</h5>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Variant</th>
+            <th>Qty</th>
+            <th>Price</th>
+            <th>Subtotal</th>
+                  <th>Status</th>
+      <!-- <th>Action</th> -->
+          </tr>
+        </thead>
+<tbody>
+  {% for item in order_items %}
+  <tr>
+    <td>{{ item.product.name }}</td>
+    <td>{{ item.variant.variant_name }}</td>
+    <td>{{ item.quantity }}</td>
+
+<td>
+  {% if item.discount_value > 0 %}
+    <span class="text-success fw-bold">₹{{ item.final_price|floatformat:2 }}</span>
+    <del class="text-muted small">₹{{ item.price|floatformat:2 }}</del><br>
+    <small class="text-success">₹{{ item.discount_value|floatformat:2 }} OFF</small>
+  {% else %}
+    ₹{{ item.price|floatformat:2 }}
+  {% endif %}
+</td>
+
+<td>₹{{ item.subtotal_after_discount|floatformat:2 }}</td>
+
+    <td>
+      <form method="post" action="{% url 'admin_update_item_status' item.id %}">
+        {% csrf_token %}
+        <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+          {% for s in item.STATUS_CHOICES %}
+            <option value="{{ s.0 }}" {% if s.0 == item.status %}selected{% endif %}>{{ s.1 }}</option>
+          {% endfor %}
+        </select>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</tbody>
+
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

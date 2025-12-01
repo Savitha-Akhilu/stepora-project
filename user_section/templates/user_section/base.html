@@ -1,0 +1,119 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}User Section{% endblock %}</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Font Awesome Icons -->
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+  integrity="sha512-Avb2QiuDEEvB4bZJYdft2mNjVShBftLdPG8FJ0V7irTLQ8Uo0qcPxh4Plq7G5tGm0rU+1SPhVotteLpBERwTkw=="
+  crossorigin="anonymous"
+  referrerpolicy="no-referrer"
+/>
+
+  <!-- Optional Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Common Styles -->
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #fff;
+      color: #333;
+      overflow-x: hidden;
+    }
+
+    a {
+      text-decoration: none;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    /* Button Styling */
+    .btn {
+      border-radius: 25px;
+      font-size: 14px;
+    }
+
+    /* Simple Shadow for Cards */
+    .card {
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  <!-- ===== Header Include ===== -->
+  {% include 'user_section/header.html' %}
+
+  <!-- ===== Page Content ===== -->
+  <main>
+    {% block content %}
+    {% endblock %}
+  </main>
+
+  <!-- ===== Footer Include ===== -->
+  {% include 'user_section/footer.html' %}
+
+  <!-- ===== Scripts ===== -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  {% block extra_js %}{% endblock %}
+<div id="cart-toast" class="toast-message">
+  <i class="fa-solid fa-bag-shopping me-2"></i>
+  <span id="toast-text">Added to bag</span>
+</div>
+
+<style>
+.toast-message {
+  position: fixed;
+  top: 80px;
+  right: 40px;
+  background: #222;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-20px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  z-index: 9999;
+}
+.toast-message.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+</style>
+
+<script>
+function showCartToast(message) {
+  const toast = document.getElementById('cart-toast');
+  const toastText = document.getElementById('toast-text');
+  toastText.textContent = message || 'Added to bag';
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+}
+</script>
+
+</body>
+</html>

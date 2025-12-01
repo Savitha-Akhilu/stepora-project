@@ -1,0 +1,159 @@
+{% extends 'user_section/profile_base.html' %}
+{% load static %}
+
+{% block profile_content %}
+<style>
+.order-details-container {
+  background: #fff;
+  border-radius: 16px;
+  padding: 25px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+}
+.order-details-container h4 {
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+.order-info, .shipping-info {
+  background: #fafafa;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+.order-info p, .shipping-info p {
+  margin: 5px 0;
+  font-size: 14px;
+}
+.items-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+.items-table th, .items-table td {
+  padding: 12px 10px;
+  border-bottom: 1px solid #eee;
+  vertical-align: middle;
+}
+.items-table th {
+  background: #f5f5f5;
+  text-align: left;
+}
+.items-table img {
+  width: 70px;
+  height: 70px;
+  border-radius: 6px;
+  object-fit: cover;
+  margin-right: 10px;
+}
+.total {
+  text-align: right;
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 10px;
+}
+.coupon {
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 10px 15px;
+  margin-top: 10px;
+  border-left: 3px solid #28a745;
+}
+.status {
+  font-weight: 600;
+}
+.status-Delivered { color: #16a34a; }
+.status-Processing { color: #f59e0b; }
+.status-Cancelled { color: #dc2626; }
+.status-Returned { color: #2563eb; }
+</style>
+
+<div class="order-details-container">
+  <h4>Order Details</h4>
+<a href="{% url 'cart:order_invoice' order.id %}" download class="btn btn-dark">
+    <i class="fa fa-download me-2"></i> Download Invoice
+</a>
+  <div class="order-info">
+    <p><strong>Order ID:</strong> {{ order.iorderid }}</p>
+    <p><strong>Date:</strong> {{ order.created_at|date:"d M Y, h:i A" }}</p>
+    <p><strong>Status:</strong> <span class="status status-{{ order.status }}">{{ order.status }}</span></p>
+    <p><strong>Payment Method:</strong> {{ order.payment_method }}</p>
+
+    {% if order.coupon_code %}
+    <div class="coupon mt-2">
+      <p><strong>Coupon Applied:</strong> {{ order.coupon_code }}</p>
+      {% if order.coupon_discount > 0 %}
+      <p><strong>Discount:</strong> ₹{{ order.coupon_discount }}</p>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="shipping-info">
+    <p><strong>Shipping Address:</strong></p>
+    <p>{{ order.address.full_name }}</p>
+    <p>{{ order.address.street_address }}</p>
+    <p>{{ order.address.city }}, {{ order.address.state }} - {{ order.address.pincode }}</p>
+    <p>Phone: {{ order.address.phone }}</p>
+  </div>
+
+  <h6>Items:</h6>
+  <table class="items-table">
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th>Qty</th>
+        <th>Price</th>
+        <th>Subtotal</th>
+      </tr>
+    </thead>
+    <tbody>
+{% for item in order_items %}
+  <tr>
+    <td>
+      {% if item.variant.primary_image %}
+        <img src="{{ item.variant.primary_image.0.image.url }}" alt="{{ item.product.name }}" width="80" height="80" class="rounded me-2">
+      {% else %}
+        <img src="{% static 'images/no-image.png' %}" alt="No Image" width="80" height="80" class="rounded me-2">
+      {% endif %}
+      {{ item.variant.variant_name }}
+    </td>
+        <td>{{ item.quantity }}</td>
+
+<td>
+  {% if item.variant.has_offer %}
+    <div>
+      <span class="fw-semibold text-success">₹{{ item.variant.final_price|floatformat:2 }}</span>
+      <span class="text-muted text-decoration-line-through small ms-1">
+        ₹{{ item.variant.price|floatformat:2 }}
+      </span>
+    </div>
+
+    {% if item.offer_title %}
+      <small class="text-success d-block">
+        <!-- {{ item.offer_title }} – ₹{{ item.offer_amount|floatformat:2 }} OFF -->
+        ₹{{ item.offer_amount|floatformat:2 }} OFF
+      </small>
+    {% else %}
+      <small class="text-success d-block">
+        ₹{{ item.discount_value|floatformat:2 }} OFF
+      </small>
+    {% endif %}
+  {% else %}
+    ₹{{ item.variant.price|floatformat:2 }}
+  {% endif %}
+</td>
+    <td>{{ item.subtotal }}</td>
+    
+  </tr>
+{% endfor %}
+    </tbody>
+
+  </table>
+
+  <p class="total">Total MRP: ₹{{ order.original_subtotal }}</p>
+  {% if order.discount > 0 %}
+  <p class="total"> Discount: -₹{{ order.discount }}</p>
+  {% endif %}
+  <p class="total">Delivery Charge: ₹{{ order.delivery_charge }}</p>
+  <p class="total">Total Amount: ₹{{ order.total }}</p>
+</div>
+{% endblock %}

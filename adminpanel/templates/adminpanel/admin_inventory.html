@@ -1,0 +1,109 @@
+{% extends 'adminpanel/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="fw-bold">Inventory Management</h4>
+  <!-- <form method="get" class="d-flex">
+    <input type="text" name="q" value="{{ query }}" placeholder="Search product or variant"
+           class="form-control me-2" style="width: 220px;">
+    <select name="status" class="form-select me-2" style="width: 160px;">
+      <option value="">All</option>
+      <option value="available" {% if status == 'available' %}selected{% endif %}>Available</option>
+      <option value="low" {% if status == 'low' %}selected{% endif %}>Low Stock</option>
+    </select>
+    <button type="submit" class="btn btn-primary">Filter</button>
+  </form> -->
+  <div class="d-flex justify-content-end align-items-center mb-3 gap-2">
+  <form method="get" class="d-flex gap-2">
+    <input type="text" name="q" value="{{ query }}" placeholder="Search product or variant" class="form-control" style="width: 220px;">
+    <select name="status" class="form-select" style="width: 160px;">
+      <option value="">All</option>
+      <option value="available" {% if status == 'available' %}selected{% endif %}>Available</option>
+      <option value="low" {% if status == 'low' %}selected{% endif %}>Low Stock</option>
+    </select>
+    <button type="submit" class="btn btn-primary">Filter</button>
+    <a href="{% url 'admin_inventory' %}" class="btn btn-outline-secondary">Clear</a>
+  </form>
+</div>
+
+</div>
+
+  <div class="card shadow-sm">
+    <div class="card-body table-responsive">
+      <table class="table align-middle table-hover">
+        <thead class="table-light">
+          <tr>
+            <th>Product</th>
+            <th>Variant</th>
+            <th>Color</th>
+            <th>Size</th>
+            <th>Stock</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for v in variants %}
+          <tr {% if v.stock <= v.low_stock_qty %}class="table-warning"{% endif %}>
+            <td>{{ v.product.name }}</td>
+            <td>{{ v.variant_name }}</td>
+            <td>{{ v.color }}</td>
+            <td>{{ v.size }}</td>
+            <td>{{ v.stock }}</td>
+            <td>
+              {% if v.stock == 0 %}
+                <span class="text-danger fw-bold">Low Stock</span>
+                <a href="{% url 'products:edit_product' v.product_id %}" class="btn btn-sm btn-warning">Update Stock</a>
+              {% else %}
+                <span class="text-success fw-bold">Available</span>
+                
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="text-center text-muted">No variants found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        
+      </table>
+      <div class="d-flex justify-content-between align-items-center mt-3">
+  <p class="text-muted mb-0">
+    Showing {{ variants.start_index }} - {{ variants.end_index }} of {{ variants.paginator.count }}
+  </p>
+
+  <nav>
+    <ul class="pagination mb-0">
+      {% if variants.has_previous %}
+      <li class="page-item">
+<a class="page-link" href="?page={{ variants.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if status %}&status={{ status }}{% endif %}">Previous</a>
+      </li>
+      {% else %}
+      <li class="page-item disabled"><span class="page-link">Previous</span></li>
+      {% endif %}
+
+      {% for num in variants.paginator.page_range %}
+      <li class="page-item {% if variants.number == num %}active{% endif %}">
+<a class="page-link" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}{% if status %}&status={{ status }}{% endif %}">
+    {{ num }}
+</a>
+      </li>
+      {% endfor %}
+
+      {% if variants.has_next %}
+      <li class="page-item">
+<a class="page-link" href="?page={{ variants.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if status %}&status={{ status }}{% endif %}">Next</a>
+      </li>
+      {% else %}
+      <li class="page-item disabled"><span class="page-link">Next</span></li>
+      {% endif %}
+    </ul>
+  </nav>
+</div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

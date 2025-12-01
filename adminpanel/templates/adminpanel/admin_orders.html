@@ -1,0 +1,109 @@
+{% extends 'adminpanel/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+  {% if messages %}
+  <div class="mt-2">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="fw-bold">Order Management</h4>
+  </div>
+
+  <!--  Search and Filter -->
+  <form method="get" class="d-flex gap-2 mb-3">
+    <input type="text" name="search" value="{{ search }}" class="form-control w-25" placeholder="Search by Order ID, user, email...">
+    <select name="status" class="form-select w-25">
+      <option value="">All Status</option>
+{% for s in status_choices %}
+        <option value="{{ s }}" {% if s == status %}selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-dark">Search</button>
+    <a href="{% url 'admin_orders' %}" class="btn btn-outline-secondary">Clear</a>
+  </form>
+
+  <!--  Orders Table -->
+  <div class="card shadow-sm">
+    <div class="card-body table-responsive">
+      <table class="table align-middle table-hover">
+        <thead class="table-light">
+          <tr>
+            <th>Order ID</th>
+            <th>User</th>
+            <th>Date</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in orders %}
+          <tr>
+            <td>{{ order.iorderid }}</td>
+            <td>{{ order.user.first_name }}</td>
+            <td>{{ order.created_at|date:"d M Y, h:i A" }}</td>
+            <td>₹{{ order.total }}</td>
+            <td>
+  {% with overall=order.get_overall_status %}
+    {% if overall == 'Delivered' %}
+      <span class="badge bg-success">{{ overall }}</span>
+    {% elif overall == 'Partially Delivered' %}
+      <span class="badge bg-info text-dark">{{ overall }}</span>
+    {% elif overall == 'Cancelled' %}
+      <span class="badge bg-danger">{{ overall }}</span>
+    {% elif overall == 'Partially Returned' %}
+      <span class="badge bg-primary">{{ overall }}</span>
+    {% elif overall == 'Partially Cancelled' %}
+      <span class="badge bg-warning text-dark">{{ overall }}</span>
+    {% else %}
+      <span class="badge bg-secondary">{{ overall }}</span>
+    {% endif %}
+  {% endwith %}
+</td>
+
+            <!-- <td> -->
+              
+              <!-- <form action="{% url 'update_order_status' order.id %}" method="post" class="d-flex align-items-center">
+                {% csrf_token %}
+                <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                 {% for s in status_choices %}
+                    <option value="{{ s }}" {% if order.status == s %}selected{% endif %}>{{ s }}</option>
+                  {% endfor %}
+                </select>
+              </form> -->
+            <!-- </td> -->
+            <td>
+              <a href="{% url 'admin_order_detail' order.id %}" class="btn btn-sm btn-dark">View</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="text-center text-muted">No orders found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!--  Pagination -->
+  <div class="pagination justify-content-center mt-3">
+    {% if orders.has_previous %}
+      <a href="?page={{ orders.previous_page_number }}" class="btn btn-outline-dark btn-sm me-1">« Prev</a>
+    {% endif %}
+    <span class="mx-2">Page {{ orders.number }} of {{ orders.paginator.num_pages }}</span>
+    {% if orders.has_next %}
+      <a href="?page={{ orders.next_page_number }}" class="btn btn-outline-dark btn-sm ms-1">Next »</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

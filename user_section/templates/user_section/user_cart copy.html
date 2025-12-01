@@ -1,0 +1,364 @@
+{% extends 'user_section/base.html' %}
+{% load static %}
+
+{% block title %}Shopping Cart{% endblock %}
+
+{% block content %}
+<section class="cart-section py-5">
+  <div class="container">
+
+    <!-- Progress bar -->
+    <div class="cart-progress text-center mb-5">
+      <div class="steps d-inline-flex align-items-center">
+        <div class="step active">
+          <span>01</span>
+          <p>SHOPPING CART</p>
+        </div>
+        <div class="line"></div>
+        <div class="step">
+          <span>02</span>
+          <p>CHECKOUT</p>
+        </div>
+        <div class="line"></div>
+        <div class="step">
+          <span>03</span>
+          <p>ORDER COMPLETE</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cart Table -->
+    <div class="table-responsive mb-5">
+      <table class="table cart-table align-middle text-center">
+        <thead>
+          <tr>
+            <th>PRODUCT DETAILS</th>
+            <th>PRICE</th>
+            <th>QUANTITY</th>
+            <th>TOTAL</th>
+            <th>REMOVE</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in cart_items %}
+          <tr>
+            <td class="product-detail text-start">
+{% if item.variant.images.first %}
+  <img src="{{ item.variant.images.first.image.url }}" alt="{{ item.variant.product.name }}" class="product-img me-3">
+{% else %}
+  <img src="{% static 'images/no-image.png' %}" alt="No Image" class="product-img me-3">
+{% endif %}
+<span>{{ item.variant.product.name }}</span>
+            </td>
+            <td>₹{{ item.variant.price }}</td>
+<td>
+  <div class="quantity-control">
+    <button class="qty-btn decrease" data-item="{{ item.id }}">−</button>
+    <input type="text" class="qty-input" value="{{ item.quantity }}" readonly>
+    <button class="qty-btn increase" data-item="{{ item.id }}">+</button>
+  </div>
+</td>
+            <td>₹{{ item.subtotal }}</td>
+<td>
+  <button class="remove-btn" data-item="{{ item.id }}">✕</button>
+</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="text-center py-4 text-muted">Your cart is empty 🛒</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Coupon & Totals -->
+    <div class="row">
+      <div class="col-md-6">
+        <div class="coupon-box mb-4">
+          <h6>Coupon Number</h6>
+          <div class="input-group">
+            <input type="text" class="form-control" placeholder="Enter Coupon Code">
+            <button class="btn apply-btn">Apply Coupon</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="total-box ms-auto p-4">
+          <div class="d-flex justify-content-between mb-2">
+            <span>Sub Total</span>
+            <strong>₹{{ subtotal }}</strong>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span>Delivery</span>
+            <strong>₹{{ delivery_charge }}</strong>
+          </div>
+          <hr>
+          <div class="d-flex justify-content-between total-line">
+            <span>Total</span>
+            <strong>₹{{ total }}</strong>
+          </div>
+          <a href="{% url 'checkout' %}" class="btn proceed-btn mt-3 w-100">Proceed to Checkout</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+<form style="display:none;">{% csrf_token %}</form>
+
+<style>
+.cart-section {
+  background: #fff;
+  font-family: "Poppins", sans-serif;
+}
+
+/* Progress Steps */
+.cart-progress .steps {
+  gap: 20px;
+}
+.cart-progress .step {
+  text-align: center;
+}
+.cart-progress .step span {
+  display: inline-block;
+  background: #e6e6e6;
+  color: #00a69c;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  line-height: 50px;
+  font-weight: 600;
+  font-size: 18px;
+}
+.cart-progress .step.active span {
+  background: #00a69c;
+  color: #fff;
+}
+.cart-progress .step p {
+  font-size: 13px;
+  color: #444;
+  margin-top: 8px;
+}
+.cart-progress .line {
+  width: 100px;
+  height: 2px;
+  background: #ccc;
+}
+
+/* Table */
+.cart-table th {
+  background: #e6e6e6;
+  color: #333;
+  font-weight: 600;
+  padding: 15px;
+}
+.cart-table td {
+  vertical-align: middle;
+  padding: 15px;
+}
+.product-detail img.product-img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+.quantity-control {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.quantity-control .qty-btn {
+  background: #f0f0f0;
+  border: none;
+  width: 28px;
+  height: 28px;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+.quantity-control input {
+  width: 45px;
+  text-align: center;
+  border: 1px solid #ddd;
+  margin: 0 5px;
+}
+.remove-btn {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  color: #888;
+  cursor: pointer;
+}
+.remove-btn:hover {
+  color: #e74c3c;
+}
+
+/* Coupon */
+.coupon-box input {
+  border-radius: 0;
+}
+.apply-btn {
+  background: #000;
+  color: #fff;
+  border-radius: 0;
+}
+.apply-btn:hover {
+  background: #333;
+}
+
+/* Total Box */
+.total-box {
+  border: 1px solid #ddd;
+  background: #f8f8f8;
+  max-width: 300px;
+}
+.total-box span {
+  color: #555;
+}
+.proceed-btn {
+  background: #000;
+  color: #fff;
+  border-radius: 0;
+  font-weight: 500;
+}
+.proceed-btn:hover {
+  background: #333;
+}
+.cart-pulse {
+  transition: transform 0.3s ease, color 0.3s ease;
+  transform: scale(1.2);
+  color: #00a69c; 
+}
+
+</style>
+<!-- <script>
+document.addEventListener('DOMContentLoaded', function() {
+  const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+  document.querySelectorAll('.qty-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const itemId = this.dataset.item;
+      const action = this.classList.contains('increase') ? 'increase' : 'decrease';
+      const row = this.closest('tr');
+
+      fetch("{% url 'update_cart_quantity' %}", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-CSRFToken': csrftoken,
+        },
+        body: new URLSearchParams({
+          'item_id': itemId,
+          'action': action
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (!data.error) {
+          // Update quantity and totals
+          row.querySelector('.qty-input').value = data.quantity;
+          row.querySelector('td:nth-child(4)').textContent = '₹' + data.item_total;
+          document.querySelector('.total-line strong').textContent = '₹' + data.cart_total;
+        } else {
+          alert(data.error);
+        }
+      });
+    });
+  });
+});
+</script> -->
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const tokenElement = document.querySelector('[name=csrfmiddlewaretoken]');
+  const csrftoken = tokenElement ? tokenElement.value : '';
+
+  // ---- Quantity update ----
+  document.querySelectorAll('.qty-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const itemId = this.dataset.item;
+      const action = this.classList.contains('increase') ? 'increase' : 'decrease';
+      const row = this.closest('tr');
+      const qtyInput = row.querySelector('.qty-input');
+
+      fetch("{% url 'update_cart_quantity' %}", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-CSRFToken': csrftoken,
+        },
+        body: new URLSearchParams({
+          'item_id': itemId,
+          'action': action
+        })
+      })
+      .then(res => res.json())
+// .then(data => {
+//   if (data.error) {
+//     alert(data.error);
+//     return;
+//   }
+
+//   // Update item total
+//   qtyInput.value = data.quantity;
+//   const itemTotalCell = row.querySelector('td:nth-child(4)');
+//   if (itemTotalCell) itemTotalCell.textContent = '₹' + data.item_total;
+
+//   // Update cart total
+//   const totalLine = document.querySelector('.total-line strong');
+//   if (totalLine) totalLine.textContent = '₹' + data.cart_total;
+
+//   // ✅ Update global cart count in header
+//   const cartCountEl = document.querySelector('#cart-count');
+//   if (cartCountEl && data.cart_count !== undefined) {
+//     cartCountEl.textContent = data.cart_count;
+
+//     // ✨ Small animation pulse
+//     cartCountEl.classList.add('cart-pulse');
+//     setTimeout(() => cartCountEl.classList.remove('cart-pulse'), 400);
+//   }
+// });
+
+    });
+  });
+
+  // ---- Remove item ----
+  document.querySelectorAll('.remove-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const itemId = this.dataset.item;
+      const row = this.closest('tr');
+
+      if (!confirm('Remove this item from your cart?')) return;
+
+      fetch("{% url 'remove_cart_item' %}", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-CSRFToken': csrftoken,
+        },
+        body: new URLSearchParams({ 'item_id': itemId })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          // Fade out row
+          row.style.transition = 'opacity 0.3s ease';
+          row.style.opacity = 0;
+          setTimeout(() => row.remove(), 300);
+
+          // Update total
+          const totalLine = document.querySelector('.total-line strong');
+          if (totalLine) totalLine.textContent = '₹' + data.cart_total;
+        } else {
+          alert(data.error || 'Failed to remove item');
+        }
+      })
+      .catch(err => console.error('Error:', err));
+    });
+  });
+});
+</script>
+
+{% endblock %}

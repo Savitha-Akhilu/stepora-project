@@ -1,0 +1,114 @@
+<!-- templates/adminpanel/coupons.html -->
+{% extends 'adminpanel/base.html' %}
+{% block title %}Coupons{% endblock %}
+
+{% block content %}
+<div class="card p-4 shadow-sm">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>Coupons</h4>
+    {% if messages %}
+<div class="mt-3">
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+    <a href="{% url 'admin_add_coupon' %}" class="btn btn-primary">Add Coupon</a>
+  </div>
+
+  <table class="table table-hover text-center">
+    <thead class="table-light">
+      <tr>
+        <th>#</th>
+        <th>Code</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Discount</th>
+        <th>Min Purchase</th>
+        <th>Start</th>
+        <th>End</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for coupon in page_obj %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ coupon.code }}</td>
+        <td>{{ coupon.description }}</td>
+        <td>{{ coupon.coupon_type }}</td>
+        <td>
+          {% if coupon.coupon_type == 'PERCENTAGE' %}
+            {{ coupon.discount_value }}%
+          {% else %}
+            ₹{{ coupon.discount_value }}
+          {% endif %}
+        </td>
+        <td>₹{{ coupon.min_purchase_amount }}</td>
+<td>{{ coupon.valid_from|date:"d/m/Y" }}</td>
+<td>{{ coupon.valid_to|date:"d/m/Y" }}</td>
+        <td>
+          <!-- {% if coupon.status == "Active" %}
+            <span class="badge bg-success">Active</span>
+          {% elif coupon.status == "Upcoming" %}
+            <span class="badge bg-warning text-dark">Upcoming</span>
+          {% else %}
+            <span class="badge bg-danger">Expired</span>
+          {% endif %} -->
+          {% with st=coupon.status %}
+  {% if st == "Active" %}
+    <span class="badge bg-success">Active</span>
+  {% elif st == "Upcoming" %}
+    <span class="badge bg-warning text-dark">Upcoming</span>
+  {% elif st == "Expired" %}
+    <span class="badge bg-danger">Expired</span>
+  {% elif st == "Inactive" %}
+    <span class="badge bg-secondary">Inactive</span>
+  {% endif %}
+{% endwith %}
+
+        </td>
+        <td>
+          <a href="{% url 'admin_edit_coupon' coupon.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
+          <a href="{% url 'admin_delete_coupon' coupon.id %}" class="btn btn-sm btn-outline-danger"
+               onclick="return confirm('Are you sure you want to delete this Coupon?')">Delete</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="10" class="text-muted">No coupons available</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <nav aria-label="Page navigation">
+  <ul class="pagination justify-content-center">
+
+    {% if page_obj.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Prev</a>
+      </li>
+    {% endif %}
+
+    {% for num in page_obj.paginator.page_range %}
+      <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+      </li>
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+      </li>
+    {% endif %}
+
+  </ul>
+</nav>
+
+</div>
+{% endblock %}
