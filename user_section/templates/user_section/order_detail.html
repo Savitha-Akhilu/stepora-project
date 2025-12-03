@@ -154,6 +154,10 @@
   <p class="total"> Discount: -₹{{ order.discount }}</p>
   {% endif %}
   <p class="total">Delivery Charge: ₹{{ order.delivery_charge }}</p>
+  <p class="total">Tax (18%): ₹{{ tax_amount }}</p>
+
+
+
   <p class="total">Total Amount: ₹{{ order.total }}</p>
 </div>
 {% endblock %}

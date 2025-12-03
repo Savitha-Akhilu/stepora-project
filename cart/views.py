@@ -136,8 +136,11 @@ def cart_view(request):
 
         # ---  offer and delivery logic ---
         subtotal = Decimal(cart.items_offer_total())  
-        delivery_charge = cart.delivery_charge()       
-        total = cart.grand_total()                    
+        delivery_charge = cart.delivery_charge()    
+        tax_rate = Decimal('0.18')
+        tax_amount = subtotal * tax_rate
+   
+        total = cart.grand_total()+tax_amount                
 
         # --- Mark out-of-stock items ---
         for item in cart_items:
@@ -149,16 +152,7 @@ def cart_view(request):
         original_total = Decimal(cart.items_total())
         savings = original_total - subtotal
         # --- check first order ---
-        # has_previous_orders = Order.objects.filter(user=request.user, status='Completed').exists()
-        # --- Coupon data  ---
-        # applied_coupon = request.session.get('applied_coupon')
-        # discount = request.session.get('discount', 0)
         discount = Decimal(request.session.get('discount', 0))
-
-        # if applied_coupon and discount > 0:
-        #     total = total - discount
-        #     if total < 0:
-        #         total = Decimal('0.00')
 
         # --- Coupon recalculation ---
         applied_coupon = request.session.get('applied_coupon')
@@ -174,8 +168,6 @@ def cart_view(request):
 
             except Coupon.DoesNotExist:
                 pass
-
-                # print("cart view",delivery_charge)
         
         context = {
             'cart_items': cart_items,
@@ -186,6 +178,7 @@ def cart_view(request):
             'savings': round(savings, 2),
             'applied_coupon': applied_coupon,
             'discount': round(Decimal(discount), 2),
+            'tax_amount': round(tax_amount, 2),
             'coupons': Coupon.objects.filter(
                 active=True,
                 valid_from__lte=timezone.now(),
@@ -210,8 +203,6 @@ def cart_view(request):
             variant.final_price = final_price
             variant.has_offer = True if offer else False
 
-            # primary_image = ProductImage.objects.filter(variant_id=variant.id, is_primary=True).first()
-            # image_url = primary_image.image.url if primary_image else None
             image_url = get_variant_image(variant)
 
             item_subtotal = Decimal(final_price) * item_data.get('quantity', 1)
@@ -235,11 +226,13 @@ def cart_view(request):
             delivery_charge = 30
         else:
             delivery_charge = 0
+        tax_rate = Decimal('0.18')
+        tax_amount = subtotal * tax_rate
 
-        total = subtotal + Decimal(delivery_charge)
-        # original_total = subtotal  # same since no coupon applied
-        # savings = Decimal('0.00')
-        # Recalculate actual savings for guests (price difference due to offer)
+        total = subtotal + tax_amount + Decimal(delivery_charge)
+
+
+        # total = subtotal + Decimal(delivery_charge)
         original_total = Decimal('0.00')
         for item in cart_items:
             product_price = Decimal(item['variant'].price)
@@ -261,158 +254,16 @@ def cart_view(request):
             'applied_coupon': applied_coupon,
             'discount': round(discount, 2),
             'coupons': [],
+            'tax_amount': round(tax_amount, 2),
             'is_guest': True,
         }
 
     return render(request, 'user_section/user_cart.html', context)
-    #     session_cart = request.session.get('cart', {})
-    #     cart_items = []
-    #     subtotal = Decimal('0.00')
-
-    #     for variant_id, item_data in session_cart.items():
-    #         variant = ProductVariant.objects.filter(id=variant_id).select_related('product').first()
-    #         if not variant:
-    #             continue
-
-    #         # --- Apply offer logic manually for guests ---
-    #         from adminpanel.utils import get_best_offer_price
-    #         final_price, discount_percent, offer = get_best_offer_price(variant)
-    #         variant.final_price = final_price
-    #         variant.has_offer = True if offer else False
-
-    #         primary_image = ProductImage.objects.filter(variant_id=variant.id, is_primary=True).first()
-    #         image_url = primary_image.image.url if primary_image else None
-
-    #         item_subtotal = Decimal(final_price) * item_data.get('quantity', 1)
-    #         subtotal += item_subtotal
-
-    #         cart_items.append({
-    #             'variant': variant,
-    #             'product_name': variant.product.name,
-    #             'price': float(final_price),
-    #             'quantity': item_data.get('quantity', 1),
-    #             'image': image_url,
-    #             'subtotal': float(item_subtotal),
-    #         })
-
-    #     if subtotal == 0:
-    #         delivery_charge = 0
-    #     elif subtotal < 1000:
-    #         delivery_charge = 50
-    #     elif subtotal < 3000:
-    #         delivery_charge = 30
-    #     else:
-    #         delivery_charge = 0
-
-    #     total = subtotal + Decimal(delivery_charge)
-    #     context = {
-    #         'cart_items': cart_items,
-    #         'subtotal': round(subtotal, 2),
-    #         'delivery_charge': delivery_charge,
-    #         'total': round(total, 2),
-    #         'coupons': [],
-    #         'is_guest': True,
-    #     }
-
-    # return render(request, 'user_section/user_cart.html', context)
 
 
 
 
-# def cart_view(request):
-#     if request.user.is_authenticated:
-#         # Logged-in user cart (database)
-#         cart, _ = Cart.objects.get_or_create(user=request.user)
-#         cart_items = cart.items.select_related('variant', 'variant__product')
 
-#         for item in cart_items:
-#             variant = item.variant
-#             final_price, discount_percent, offer = get_best_offer_price(variant)
-#             variant.final_price = final_price
-#             variant.discount_percent = discount_percent
-#             variant.has_offer = True if offer else False
-#             #  Calculate subtotal using offer
-#             item.subtotal = item.quantity * Decimal(final_price)
-#             subtotal += item.subtotal
-
-#             if not item.is_in_stock():
-#                 item.disabled = True
-#         delivery_charge = cart.delivery_charge()
-#         total = subtotal + Decimal(delivery_charge)
-#         context = {
-#             'cart_items': cart_items,
-#             'subtotal': round(subtotal, 2),
-#             'delivery_charge': delivery_charge,
-#             'total': round(total, 2),
-#             'coupons': Coupon.objects.filter(
-#                 active=True,
-#                 valid_to__gte=timezone.now()
-#             ).order_by('-valid_to'),
-#             'is_guest': False,
-#         }
-
-#     else:
-#         # Guest cart (session)
-#         session_cart = request.session.get('cart', {})
-#         cart_items = []
-#         subtotal = Decimal('0.00')
-
-#         for variant_id, item_data in session_cart.items():
-#             variant_id_int = int(variant_id)
-
-#             #  Fetch variant to access product info
-#             variant = ProductVariant.objects.filter(id=variant_id_int).select_related('product').first()
-
-#             #  Fetch primary image for this variant
-#             primary_image = ProductImage.objects.filter(variant_id=variant_id_int, is_primary=True).first()
-#             image_url = primary_image.image.url if primary_image else None
-
-#             print(f"🧩 Variant {variant_id} | Product: {variant.product.name if variant else 'N/A'} | Image: {image_url}")
-
-#             cart_items.append({
-#                 'variant': variant,  #  store variant object (for same template)
-#                 'product_name': variant.product.name if variant else item_data.get('product_name', ''),
-#                 'price': float(item_data.get('price', 0)),
-#                 'quantity': item_data.get('quantity', 1),
-#                 'image': image_url,
-#                 'subtotal': float(item_data.get('price', 0)) * item_data.get('quantity', 1),
-#             })
-
-#         subtotal = sum(item['subtotal'] for item in cart_items)
-#         delivery_charge = 0 if subtotal > 1000 else 50
-#         total = subtotal + delivery_charge
-
-#         context = {
-#             'cart_items': cart_items,
-#             'subtotal': subtotal,
-#             'delivery_charge': delivery_charge,
-#             'total': total,
-#             'coupons': [],
-#             'is_guest': True, 
-#         }
-
-#     return render(request, 'user_section/user_cart.html', context)
-
-
-# def remove_cart_item(request):
-#     if request.method == 'POST':
-#         item_id = request.POST.get('item_id')
-
-#         try:
-#             item = CartItem.objects.get(id=item_id, cart__user=request.user)
-#             cart = item.cart
-#             item.delete()
-
-#             return JsonResponse({
-#                 'success': True,
-#                 'subtotal': cart.items_total(),
-#                 'delivery_charge': cart.delivery_charge(),
-#                 'cart_total': cart.grand_total(),
-#             })
-#         except CartItem.DoesNotExist:
-#             return JsonResponse({'error': 'Item not found'}, status=404)
-
-#     return JsonResponse({'error': 'Invalid request'}, status=400)
 @require_POST
 def remove_cart_item(request):
     if request.method == 'POST':
@@ -443,22 +294,21 @@ def remove_cart_item(request):
                     'applied_coupon': '',
                     'discount': 0,
                     'cart_count': 0,
+                    'tax_amount': 0,
+
                 })
 
 
             # --- Offer recalculations ---
             subtotal = Decimal(cart.items_offer_total())
             delivery_charge = Decimal(cart.delivery_charge())
-            total = Decimal(cart.grand_total())
-            # print("remove cart",delivery_charge)
-            # --- Original total ---
+            tax_rate = Decimal('0.18')
+            tax_amount = subtotal * tax_rate
+            # total = Decimal(cart.grand_total())+tax_amount
+            total = subtotal + tax_amount + delivery_charge
             original_total = Decimal(cart.items_total())
             savings = original_total - subtotal
 
-            # --- Coupon session data ---
-            # applied_coupon = request.session.get('applied_coupon')
-            # discount = Decimal(request.session.get('discount', 0))
-                        # --- Coupon  ---
             applied_coupon_code = request.session.get('applied_coupon')
             discount = Decimal('0.00')
 
@@ -481,10 +331,6 @@ def remove_cart_item(request):
                     request.session.pop('applied_coupon', None)
                     request.session.pop('discount', None)
 
-            # if applied_coupon and discount > 0:
-            #     total -= discount
-            #     if total < 0:
-            #         total = Decimal('0.00')
 
             cart_count = sum(i.quantity for i in cart.items.all())
 
@@ -498,6 +344,8 @@ def remove_cart_item(request):
                 'applied_coupon': applied_coupon_code or '',
                 'discount': float(round(discount, 2)),
                 'cart_count': cart_count,
+                'tax_amount': float(round(tax_amount, 2)),
+
             })
 
         except CartItem.DoesNotExist:
@@ -539,16 +387,18 @@ def update_cart_quantity(request):
             # --- Offer logic ---
             subtotal = Decimal(cart.items_offer_total())
             delivery_charge = Decimal(cart.delivery_charge())
-            total = Decimal(cart.grand_total())
+            tax_rate = Decimal('0.18')
+            tax_amount = subtotal * tax_rate
+
+            # total = Decimal(cart.grand_total())+tax_amount
+            total = subtotal + tax_amount + delivery_charge
+            subtotal
             # print("update cart",total)
 
             # --- Original subtotal (before offers) ---
             original_total = Decimal(cart.items_total())
             savings = original_total - subtotal  # discount from offers
 
-            # --- Coupon data ---
-            # applied_coupon = request.session.get('applied_coupon')
-            # discount = Decimal(request.session.get('discount', 0))
 
             applied_coupon_code = request.session.get('applied_coupon')
             discount = Decimal('0.00')
@@ -588,6 +438,8 @@ def update_cart_quantity(request):
                 'applied_coupon': applied_coupon_code or '',
                 'discount': float(round(discount, 2)),
                 'cart_count': cart_count,
+                'tax_amount': float(round(tax_amount, 2)),
+
             })
 
         except CartItem.DoesNotExist:
@@ -598,208 +450,6 @@ def update_cart_quantity(request):
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
-# def update_cart_quantity(request):
-#     if request.method == 'POST':
-#         item_id = request.POST.get('item_id')
-#         action = request.POST.get('action')
-
-#         try:
-#             item = CartItem.objects.get(id=item_id, cart__user=request.user)
-#             cart = item.cart 
-
-#             # --- Handle quantity changes ---
-#             if action == 'increase':
-#                 if item.quantity < MAX_CART_QUANTITY and item.quantity < item.variant.stock:
-#                     item.quantity += 1
-#                 else:
-#                     return JsonResponse({'error': f'Maximum quantity is {MAX_CART_QUANTITY}'})
-#             elif action == 'decrease' and item.quantity > 1:
-#                 item.quantity -= 1
-
-#             item.save()
-
-#             # --- Get offer-aware item total ---
-#             from adminpanel.utils import get_best_offer_price
-#             final_price, discount_percent, offer = get_best_offer_price(item.variant)
-#             item_total = Decimal(final_price) * item.quantity
-
-#             # --- Use cart helpers (offer-aware) to compute totals ---
-#             subtotal = Decimal(cart.items_offer_total())
-#             delivery = Decimal(cart.delivery_charge())
-#             total_before_coupon = subtotal + delivery
-
-#             # --- Recalculate coupon discount if a coupon code exists in session ---
-#             applied_coupon_code = request.session.get('applied_coupon')
-#             coupon_discount = Decimal('0.00')
-#             if applied_coupon_code:
-#                 try:
-#                     coupon = Coupon.objects.get(code__iexact=applied_coupon_code, active=True)
-#                     coupon_discount = coupon.apply_discount(subtotal)
-#                     coupon_discount = Decimal(coupon_discount).quantize(Decimal('0.01'))
-#                 except Coupon.DoesNotExist:
-#                     # coupon invalid/removed -> clear session
-#                     request.session.pop('applied_coupon', None)
-#                     coupon_discount = Decimal('0.00')
-
-#             total_after_coupon = max(total_before_coupon - coupon_discount, Decimal('0.00'))
-
-#             cart_count = sum(i.quantity for i in cart.items.all())
-#             original_total = Decimal(cart.items_total())
-#             # savings = Decimal(cart.total_offer_discount())
-#             # print(original_total)
-#             # print(savings)
-#             return JsonResponse({
-#                 'quantity': item.quantity,
-#                 'item_total': float(round(item_total, 2)),
-#                 'subtotal': float(round(subtotal, 2)),
-#                 'delivery_charge': float(round(delivery, 2)),
-#                 'cart_total': float(round(total_after_coupon, 2)),
-#                 'coupon_discount': float(round(coupon_discount, 2)),
-#                 'applied_coupon': applied_coupon_code or '',
-#                 'cart_count': cart_count,
-#                 'mrp':original_total,
-#             })
-
-#         except CartItem.DoesNotExist:
-#             return JsonResponse({'error': 'Item not found'}, status=404)
-
-#     return JsonResponse({'error': 'Invalid request'}, status=400)
-
-# def update_cart_quantity(request):
-#     if request.method == 'POST':
-#         item_id = request.POST.get('item_id')
-#         action = request.POST.get('action')
-
-#         try:
-#             item = CartItem.objects.get(id=item_id, cart__user=request.user)
-#             cart = item.cart 
-
-#             # --- Handle quantity changes ---
-#             if action == 'increase':
-#                 if item.quantity < MAX_CART_QUANTITY and item.quantity < item.variant.stock:
-#                     item.quantity += 1
-#                 else:
-#                     return JsonResponse({'error': f'Maximum quantity is {MAX_CART_QUANTITY}'})
-#             elif action == 'decrease' and item.quantity > 1:
-#                 item.quantity -= 1
-
-#             item.save()
-
-#             # --- Get offer item ---
-#             from adminpanel.utils import get_best_offer_price
-#             final_price, discount_percent, offer = get_best_offer_price(item.variant)
-#             item_total = final_price * item.quantity
-
-#             subtotal = Decimal(cart.items_offer_total())
-#             delivery = cart.delivery_charge()
-#             total = cart.grand_total()
-
-#             # --- Coupon session data  ---
-#             applied_coupon = request.session.get('applied_coupon')
-#             discount = Decimal(request.session.get('discount', 0))
-
-#             # Apply coupon only for display (not double-discount)
-#             total_after_coupon = total - discount if applied_coupon else total
-
-#             return JsonResponse({
-#                 'quantity': item.quantity,
-#                 'item_total': round(item_total, 2),
-#                 'subtotal': round(subtotal, 2),
-#                 'delivery_charge': round(delivery, 2),
-#                 'cart_total': round(total_after_coupon, 2),
-#                 'coupon_discount': round(discount, 2),
-#                 'applied_coupon': applied_coupon or '',
-#             })
-
-#         except CartItem.DoesNotExist:
-#             return JsonResponse({'error': 'Item not found'}, status=404)
-
-#     return JsonResponse({'error': 'Invalid request'}, status=400)
-
-# def update_cart_quantity(request):
-#     if request.method == 'POST':
-#         item_id = request.POST.get('item_id')
-#         action = request.POST.get('action')
-
-#         try:
-#             item = CartItem.objects.get(id=item_id, cart__user=request.user)
-#             cart = item.cart 
-
-#             # --- Handle quantity changes ---
-#             if action == 'increase':
-#                 # print(item.quantity)
-#                 if item.quantity < MAX_CART_QUANTITY and item.quantity < item.variant.stock:
-#                     item.quantity += 1
-#                 else:
-#                     return JsonResponse({'error': f'Maximum quantity is {MAX_CART_QUANTITY}'})
-#             elif action == 'decrease' and item.quantity > 1:
-#                 item.quantity -= 1
-
-#             item.save()
-
-#             # --- Recalculate all totals ---
-#             subtotal = cart.items_total()
-#             delivery = cart.delivery_charge()
-#             total = cart.grand_total()
-#             cart_count = sum(i.quantity for i in cart.items.all())
-#             # print(subtotal)
-#             # --- Return updated values to frontend ---
-#             return JsonResponse({
-#                 'quantity': item.quantity,
-#                 'item_total': item.subtotal(),
-#                 'subtotal': subtotal,
-#                 'delivery_charge': delivery,
-#                 'cart_total': total,
-#                 'cart_count': cart_count,
-#             })
-
-#         except CartItem.DoesNotExist:
-#             return JsonResponse({'error': 'Item not found'}, status=404)
-
-#     return JsonResponse({'error': 'Invalid request'}, status=400)
-
-# def apply_coupon(request):
-#     """AJAX: Apply selected coupon and return updated totals."""
-#     if request.method == 'POST':
-#         code = request.POST.get('coupon_code')
-#         try:
-#             coupon = Coupon.objects.get(code__iexact=code, active=True)
-#         except Coupon.DoesNotExist:
-#             return JsonResponse({'error': 'Invalid coupon code.'}, status=400)
-
-#         cart = Cart.objects.get(user=request.user)
-#         subtotal = cart.items_total()
-#         delivery = cart.delivery_charge()
-
-#         # Check minimum purchase requirement
-#         if subtotal < coupon.min_purchase_amount:
-#             return JsonResponse({
-#                 'error': f'Minimum purchase ₹{coupon.min_purchase_amount} required.'
-#             }, status=400)
-
-#         # Calculate discount
-#         if coupon.coupon_type.upper() == 'PERCENTAGE':
-#             discount = (subtotal * coupon.discount_value) / 100
-#         else:
-#             discount = coupon.discount_value
-
-#         total = max((subtotal + delivery) - discount, 0)
-
-#         #  Store coupon info in session (for checkout page)
-#         request.session['applied_coupon'] = coupon.code
-#         request.session['discount'] = float(round(discount, 2))
-#         request.session.modified = True  # ensure Django saves session
-
-#         return JsonResponse({
-#             'success': True,
-#             'subtotal': subtotal,
-#             'delivery_charge': delivery,
-#             'discount': round(discount, 2),
-#             'total': round(total, 2),
-#             'applied_coupon': coupon.code,
-#         })
-
-#     return JsonResponse({'error': 'Invalid request.'}, status=400)
 
 def apply_coupon(request):
     """AJAX: Apply selected coupon and return updated totals."""
@@ -818,6 +468,9 @@ def apply_coupon(request):
         subtotal = cart.items_offer_total()
         mrp=cart.items_total()
         delivery = cart.delivery_charge()
+# --- TAX (18%) ---
+        tax_amount = subtotal * Decimal("0.18")
+        tax_amount = tax_amount.quantize(Decimal("0.01"))
 
         # Check minimum purchase requirement
         if subtotal < coupon.min_purchase_amount:
@@ -831,7 +484,9 @@ def apply_coupon(request):
         else:
             discount = coupon.discount_value
 
-        total = max((subtotal + delivery) - discount, 0)
+        # total = max((subtotal + delivery+tax_amount) - discount, 0)
+        total = subtotal + tax_amount + delivery - discount
+
 
         # Save only the new coupon
         request.session['applied_coupon'] = coupon.code
@@ -868,7 +523,10 @@ def checkout_view(request):
     delivery_charge = cart.delivery_charge()
     discount = request.session.get('discount', 0)
     applied_coupon = request.session.get('applied_coupon', '')
-    total = Decimal(subtotal) + Decimal(delivery_charge) - Decimal(discount)
+    tax_rate = Decimal('0.18')
+    tax_amount = subtotal * tax_rate
+    # total = Decimal(subtotal) + Decimal(delivery_charge) - Decimal(discount)
+    total = Decimal(subtotal) + tax_amount + Decimal(delivery_charge) - Decimal(discount)
     wallet, _ = Wallet.objects.get_or_create(user=request.user)
     context = {
         'addresses': addresses,
@@ -879,6 +537,8 @@ def checkout_view(request):
         'applied_coupon': applied_coupon,
         'total': total,
         'wallet': wallet,  
+        'tax_amount': round(tax_amount, 2),
+
     }
     return render(request, 'user_section/checkout.html', context)
 
@@ -1113,6 +773,9 @@ def place_order(request):
 
         #  Delivery based on  total
         delivery = Decimal(cart.delivery_charge())
+# --- TAX Calculation ---
+        tax_rate = Decimal('0.18')
+        tax_amount = subtotal * tax_rate
 
         #  Coupon discount
         discount = Decimal('0.00')
@@ -1126,7 +789,7 @@ def place_order(request):
                 request.session.pop('applied_coupon', None)
 
         #  Total after offers, coupon, and delivery
-        total = subtotal + delivery - discount - coupon_discount
+        total = subtotal + tax_amount+delivery - discount - coupon_discount
         items_total = cart.items_total()                  # without ofr
         discount = items_total - subtotal              # total discount
         wallet_used = Decimal('0.00')
@@ -1261,26 +924,6 @@ def place_order(request):
                         'wallet_used': wallet_used,
                     }
                     return render(request, 'user_section/razorpay_checkout.html', context)
-                # amount_paise = int(total * 100)
-                # DATA = {
-                #     "amount": amount_paise,
-                #     "currency": "INR",
-                #     "receipt": f"order_rcpt_{order.id}",
-                #     "payment_capture": 1
-                # }
-                # razorpay_order = razorpay_client.order.create(data=DATA)
-                # payment.provider_order_id = razorpay_order['id']
-                # payment.save()
-
-                # context = {
-                #     'order': order,
-                #     'payment': payment,
-                #     'amount': amount_paise,
-                #     'razorpay_order_id': razorpay_order['id'],
-                #     'razorpay_key': settings.RAZORPAY_KEY_ID,
-                #     'currency': 'INR',
-                # }
-                # return render(request, 'user_section/razorpay_checkout.html', context)
 
         except Exception as e:
             print(" Order creation failed:", e)
@@ -1397,41 +1040,6 @@ def retry_payment(request, order_id):
 
     return render(request, 'user_section/razorpay_checkout.html', context)
 
-# @csrf_exempt
-# def razorpay_successerr(request):
-#     if request.method == "POST":
-#         payment_id = request.POST.get('razorpay_payment_id')
-#         razorpay_order_id = request.POST.get('razorpay_order_id')
-#         signature = request.POST.get('razorpay_signature')
-#         order_id = request.POST.get('order_id')
-
-#         order = get_object_or_404(Order, id=order_id)
-
-#         params_dict = {
-#             'razorpay_order_id': razorpay_order_id,
-#             'razorpay_payment_id': payment_id,
-#             'razorpay_signature': signature
-#         }
-
-#         try:
-#             razorpay_client.utility.verify_payment_signature(params_dict)
-#         except razorpay.errors.SignatureVerificationError:
-#             order.payment_status = 'Failed'
-#             order.status = 'Payment Failed'
-#             order.save()
-#             messages.error(request, "Payment verification failed.")
-#             return redirect('cart:order_success', order_id=order.id)
-
-#         #  Payment verified
-#         order.payment_status = 'Paid'
-#         order.status = 'Placed'
-#         order.razorpay_payment_id = payment_id
-#         order.razorpay_signature = signature
-#         order.save()
-
-#         return redirect('cart:order_success', order_id=order.id)
-
-#     return redirect('cart:checkout')
 
 def set_default_address(request, address_id):
     """Sets the selected address as the default one for the user."""
@@ -1458,18 +1066,6 @@ def order_success(request, order_id):
     total_str = f"{order.total:.2f}" if order.total else "0.00"
     return render(request, 'user_section/order_success.html', {'order': order, 'total_str': total_str})
 
-# @login_required
-# def download_invoice(request, order_id):
-#     order = get_object_or_404(Order, id=order_id, user=request.user)
-#     html_string = render_to_string('user_section/invoice.html', {'order': order})
-    
-#     html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
-    
-#     pdf = html.write_pdf()  
-
-#     response = HttpResponse(pdf, content_type='application/pdf')
-#     response['Content-Disposition'] = f'attachment; filename=Invoice_{order.iorderid}.pdf'
-#     return response
 
 @login_required
 def download_invoice(request, order_id):
@@ -1490,7 +1086,11 @@ def download_invoice(request, order_id):
         offer_discount += (item_total_mrp - item_offer_total)
 
     subtotal = total_mrp - offer_discount
-    total = subtotal - coupon_discount + delivery_charge
+    # --- TAX (18%) ---
+    tax_amount = subtotal * Decimal('0.18')
+    tax_amount = tax_amount.quantize(Decimal("0.01"))
+
+    total = subtotal - coupon_discount + delivery_charge+tax_amount
 
     #  Send all values to template
     context = {
@@ -1502,6 +1102,7 @@ def download_invoice(request, order_id):
         'delivery_charge': delivery_charge,
         'subtotal': subtotal,
         'total': total,
+        'tax_amount': tax_amount,     
     }
 
     html_string = render_to_string('user_section/invoice.html', context)
@@ -1543,32 +1144,19 @@ def order_detail(request, order_id):
             item.offer_title = None
             item.offer_amount = None
     # print(order)
+    # --- TAX (18%) ---
+    tax_rate = Decimal('0.18')
+    tax_amount = order.subtotal * tax_rate
+
     context = {
         'order': order,
-        'order_items': order_items
+        'order_items': order_items,
+        'tax_amount': round(tax_amount, 2),
+
     }
     return render(request, 'user_section/order_detail.html', context)
 
-# def order_detail(request, order_id):
-#     order = get_object_or_404(Order, id=order_id, user=request.user)
 
-#     # Prefetch ONLY primary images for each variant
-#     primary_images = Prefetch(
-#         'variant__images',
-#         queryset=ProductImage.objects.filter(is_primary=True),
-#         to_attr='primary_image'
-#     )
-
-#     order_items = (
-#         order.items
-#         .select_related('variant', 'product')
-#         .prefetch_related(primary_images)
-#     )
-
-#     return render(request, 'user_section/order_detail.html', {
-#         'order': order,
-#         'order_items': order_items
-#     })
 @login_required
 @transaction.atomic
 def cancel_order(request, order_id):
@@ -1635,6 +1223,15 @@ def cancel_order_item(request, order_id, item_id):
 
         # Step 2: Proportional coupon share for this item
         coupon_discount = Decimal(order.coupon_discount or 0)
+        order_subtotal = Decimal(order.subtotal)  # subtotal after offer
+        tax_total = order_subtotal * Decimal('0.18')
+
+        if order_subtotal > 0:
+            tax_share = (item_total / order_subtotal) * tax_total
+        else:
+            tax_share = Decimal('0.00')
+
+        tax_share = tax_share.quantize(Decimal("0.01"))
 
         if order_total_price > 0:
             coupon_share = (item_total / order_total_price) * coupon_discount
@@ -1642,8 +1239,7 @@ def cancel_order_item(request, order_id, item_id):
             coupon_share = 0
 
         # Step 4: Final refund calculation
-        refund_amount = item_total - coupon_share + delivery_refund
-
+        refund_amount = item_total - coupon_share + delivery_refund+tax_share
 
         wallet, _ = Wallet.objects.get_or_create(user=request.user)
         wallet.balance += refund_amount
@@ -1675,31 +1271,7 @@ def update_order_status(order):
         order.status = 'Processing'
     order.save()
 
-# def cancel_order_item(request, order_id, item_id):
-#     order = get_object_or_404(Order, id=order_id, user=request.user)
-#     item = get_object_or_404(OrderItem, id=item_id, order=order)
-#     if request.method == 'POST':
-#         reason = request.POST.get('reason', '').strip()
-#         if item.cancelled:
-#             return JsonResponse({'error': 'Item already cancelled.'}, status=400)
-#         if order.status == 'Delivered':
-#             return JsonResponse({'error': 'Cannot cancel item of delivered order.'}, status=400)
-#         # update stock
-#         variant = item.variant
-#         variant.stock = (variant.stock or 0) + item.quantity
-#         variant.save()
-#         item.cancelled = True
-#         item.save()
-#         OrderActionLog.objects.create(order=order, item=item, user=request.user,
-#                                       action='CancelItem', reason=reason)
-#         # if all items cancelled -> mark order cancelled
-#         if not order.items.filter(cancelled=False).exists():
-#             order.status = 'Cancelled'
-#             order.save()
-#             OrderActionLog.objects.create(order=order, user=request.user,
-#                                           action='CancelOrder', reason='All items cancelled')
-#         return JsonResponse({'success': True})
-#     return JsonResponse({'error': 'Invalid'}, status=400)
+
 @login_required
 @transaction.atomic
 def return_order(request, item_id):
@@ -1716,21 +1288,11 @@ def return_order(request, item_id):
     if item.status != 'Delivered':
         return JsonResponse({'error': 'Only delivered items can be returned.'}, status=400)
 
-    # mark item as returned
-    # item.returned = True
-    # item.status = 'Returned'
-    # item.return_status = 'Returned'
-    # item.returned_at = timezone.now()
-    # item.save()
 
     item.return_status = 'Pending'
     item.return_requested_at = timezone.now()
     item.save()
 
-    # restore stock
-    # variant = item.variant
-    # variant.stock = (variant.stock or 0) + item.quantity
-    # variant.save()
 
     # create return request
     ReturnRequest.objects.create(
@@ -1747,39 +1309,6 @@ def return_order(request, item_id):
     OrderActionLog.objects.create(order=order, item=item, user=request.user, action='ReturnItem', reason=reason)
 
     return JsonResponse({'success': True, 'message': 'Return request submitted successfully.'})
-# def return_order(request, item_id):
-#     item = get_object_or_404(OrderItem, id=item_id, order__user=request.user)
-#     order = item.order   
-#     if request.method == 'POST':
-#         reason = request.POST.get('reason', '').strip()
-#         if not reason:
-#             return JsonResponse({'error':'Return reason required.'}, status=400)
-#         if order.status != 'Delivered':
-#             return JsonResponse({'error': 'Only delivered orders can be returned.'}, status=400)
-#         # mark as returned 
-#         for item in order.items.filter(returned=False, cancelled=False):
-#             item.returned = True
-#             item.save()
-#             #  adjust stock
-#             variant = item.variant
-#             variant.stock = (variant.stock or 0) + item.quantity
-#             variant.save()
-#             OrderActionLog.objects.create(order=order, item=item, user=request.user,
-#                                           action='ReturnItem', reason=reason)
-#         order.status = 'Returned'
-#         order.save()
-#         OrderActionLog.objects.create(order=order, user=request.user,
-#                                       action='ReturnOrder', reason=reason)
-        
-#         ReturnRequest.objects.create(
-#                 order=order,
-#                 item=item,
-#                 user=request.user,
-#                 reason=reason,
-#                 status='PENDING'
-#     )
-#         return JsonResponse({'success': True, 'message': 'Your order has been successfully returned.'})
-#     return JsonResponse({'error': 'Invalid request'}, status=400)
 
 def merge_session_cart_to_db(request):
     """
@@ -1809,16 +1338,6 @@ def merge_session_cart_to_db(request):
 
     request.session['cart'] = {}
     request.session.modified = True
-# def remove_coupon(request):
-#     """AJAX: Remove applied coupon."""
-#     if request.method == 'POST':
-#         if 'applied_coupon' in request.session:
-#             del request.session['applied_coupon']
-#         if 'discount' in request.session:
-#             del request.session['discount']
-#         request.session.modified = True
-#         return JsonResponse({'success': True, 'message': 'Coupon removed successfully.'})
-#     return JsonResponse({'error': 'Invalid request.'}, status=400)
 
 def remove_coupon(request):
     """AJAX: Remove applied coupon & return updated totals."""
@@ -1835,8 +1354,10 @@ def remove_coupon(request):
         cart = Cart.objects.get(user=request.user)
         subtotal = cart.items_offer_total()
         delivery = cart.delivery_charge()
+        tax_amount = subtotal * Decimal('0.18')
+        tax_amount = tax_amount.quantize(Decimal("0.01"))
         discount = 0
-        total = subtotal + delivery
+        total = subtotal +tax_amount+ delivery
 
         return JsonResponse({
             'success': True,
@@ -1844,7 +1365,8 @@ def remove_coupon(request):
             'subtotal': round(subtotal, 2),
             'delivery_charge': delivery,
             'discount': discount,
-            'total': round(total, 2)
+            'total': round(total, 2),
+                        'tax_amount': float(tax_amount)
         })
 
     return JsonResponse({'error': 'Invalid request.'}, status=400)

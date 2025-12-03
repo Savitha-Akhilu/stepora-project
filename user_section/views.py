@@ -1622,7 +1622,7 @@ def my_orders(request):
 
     for order in orders_page:
         coupon_discount = Decimal(order.coupon_discount or 0)
-
+        order.tax_amount = round(order.subtotal * Decimal('0.18'), 2)
         # total before coupon
         order_total_price = sum(
             Decimal(i.final_price) * i.quantity for i in order.items.all()

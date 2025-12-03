@@ -58,6 +58,8 @@
                 <th>Total Sales (₹)</th>
                 <th>Total Discount (₹)</th>
                 <th>Coupon Deduction (₹)</th>
+                <th>Tax (₹)</th>
+
                                 <th>Total Revenue (₹)</th>
             </tr>
             <tr>
@@ -65,6 +67,8 @@
                 <td>₹{{ summary.total_sales|default:0 }}</td>
                 <td>₹{{ summary.total_discount|default:0 }}</td>
                 <td>₹{{ summary.total_coupon|default:0 }}</td>
+<td>₹{{ summary.total_tax|floatformat:2 }}
+</td>
                                 <td>₹{{ summary.total_revenue|default:0 }}</td>
             </tr>
         </table>
@@ -79,6 +83,8 @@
                 <th>Total Sales (₹)</th>
                 <th>Discount (₹)</th>
                 <th>Coupon (₹)</th>
+                                <th>Tax (₹)</th>
+
                 <th>Delivery (₹)</th>
             </tr>
         </thead>
@@ -90,6 +96,8 @@
                 <td>{{ row.total_sales|default:0 }}</td>
                 <td>{{ row.total_discount|default:0 }}</td>
                 <td>{{ row.coupon_deduction|default:0 }}</td>
+                <td>{{ row.tax_amount|floatformat:2 }}</td>
+
                 <td>{{ row.delivery_charge|default:0 }}</td>
             </tr>
             {% empty %}

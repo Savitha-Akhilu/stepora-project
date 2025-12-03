@@ -4,8 +4,17 @@
 
     <nav class="nav-links">
 <a href="{% url 'user_home' %}" class="{% if request.path == '/' %}active{% endif %}">Home</a>
-<a href="{% url 'men_collection' %}" class="{% if 'men' in request.path %}active{% endif %}">Men</a>
-<a href="{% url 'women_collection' %}" class="{% if 'women' in request.path %}active{% endif %}">Women</a>
+<!-- <a href="{% url 'men_collection' %}" class="{% if 'men' in request.path %}active{% endif %}">Men</a>
+<a href="{% url 'women_collection' %}" class="{% if 'women' in request.path %}active{% endif %}">Women</a> -->
+<a href="{% url 'men_collection' %}" 
+   class="{% if request.resolver_match.url_name == 'men_collection' %}active{% endif %}">
+   Men
+</a>
+
+<a href="{% url 'women_collection' %}" 
+   class="{% if request.resolver_match.url_name == 'women_collection' %}active{% endif %}">
+   Women
+</a>
       <!-- <a href="#">About</a>
       <a href="#">Contact</a> -->
     </nav>

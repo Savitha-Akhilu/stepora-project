@@ -155,6 +155,8 @@
       <p class="text-success">Coupon Discount ({{ order.coupon_code }}): - ₹{{ coupon_discount|floatformat:2 }}</p>
     {% endif %}
     <p>Delivery Charge: ₹{{ delivery_charge|floatformat:2 }}</p>
+    <p>Tax (18%): ₹{{ tax_amount|floatformat:2 }}</p>
+
     <hr>
     <p><strong>Total Amount: ₹{{ total|floatformat:2 }}</strong></p>
   </div>

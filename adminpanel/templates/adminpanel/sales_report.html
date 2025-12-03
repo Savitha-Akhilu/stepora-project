@@ -131,7 +131,7 @@
         </div>
     </div>
 
-    <!-- ✅ NEW Delivery Card -->
+    <!-- NEW Delivery Card -->
     <div class="col-md-2">
         <div class="card text-center border-0 shadow-sm rounded-3">
             <div class="card-body">
@@ -140,6 +140,15 @@
             </div>
         </div>
     </div>
+    <div class="col-md-2">
+    <div class="card text-center border-0 shadow-sm rounded-3">
+        <div class="card-body">
+            <h6 class="text-muted mb-1">Total Tax</h6>
+            <h5 class="fw-bold text-info">₹{{ summary.total_tax|floatformat:2 }}</h5>
+        </div>
+    </div>
+</div>
+
 
     <!-- Revenue Card -->
     <div class="col-md-2">
@@ -166,6 +175,8 @@
             <th>Discount (₹)</th>
             <th>Coupon (₹)</th>
             <th>Delivery (₹)</th>
+            <th>Tax (₹)</th>
+
           </tr>
         </thead>
         <tbody>
@@ -178,6 +189,8 @@
                 <td>{{ row.total_discount|default:0 }}</td>
                 <td>{{ row.coupon_deduction|default:0 }}</td>
                 <td>{{ row.delivery_charge|default:0 }}</td>
+<td>{{ row.tax_amount|floatformat:2 }}</td>
+
               </tr>
             {% endfor %}
           {% else %}

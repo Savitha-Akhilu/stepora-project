@@ -234,8 +234,13 @@
     <span>Delivery</span>
     <strong id="delivery-charge">₹{{ delivery_charge }}</strong>
   </div>
+<div class="d-flex justify-content-between mb-2">
+    <span>Tax (18%)</span>
+    <strong id="tax-amount">₹{{ tax_amount }}</strong>
+</div>
 
   <hr>
+
   <!-- Final Total -->
   <div class="d-flex justify-content-between total-line">
     <span>Total Amount</span>
@@ -642,6 +647,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  // Make remove coupon button work on page load also
+const initialRemoveBtn = document.getElementById("remove-coupon-btn");
+if (initialRemoveBtn) {
+    initialRemoveBtn.addEventListener("click", removeCouponHandler);
+}
+
   const tokenElement = document.querySelector('[name=csrfmiddlewaretoken]');
   const csrftoken = tokenElement ? tokenElement.value : '';
   // const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
@@ -685,6 +696,7 @@ if (discountMrp) discountMrp.textContent = '- ₹' + data.savings;
   const couponDiscount = document.getElementById('coupon-discount');
 if (couponDiscount)
   couponDiscount.textContent = data.discount > 0 ? '- ₹' + data.discount : '₹0.00';
+document.getElementById('tax-amount').textContent = '₹' + data.tax_amount;
 
 const delivery = document.getElementById('delivery-charge');
 if (delivery) delivery.textContent = '₹' + data.delivery_charge;
@@ -746,6 +758,8 @@ document.querySelectorAll('.remove-btn').forEach(btn => {
 
         if (document.getElementById('delivery-charge'))
           document.getElementById('delivery-charge').textContent = '₹' + data.delivery_charge;
+if (document.getElementById('tax-amount'))
+    document.getElementById('tax-amount').textContent = '₹' + data.tax_amount;
 
         if (document.getElementById('total-amount'))
           document.getElementById('total-amount').textContent = '₹' + data.total;
@@ -933,6 +947,7 @@ function removeCouponHandler() {
             document.getElementById("coupon-discount").textContent = "₹0.00";
             document.getElementById("total-amount").textContent = "₹" + data.total;
             document.getElementById("delivery-charge").textContent = "₹" + data.delivery_charge;
+document.getElementById("tax-amount").textContent = "₹" + data.tax_amount;
 
             // const label = document.getElementById("coupon-label");
             // if (label) label.parentElement.remove();

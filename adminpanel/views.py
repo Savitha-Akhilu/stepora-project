@@ -479,71 +479,7 @@ def order_stackchart_data(request):
         "returned": [],
         "cancelled": []
     })
-# def order_stackchart_data(request):
-#     filter_type = request.GET.get("filter", "monthly")
-#     year = request.GET.get("year")
 
-#     if filter_type == "monthly":
-#         year = int(year) if year else datetime.now().year
-
-#         # ------------------------- QUERYSETS --------------------------
-
-#         # 1. Delivered + Partial (Blue)
-#         delivered_qs = Order.objects.filter(
-#             status__in=[
-#                 "Delivered",
-#                 "Partially Delivered",
-#                 "Partially Returned"
-#             ],
-#             payments__status="Success",
-#             created_at__year=year
-#         )
-
-#         # 2. Returned Orders (Orange)
-#         returned_qs = Order.objects.filter(
-#             status="Returned",
-#             created_at__year=year
-#         )
-
-#         # 3. Cancelled Orders (Red)
-#         cancelled_qs = Order.objects.filter(
-#             status="Cancelled",
-#             created_at__year=year
-#         )
-
-#         # ------------------------- GROUPING ---------------------------
-
-#         def group(qs):
-#             data = qs.annotate(period=TruncMonth("created_at")) \
-#                 .values("period") \
-#                 .annotate(c=Count("id")) \
-#                 .order_by("period")
-#             return {x["period"].month: x["c"] for x in data}
-
-#         delivered_map = group(delivered_qs)
-#         returned_map = group(returned_qs)
-#         cancelled_map = group(cancelled_qs)
-
-#         labels = [month_name[m][:3] for m in range(1, 13)]
-
-#         delivered_vals = [delivered_map.get(m, 0) for m in range(1, 13)]
-#         returned_vals = [returned_map.get(m, 0) for m in range(1, 13)]
-#         cancelled_vals = [cancelled_map.get(m, 0) for m in range(1, 13)]
-
-#         return JsonResponse({
-#             "labels": labels,
-#             "delivered": delivered_vals,
-#             "returned": returned_vals,
-#             "cancelled": cancelled_vals,
-#             "year": year
-#         })
-
-#     return JsonResponse({
-#         "labels": [],
-#         "delivered": [],
-#         "returned": [],
-#         "cancelled": []
-#     })
 def order_chart_data(request):
     filter_type = request.GET.get("filter", "monthly")
     year = request.GET.get("year")
@@ -1260,40 +1196,6 @@ def admin_inventory(request):
     return render(request, 'adminpanel/admin_inventory.html', context)
 
 
-# def admin_inventory(request):
-#     variants = ProductVariant.objects.select_related('product', 'color', 'size').order_by('product__name')
-#     return render(request, 'adminpanel/admin_inventory.html', {'variants': variants})
-# def admin_inventory(request):
-#     query = request.GET.get('q')  # for search
-#     status = request.GET.get('status')  # for stock filter
-
-#     variants = ProductVariant.objects.select_related('product', 'color', 'size').order_by('product__name')
-
-#     # 🔍 Filter by search or status
-#     if query:
-#         variants = variants.filter(
-#             Q(product__name__icontains=query) |
-#             Q(variant_name__icontains=query) |
-#             Q(color__name__icontains=query)
-#         )
-
-#     if status == 'low':
-#         variants = variants.filter(stock__lte=models.F('low_stock_qty'))
-#     elif status == 'available':
-#         variants = variants.filter(stock__gt=models.F('low_stock_qty'))
-
-#     # Pagination (10 items per page)
-#     paginator = Paginator(variants, 10)
-#     page_number = request.GET.get('page')
-#     page_obj = paginator.get_page(page_number)
-
-#     context = {
-#         'variants': page_obj,  # use page_obj in template
-#         'query': query,
-#         'status': status
-#     }
-#     return render(request, 'adminpanel/admin_inventory.html', context)
-
 @login_required(login_url='/adminpanel/login/')
 def admin_order_detail(request, order_id):
     order = get_object_or_404(Order, id=order_id)
@@ -1315,47 +1217,18 @@ def admin_order_detail(request, order_id):
             address = Address.objects.get(id=order.address_id)
         except Address.DoesNotExist:
             address = None
-    
+    # --- TAX (18%) ---
+    tax_amount = Decimal(order.subtotal) * Decimal('0.18')
+    tax_amount = tax_amount.quantize(Decimal("0.01"))
+
 
     context = {
         'order': order,
         'order_items': order_items,  
-                'address': address,   
+                'address': address, 
+                    'tax_amount': tax_amount,       
     }
     return render(request, 'adminpanel/admin_order_detail.html', context)
-
-
-# def admin_order_detail(request, order_id):
-#     # Get order for the given ID
-#     order = get_object_or_404(Order, id=order_id)
-
-#     # Fetch related order items, variants, and products
-#     order_items = (
-#         order.items
-#         .select_related('variant', 'product')
-#         .prefetch_related('variant__images')
-#     )
-
-#     # Prepare items with their primary image
-#     order_item_data = []
-#     for item in order_items:
-#         primary_image = ProductImage.objects.filter(
-#             variant=item.variant, is_primary=True
-#         ).first()
-#         order_item_data.append({
-#             'product_name': item.product.name,
-#             'variant_name': item.variant.variant_name,
-#             'price': item.price,
-#             'quantity': item.quantity,
-#             'subtotal': item.price * item.quantity,
-#             'image': primary_image.image.url if primary_image else None
-#         })
-
-#     context = {
-#         'order': order,
-#         'order_items': order_item_data,
-#     }
-#     return render(request, 'adminpanel/admin_order_detail.html', context)
 
 
 @login_required(login_url='/adminpanel/login/')
@@ -1498,12 +1371,6 @@ def edit_coupon(request, id):
 
     return render(request, 'adminpanel/edit_coupon.html', {'coupon': coupon})
 
-# @login_required(login_url='/adminpanel/login/')
-# def delete_coupon(request, id):
-#     coupon = get_object_or_404(Coupon, id=id)
-#     coupon.delete()
-#     messages.success(request, f"Coupon '{coupon.code}' deleted successfully!")
-#     return redirect('admin_coupons')
 
 @login_required(login_url='/adminpanel/login/')
 def delete_coupon(request, id):
@@ -1653,6 +1520,7 @@ def sales_report(request):
         p = row["period"]
         row["total_sales"] = sales_dict.get(p, {}).get("total_sales", 0)
         row["total_discount"] = sales_dict.get(p, {}).get("total_discount", 0)
+        row["tax_amount"] = round(row["total_sales"] * Decimal("0.18"), 2)
 
     # 6) SUMMARY TOTALS
     summary = {
@@ -1661,9 +1529,12 @@ def sales_report(request):
         "total_discount": valid_items.aggregate(s=Sum("discount_value"))["s"] or 0,
         "total_delivery": valid_orders.aggregate(s=Sum("delivery_charge"))["s"] or 0,
         "total_coupon": round(total_coupon_summary, 2),
+
     }
+    summary["total_tax"] = round(summary["total_sales"] * Decimal("0.18"), 2)
+
     summary["total_revenue"] = (
-        summary["total_sales"] - summary["total_coupon"] + summary["total_delivery"]
+        summary["total_sales"] - summary["total_coupon"] + summary["total_delivery"]+summary["total_tax"]
     )
     # PAGINATION
     page_number = request.GET.get("page")
@@ -1790,6 +1661,8 @@ def sales_report_org(request):
         p = row["period"]
         row["total_sales"] = sales_dict.get(p, {}).get("total_sales", 0)
         row["total_discount"] = sales_dict.get(p, {}).get("total_discount", 0)
+        row["tax_amount"] = round(row["tax_amount"] or 0, 2)
+
 
     # ------------------------------
     # SUMMARY
@@ -1993,6 +1866,16 @@ def export_sales_excel(request):
             period_coupon += delivered_coupon
 
         row["coupon_deduction"] = float(round(period_coupon, 2))
+        taxable_items = valid_items.filter(
+        order__created_at__date=period_date.date()
+                  )
+        taxable_amount = taxable_items.aggregate(
+        total=Sum(F("final_price") * F("quantity"))
+              )["total"] or 0
+
+        row["tax_amount"] = round(float(taxable_amount) * 0.18, 2)
+
+
 
     # ---- SALES & DISCOUNT CALC (same as PDF) ----
     sales_map = (
@@ -2009,12 +1892,14 @@ def export_sales_excel(request):
         p = row["period"]
         row["total_sales"] = float(sales_dict.get(p, {}).get("total_sales", 0))
         row["total_discount"] = float(sales_dict.get(p, {}).get("total_discount", 0))
+        row["tax_amount"] = round(row["total_sales"] * 0.18, 2)
 
         # ---- TOTAL REVENUE ----
         row["total_revenue"] = (
             row["total_sales"]
             - float(row["coupon_deduction"])
             + float(row["delivery_charge"] or 0)
+                + float(row["tax_amount"])
         )
 
     # -------- CREATE EXCEL --------
@@ -2024,7 +1909,7 @@ def export_sales_excel(request):
 
     headers = [
         "Date", "Total Orders", "Total Sales (₹)", "Discount (₹)",
-        "Coupon (₹)", "Delivery (₹)", "Total Revenue (₹)"
+        "Coupon (₹)", "Delivery (₹)", "Tax (₹)","Total Revenue (₹)"
     ]
     ws.append(headers)
 
@@ -2036,6 +1921,7 @@ def export_sales_excel(request):
             row["total_discount"],
             row["coupon_deduction"],
             float(row["delivery_charge"] or 0),
+                row["tax_amount"],       
             round(row["total_revenue"], 2),
         ])
     # ---------- ADD TOTAL ROW ----------
@@ -2044,6 +1930,7 @@ def export_sales_excel(request):
     total_discount = sum(r["total_discount"] for r in grouped_orders)
     total_coupon = sum(float(r["coupon_deduction"]) for r in grouped_orders)
     total_delivery = sum(float(r["delivery_charge"] or 0) for r in grouped_orders)
+    total_tax = sum(r["tax_amount"] for r in grouped_orders)
     total_revenue = sum(r["total_revenue"] for r in grouped_orders)
 
     ws.append([])  # Empty row for spacing
@@ -2055,6 +1942,7 @@ def export_sales_excel(request):
         round(total_discount, 2),
         round(total_coupon, 2),
         round(total_delivery, 2),
+            round(total_tax, 2),     
         round(total_revenue, 2),
     ])
 
@@ -2195,11 +2083,13 @@ def export_sales_pdf(request):
     )
 
     sales_dict = {s["period"]: s for s in sales_map}
-
+    total_tax_summary = Decimal("0.00")
     for row in grouped_orders:
         p = row["period"]
         row["total_sales"] = sales_dict.get(p, {}).get("total_sales", 0)
         row["total_discount"] = sales_dict.get(p, {}).get("total_discount", 0)
+        row["tax_amount"] = round(row["total_sales"] * Decimal("0.18"), 2)
+        total_tax_summary += row["tax_amount"]
 
     # -------- 8) SAME SUMMARY --------
     summary = {
@@ -2208,6 +2098,7 @@ def export_sales_pdf(request):
         "total_discount": valid_items.aggregate(s=Sum("discount_value"))["s"] or 0,
         "total_delivery": valid_orders.aggregate(s=Sum("delivery_charge"))["s"] or 0,
         "total_coupon": round(total_coupon_summary, 2),
+                "total_tax": round(total_tax_summary, 2),
         
     }
     summary["total_revenue"] = (
@@ -2215,6 +2106,7 @@ def export_sales_pdf(request):
     
     - summary["total_coupon"]
     + summary["total_delivery"]
+            + summary["total_tax"]
 )
     # -------- 9) RENDER PDF --------
     html = render_to_string("adminpanel/sales_report_pdf.html", {
@@ -2322,46 +2214,6 @@ def approve_return(request, item_id):
     messages.success(request, result['message'])
     return redirect('admin_orders')
 
-# adminpanel/views.py
-# def verify_return_request(request, request_id):
-#     rr = get_object_or_404(ReturnRequest, id=request_id)
-
-#     action = request.GET.get('action')  
-
-#     if rr.status != 'PENDING':
-#         messages.warning(request, 'This return request was already processed.')
-#         return redirect('return_requests')
-
-#     if action == 'approve':
-#         rr.status = 'Approved'
-#         rr.verified_at = timezone.now()
-#         rr.save()
-
-#         # refund to wallet
-#         wallet, created = Wallet.objects.get_or_create(user=rr.user)
-#         refund_amount = rr.order.total_amount 
-#         wallet.credit(refund_amount)
-
-#         order_item = rr.order_item
-#         order_item.status = 'Returned'
-#         order_item.return_status = 'Approved'   
-#         order_item.save()
-
-#         messages.success(request, f'Return approved. ₹{refund_amount} credited to {rr.user.username} wallet.')
-
-#     elif action == 'reject':
-#         print("reject")
-#         rr.status = 'Delivered'
-#         rr.verified_at = timezone.now()
-#         rr.save()
-#         order_item = rr.order_item
-#         order_item.return_status = 'Rejected'   
-#         order_item.save()
-#         messages.info(request, 'Return request rejected.')
-
-#     return redirect('return_requests')
-
-
 
 @transaction.atomic
 def verify_return_request(request, rr_id):
@@ -2407,6 +2259,15 @@ def verify_return_request(request, rr_id):
 
         # Step 5: Final refund = item price - coupon share + delivery refund (if any)
         # refund_amount = item_total - coupon_share + delivery_refund
+# --- TAX CALCULATION ---
+        order_subtotal = Decimal(order.subtotal)  # after offer
+        tax_total = order_subtotal * Decimal("0.18")
+        if order_subtotal > 0:
+            tax_share = (item_total / order_subtotal) * tax_total
+        else:
+            tax_share = Decimal("0.00")
+
+        tax_share = tax_share.quantize(Decimal("0.01"))
 
 
         if active_count == 1:
@@ -2415,7 +2276,7 @@ def verify_return_request(request, rr_id):
             delivery_refund = Decimal('0.00')
         print("item_total--",item_total,"coupon_share--",coupon_share,"delivery_refund--",delivery_refund)
 
-        refund_amount = item_total - coupon_share + delivery_refund 
+        refund_amount = item_total - coupon_share + delivery_refund +tax_share
         refund_amount = refund_amount.quantize(Decimal("0.01"))
 
                 #  Restore stock
