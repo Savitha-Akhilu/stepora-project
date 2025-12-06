@@ -177,7 +177,16 @@
 
     {% else %}
       <!-- Return button only when no request yet -->
-      <button class="action-btn-light" onclick="openReturnModal('{{ item.id }}')">Return</button>
+             {% if item.return_expired %}
+        <button class="action-btn-light" disabled style="opacity:0.4; cursor:not-allowed;">
+            Return Expired
+        </button>
+      {% else %}
+        <button class="action-btn-light" onclick="openReturnModal('{{ item.id }}')">
+            Return
+        </button>
+      {% endif %}
+      <!-- <button class="action-btn-light" onclick="openReturnModal('{{ item.id }}')">Return</button> -->
       <a href="{% url 'cart:order_invoice' order.id %}" class="action-btn-light">Invoice</a>
       <a href="{% url 'cart:order_detail' order.id %}" class="action-btn">View Details</a>
     {% endif %}

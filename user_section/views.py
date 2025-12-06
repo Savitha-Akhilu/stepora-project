@@ -33,6 +33,7 @@ from adminpanel.utils import get_best_offer_price
 from django.db import transaction
 from cart.views import merge_session_cart_to_db
 from .utils import send_otp_email
+from django.utils import timezone
 @login_required
 def redirect_after_login(request):
     user = request.user
@@ -1647,6 +1648,11 @@ def my_orders(request):
 
             # final price after coupon
             item.final_after_coupon = (item_total - item.coupon_share).quantize(Decimal("0.01"))
+            if item.delivered_at:
+                item.return_expired = (item.delivered_at + timedelta(days=10)) < timezone.now()
+            else:
+                item.return_expired = False  # if no delivered_at, allow return
+
 
     return render(request, 'user_section/my_orders.html', {
         'orders': orders_page

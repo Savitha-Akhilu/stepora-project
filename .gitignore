@@ -25,3 +25,4 @@ staticfiles/
 # === IDE / Editor Settings ===
 .vscode/
 .idea/
+/stepora/settings.py

@@ -384,7 +384,6 @@
             </div>
           </div>
           <div class="card-body">
-  <h6 class="card-title fw-semibold">{{ variant.variant_name }}</h6>
 
 {% if variant.best_offer.has_offer %}
   <h6 class="fw-bold text-dark mb-0">
@@ -401,6 +400,8 @@
 {% else %}
   <h6 class="fw-bold text-dark">₹{{ variant.price }}</h6>
 {% endif %}
+  <h6 class="card-title fw-semibold">{{ variant.variant_name }}</h6>
+
 </div>
 
         </div>
